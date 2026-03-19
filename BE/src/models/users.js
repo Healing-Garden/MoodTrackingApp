@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-<<<<<<< HEAD
 const categorySchema = new mongoose.Schema({
   enabled: { type: Boolean, default: false },
   methods: [{ type: String, enum: ['web', 'email'] }],
@@ -10,15 +9,6 @@ const categorySchema = new mongoose.Schema({
     email: Date
   }
 }, { _id: false });
-=======
-const DEFAULT_AVATAR_URL =
-  process.env.DEFAULT_AVATAR_URL ||
-  "https://i.pinimg.com/originals/bc/43/98/bc439871417621836a0eeea768d60944.jpg";
-
-const notificationSchema = new mongoose.Schema(
-  {
-    enabled: { type: Boolean, default: true },
->>>>>>> main
 
 const weeklyInsightsSchema = new mongoose.Schema({
   enabled: { type: Boolean, default: false },
@@ -73,20 +63,6 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
-<<<<<<< HEAD
-=======
-    avatarUrl: {
-      type: String,
-      default: DEFAULT_AVATAR_URL,
-    },
-
-    dateOfBirth: Date,
-
-    heightCm: Number,
-
-    healthGoals: [{ type: String }],
-
->>>>>>> main
     accountStatus: {
       type: String,
       enum: ["active", "banned"],

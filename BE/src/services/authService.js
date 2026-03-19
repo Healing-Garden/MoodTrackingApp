@@ -4,15 +4,6 @@ const jwt = require("jsonwebtoken");
 const googleAuthService = require("./googleAuthService");
 const { applyDefaultAvatar } = require("./userService");
 
-const DEFAULT_AVATAR_URL =
-  process.env.DEFAULT_AVATAR_URL ||
-  "https://i.pinimg.com/originals/bc/43/98/bc439871417621836a0eeea768d60944.jpg";
-
-const isDefaultAvatar = (url) => {
-  if (!url) return true;
-  return url.trim() === DEFAULT_AVATAR_URL;
-};
-
 const issueJwt = (user) => {
   const finalUser = applyDefaultAvatar(user);
   const accessToken = jwt.sign(
@@ -125,7 +116,6 @@ module.exports = {
     if (user.authProvider === "local") {
       user.googleId = googleId;
       user.authProvider = "both";
-<<<<<<< HEAD
       if (!user.avatarUrl) user.avatarUrl = picture;
       needsSave = true;
     } else if (!user.googleId) {
@@ -141,21 +131,6 @@ module.exports = {
     }
 
     if (needsSave) {
-=======
-      if (isDefaultAvatar(user.avatarUrl)) user.avatarUrl = picture;
-      await user.save();
-
-      return issueJwt(user);
-    }
-
-    if (!user.googleId) {
-      user.googleId = googleId;
-      user.authProvider = "both";
-      if (isDefaultAvatar(user.avatarUrl)) user.avatarUrl = picture;
-      await user.save();
-    } else if (isDefaultAvatar(user.avatarUrl)) {
-      user.avatarUrl = picture;
->>>>>>> main
       await user.save();
     }
 
@@ -171,12 +146,8 @@ module.exports = {
 
     user.googleId = googleId;
     user.authProvider = "both";
-<<<<<<< HEAD
     if (!user.avatarUrl) user.avatarUrl = avatarUrl;
     user.googleAvatarUrl = avatarUrl;
-=======
-    if (isDefaultAvatar(user.avatarUrl)) user.avatarUrl = avatarUrl;
->>>>>>> main
 
     await user.save();
     return issueJwt(user);
