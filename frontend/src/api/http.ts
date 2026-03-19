@@ -31,17 +31,10 @@ const processQueue = (
 
 // Gắn access token
 http.interceptors.request.use((config) => {
-<<<<<<< HEAD
   const token =
     localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-=======
-  const token = localStorage.getItem("accessToken");
->>>>>>> main
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-  }
-  if (config.data instanceof FormData && config.headers) {
-    delete (config.headers as any)["Content-Type"];
   }
   return config;
 });
