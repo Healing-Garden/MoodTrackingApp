@@ -11,7 +11,7 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
     try {
       // Replace with your actual BE endpoint URL
-      const res = await axios.post('http://localhost:3000/api/auth/login', {
+      const res = await axios.post('http://localhost:8080/api/auth/login', {
         email,
         password
       });
