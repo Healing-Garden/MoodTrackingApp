@@ -3,6 +3,7 @@ const http = require('http');
 const cors = require("cors");
 const socketIo = require('socket.io');
 const authRouters = require("./routes/authRoutes");
+const profileRouters = require("./routes/profileRoutes");
 const userRouters = require("./routes/userRoutes");
 const journalRouters = require("./routes/journalRoutes");
 const aiRoutes = require('./routes/aiRoutes');
@@ -65,6 +66,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth", authRouters);
+app.use("/api/profile", profileRouters);
 app.use("/api/user", userRouters);
 app.use("/api/journals", journalRouters);
 
