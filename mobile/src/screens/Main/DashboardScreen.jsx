@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -7,18 +7,119 @@ import {
     ScrollView,
     StyleSheet,
     StatusBar,
-    Dimensions
+    Dimensions,
+    ActivityIndicator
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
+import userService from '../../services/userService';
 import logo from '../../../assets/images/logo.png';
 
 const { width } = Dimensions.get('window');
 
 const DashboardScreen = ({ navigation }) => {
+    const [userProfile, setUserProfile] = useState(null);
+    const [dashboardData, setDashboardData] = useState(null);
+    const [moodFlow, setMoodFlow] = useState([]);
+    const [dailyQuote, setDailyQuote] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [greeting, setGreeting] = useState('');
+
+    useEffect(() => {
+        const hour = new Date().getHours();
+        if (hour < 12) setGreeting('Good Morning');
+        else if (hour < 18) setGreeting('Good Afternoon');
+        else if (hour < 21) setGreeting('Good Evening');
+        else setGreeting('Good Night');
+    }, []);
+
+    const fetchData = useCallback(async () => {
+        try {
+            setLoading(true);
+            const [profile, stats, flow, quotes] = await Promise.all([
+                userService.getProfile(),
+                userService.getDashboardData(),
+                userService.getMoodFlow ? userService.getMoodFlow('week') : userService.getDashboardData(), // Fallback if not specifically implemented
+                userService.getHealingContent('quote')
+            ]);
+
+            setUserProfile(profile);
+            setDashboardData(stats);
+            
+            // Handle mood flow data
+            if (flow && flow.items) {
+                setMoodFlow(flow.items);
+            } else if (stats && stats.moodDistribution) {
+                // Fallback or handle differently
+            }
+
+            // Handle daily quote
+            if (quotes && quotes.length > 0) {
+                const today = new Date();
+                const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+                const index = seed % quotes.length;
+                setDailyQuote(quotes[index]);
+            }
+        } catch (error) {
+            console.error('Failed to fetch dashboard data:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const renderMoodTrend = () => {
+        const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+        const today = new Date().getDay(); // 0 is Sunday, 1 is Monday...
+        const adjustedDays = [...days.slice(today), ...days.slice(0, today)]; // Last 7 days including today
+        
+        // Mock data if no real data yet, or process real data
+        const displayData = moodFlow.length > 0 
+            ? moodFlow.slice(-7).map(item => ({
+                val: item.mood / 5, // Normalize to 0-1
+                label: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
+            }))
+            : [0.5, 0.65, 0.45, 0.75, 1, 0.6, 0.9].map((v, i) => ({
+                val: v,
+                label: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'TODAY'][i]
+            }));
+
+        return (
+            <View style={styles.chartContainer}>
+                {displayData.map((data, i) => (
+                    <View key={i} style={styles.chartCol}>
+                        <View style={[styles.bar, { height: data.val * 80 }]}>
+                            <MaterialIcons 
+                                name={data.val >= 0.8 ? "sentiment-very-satisfied" : data.val >= 0.6 ? "sentiment-satisfied" : "sentiment-neutral"} 
+                                size={16} 
+                                color={i === displayData.length - 1 ? theme.colors.primary : "rgba(39, 107, 46, 0.4)"} 
+                                style={styles.barIcon}
+                            />
+                        </View>
+                        <Text style={[styles.dayLabel, i === displayData.length - 1 && styles.activeDay]}>
+                            {data.label === new Date().toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase() ? 'TODAY' : data.label}
+                        </Text>
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
+    if (loading && !dashboardData) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <Text style={{ marginTop: 16, color: theme.colors.onSurfaceVariant }}>Tending to your garden...</Text>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
@@ -35,8 +136,8 @@ const DashboardScreen = ({ navigation }) => {
                     </View>
                     <Text style={styles.appTitle}>Healing Garden</Text>
                 </View>
-                <TouchableOpacity style={styles.notificationBtn}>
-                    <MaterialIcons name="notifications-none" size={24} color={theme.colors.onSurface} />
+                <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('Settings')}>
+                    <MaterialIcons name="settings" size={24} color={theme.colors.onSurface} />
                 </TouchableOpacity>
             </BlurView>
 
@@ -52,12 +153,14 @@ const DashboardScreen = ({ navigation }) => {
                     style={styles.heroCard}
                 >
                     <View style={styles.heroContent}>
-                        <Text style={styles.heroGreeting}>Good Morning, Elena</Text>
+                        <Text style={styles.heroGreeting}>{greeting}, {userProfile?.fullName || 'Elena'}</Text>
                         <Text style={styles.heroTitle}>Your garden is blooming beautifully</Text>
                         
                         <View style={styles.plantBadge}>
                             <MaterialIcons name="spa" size={14} color="#fff" />
-                            <Text style={styles.plantBadgeText}>12 plants in full bloom</Text>
+                            <Text style={styles.plantBadgeText}>
+                                Day {dashboardData?.journeyDays || 1} of your journey
+                            </Text>
                         </View>
                     </View>
                     
@@ -75,7 +178,7 @@ const DashboardScreen = ({ navigation }) => {
                 {/* Daily Check-in (Full Width) */}
                 <TouchableOpacity 
                     style={styles.checkInCard}
-                    onPress={() => navigation.navigate('OnboardingStep1')}
+                    onPress={() => navigation.navigate('OnboardingStep4', { isDailyCheckIn: true })}
                 >
                     <View style={styles.checkInLeft}>
                         <View style={styles.checkInIconBox}>
@@ -118,27 +221,13 @@ const DashboardScreen = ({ navigation }) => {
                         </View>
                         <View style={styles.trendBadge}>
                             <MaterialIcons name="trending-up" size={14} color={theme.colors.primary} />
-                            <Text style={styles.trendBadgeText}>Steadily Rising</Text>
+                            <Text style={styles.trendBadgeText}>
+                                {dashboardData?.weeklyStats?.avgMood >= 4 ? 'Blooming' : 'Growing'}
+                            </Text>
                         </View>
                     </View>
 
-                    <View style={styles.chartContainer}>
-                        {[0.5, 0.65, 0.45, 0.75, 1, 0.6, 0.9].map((val, i) => (
-                            <View key={i} style={styles.chartCol}>
-                                <View style={[styles.bar, { height: val * 80 }]}>
-                                    <MaterialIcons 
-                                        name={val >= 0.8 ? "sentiment-very-satisfied" : val >= 0.6 ? "sentiment-satisfied" : "sentiment-neutral"} 
-                                        size={16} 
-                                        color={i === 6 ? theme.colors.primary : "rgba(39, 107, 46, 0.4)"} 
-                                        style={styles.barIcon}
-                                    />
-                                </View>
-                                <Text style={[styles.dayLabel, i === 6 && styles.activeDay]}>
-                                    {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'TODAY'][i]}
-                                </Text>
-                            </View>
-                        ))}
-                    </View>
+                    {renderMoodTrend()}
                 </View>
 
                 {/* QUOTE SECTION */}
@@ -146,8 +235,9 @@ const DashboardScreen = ({ navigation }) => {
                     <MaterialIcons name="format-quote" size={40} color={theme.colors.tertiary} style={styles.quoteIcon} />
                     <View style={styles.quoteContent}>
                         <Text style={styles.quoteText}>
-                            "The soul cannot thrive in a garden of stones. Take a moment today to breathe in the green."
+                            {dailyQuote?.content || dailyQuote?.description || dailyQuote?.title || "The soul cannot thrive in a garden of stones. Take a moment today to breathe in the green."}
                         </Text>
+                        {dailyQuote?.author && <Text style={[styles.quoteLabel, { marginTop: 8, fontStyle: 'italic' }]}>— {dailyQuote.author}</Text>}
                         <View style={styles.quoteDivider} />
                         <Text style={styles.quoteLabel}>INSIGHT FOR YOUR GROWTH</Text>
                     </View>
