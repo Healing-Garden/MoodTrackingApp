@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     infoBanner: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: theme.colors.surfaceContainerLow, padding: 16, borderRadius: 16, marginTop: 12, gap: 12 },
     infoText: { flex: 1, fontSize: 12, color: theme.colors.onSurfaceVariant, lineHeight: 18 },
     quoteCard: { marginTop: 32, borderRadius: 32, backgroundColor: theme.colors.primaryContainer, height: 160, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
-quoteDecoration1: { position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.1)', top: -30, left: -30 },
+    quoteDecoration1: { position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.1)', top: -30, left: -30 },
     quoteDecoration2: { position: 'absolute', width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.1)', bottom: -20, right: -20 },
     quoteContent: { alignItems: 'center', paddingHorizontal: 20 },
     quoteText: { fontFamily: theme.fonts.headline, fontSize: 16, fontStyle: 'italic', fontWeight: '400', color: theme.colors.onPrimary, textAlign: 'center', marginTop: 8 },
