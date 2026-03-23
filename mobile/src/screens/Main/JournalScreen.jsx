@@ -1,856 +1,488 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
     View,
     Text,
     ScrollView,
     TouchableOpacity,
     TextInput,
+    Image,
     StyleSheet,
     StatusBar,
-    Image,
-    Dimensions
-} from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { theme } from '../../theme';
-import BottomNavBar from '../../components/common/BottomNavBar';
-import logo from '../../../assets/images/logo.png';
-
-const { width } = Dimensions.get('window');
+    Alert,
+    ActivityIndicator
+} from "react-native";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import * as ImagePicker from "expo-image-picker";
+import Voice from "@react-native-voice/voice";
+import { useFocusEffect } from '@react-navigation/native';
+import { theme } from "../../theme";
+import BottomNavBar from "../../components/common/BottomNavBar";
+import api from "../../services/api";
 
 const MOODS = ["😊", "😢", "😡", "😠", "😐", "🙂", "🙃", "😍"];
+const EMOTIONS = ["Happy", "Sad", "Anxious", "Grateful", "Peaceful", "Energized", "Overwhelmed", "Hopeful"];
 
 const JournalScreen = ({ navigation }) => {
-    const [activeTab, setActiveTab] = useState('Write');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedMood, setSelectedMood] = useState(null);
+    const [activeTab, setActiveTab] = useState("entries"); // "write", "entries", "trash"
+    const [entries, setEntries] = useState([]);
+    const [trashEntries, setTrashEntries] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
-    const entries = [
-        {
-            id: 1,
-            date: "October 24, 2023",
-            title: "The Morning Dew",
-            tags: ["Gratitude", "Nature"],
-            content: "Today the garden felt particularly vibrant. I spent thirty minutes just watching the sun hit the hydrangea petals. It reminded me that growth is often silent but certain...",
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDllPwbkrifogq-y4jjgPMVxmkpY3iy_aizhGgvjPmUGpzxwMXeYOSqPewYedwq8NtMw9VXULhBTSdiayueg4QnZBGojxU45hmrlx5wppLLpzaq4CmfQxsPqvjRnqNm1_t1C-oLayDSMVUIXJ77SKpvueBo4uSKS0pE2EOSi7cTDTH-IjBUpxg0WySLCDrDlD8ZoGWFbsyymlo5gGubcYKL9e2eI961z93hNjQaSEsbF8Qt0knme2-8faqyAAxwZUbf3wGSkFr5dTs",
-            mood: "🌞"
-        },
-        {
-            id: 2,
-            date: "October 21, 2023",
-            title: "Finding Stillness in Storms",
-            tags: ["Mindfulness"],
-            content: "When the rain started, I felt a surge of anxiety. But then I realized the garden needs the rain just as much as the sun. I practiced deep breathing for 10 minutes...",
-            moodChar: "Peaceful",
-            isAsymmetric: true
-        },
-        {
-            id: 3,
-            date: "October 19, 2023",
-            title: "Reflections on 'The Hidden Life of Trees'",
-            content: "\"Trees are social beings. They share food with their own species and sometimes even nourish their competitors.\" This book has completely changed how I walk through the park...",
-            tags: ["Library"],
-            isLibrary: true
-        }
-    ];
+    // Form states
+    const [content, setContent] = useState("");
+    const [selectedMood, setSelectedMood] = useState("😊");
+    const [selectedEmotions, setSelectedEmotions] = useState([]);
+    const [images, setImages] = useState([]);
+    const [isRecording, setIsRecording] = useState(false);
+    const [saving, setSaving] = useState(false);
 
-    const trashedEntries = [
-        {
-            id: 'T1',
-            title: "Morning Reflection on Growth",
-            content: "\"I felt like a seedling pushing through the soil today. The weight of expectations was heavy, but the sunlight felt...\"",
-            deleted: "Deleted Oct 12",
-            remain: "24 days remaining"
-        },
-        {
-            id: 'T2',
-            title: "Unspoken Storm Clouds",
-            content: "\"Sometimes the silence is louder than the rain. I'm trying to find where the tension lives in my body and just let it...\"",
-            deleted: "Deleted Oct 04",
-            remain: "12 days remaining"
-        },
-        {
-            id: 'T3',
-            title: "Draft: The River Path",
-            content: "\"Walking by the creek helped me realize that life doesn't always have to be a straight line. The curves are where...\"",
-            deleted: "Deleted Sep 22",
-            remain: "2 days remaining",
-            isUrgent: true
-        }
-    ];
-
-    const renderWrite = () => (
-        <View style={styles.writeContainer}>
-            <View style={styles.editorCard}>
-                <View style={styles.decorativeMoodBloom} />
-                <TextInput
-                    style={styles.journalTitleInput}
-                    placeholder="Journal Title"
-                    placeholderTextColor="#c0c9bb"
-                />
-                <TextInput
-                    style={styles.journalTextArea}
-                    placeholder="Share your thoughts..."
-                    placeholderTextColor="rgba(64, 73, 62, 0.6)"
-                    multiline
-                    numberOfLines={8}
-                    textAlignVertical="top"
-                />
-            </View>
-
-            <View style={styles.feelingSection}>
-                <View style={[styles.sectionTitleRow, { marginBottom: 16 }]}>
-                    <MaterialIcons name="mood" size={24} color={theme.colors.primary} />
-                    <Text style={styles.sectionTitle}>Current Feeling</Text>
-                </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moodsRow}>
-                    {MOODS.map((mood, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={[styles.moodItem, selectedMood === index && styles.activeMoodItem]}
-                            onPress={() => setSelectedMood(index)}
-                        >
-                            <Text style={styles.moodEmoji}>{mood}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            </View>
-
-            <View style={styles.emotionsSection}>
-                <View style={[styles.sectionTitleRow, { marginBottom: 16 }]}>
-                    <MaterialIcons name="label" size={24} color={theme.colors.secondary} />
-                    <Text style={styles.sectionTitle}>Identify Emotions</Text>
-                </View>
-                <View style={styles.emotionsGrid}>
-                    {['Happy', 'Sad', 'Anxious', 'Grateful', 'Peaceful', 'Energized', 'Overwhelmed', 'Hopeful'].map((emotion) => (
-                        <TouchableOpacity key={emotion} style={[styles.emotionTag, emotion === 'Happy' && styles.activeEmotionTag]}>
-                            <Text style={[styles.emotionTagText, emotion === 'Happy' && styles.activeEmotionTagText]}>{emotion}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
-
-            <View style={styles.brandCard}>
-                <View style={styles.brandContent}>
-                    <Text style={styles.brandTitle}>Your Digital Sanctuary</Text>
-                    <Text style={styles.brandDesc}>Every word you plant here grows into a more mindful version of yourself. Take your time, there's no rush in the garden.</Text>
-                </View>
-                <View style={styles.brandVisual}>
-                    <MaterialIcons name="energy-savings-leaf" size={48} color="#fff" style={{ opacity: 0.6 }} />
-                </View>
-                <View style={styles.brandDecor1} />
-                <View style={styles.brandDecor2} />
-            </View>
-        </View>
+    useFocusEffect(
+        useCallback(() => {
+            loadEntries();
+            loadDeletedEntries();
+            return () => { }
+        }, [])
     );
 
-    const renderEntries = () => (
-        <View style={styles.entriesContainer}>
-            <View style={styles.searchContainer}>
-                <MaterialIcons name="search" size={24} color="rgba(113, 122, 109, 0.6)" style={styles.searchIcon} />
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder="Search your memories..."
-                    placeholderTextColor="rgba(113, 122, 109, 0.5)"
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                />
-            </View>
+    useEffect(() => {
+        // Init Voice
+        Voice.onSpeechResults = onSpeechResults;
+        Voice.onSpeechError = onSpeechError;
 
-            {entries.map((entry) => (
-                <View key={entry.id} style={[styles.entryCard, entry.isAsymmetric && styles.asymmetricCard]}>
-                    <View style={styles.entryHeader}>
-                        <View>
-                            <Text style={styles.entryDate}>{entry.date.toUpperCase()}</Text>
-                            <Text style={styles.entryTitle}>{entry.title}</Text>
-                        </View>
-                        {entry.mood && (
-                            <View style={styles.moodCircle}>
-                                <Text style={{ fontSize: 20 }}>{entry.mood}</Text>
-                            </View>
-                        )}
-                        {entry.moodChar && (
-                            <View style={styles.peacefulBadge}>
-                                <Text style={styles.peacefulBadgeText}>{entry.moodChar}</Text>
-                            </View>
-                        )}
-                        {entry.isLibrary && (
-                            <MaterialIcons name="more-horiz" size={24} color={theme.colors.onSurfaceVariant} />
-                        )}
-                    </View>
+        return () => {
+            Voice.destroy().then(Voice.removeAllListeners);
+        };
+    }, []);
 
-                    <View style={styles.tagRow}>
-                        {entry.tags?.map(tag => (
-                            <View key={tag} style={[styles.tag, tag === 'Gratitude' ? styles.gratitudeTag : tag === 'Nature' ? styles.natureTag : tag === 'Mindfulness' ? styles.mindfulnessTag : styles.libraryTag]}>
-                                <Text style={[styles.tagText, tag === 'Library' && { color: theme.colors.onTertiaryFixed }]}>{tag}</Text>
-                            </View>
-                        ))}
-                    </View>
+    const onSpeechResults = (e) => {
+        if (e.value && e.value.length > 0) {
+            setContent((prev) => prev ? prev + " " + e.value[0] : e.value[0]);
+        }
+    };
 
-                    <Text style={[styles.entryExcerpt, entry.isLibrary && styles.libraryExcerpt]} numberOfLines={entry.isAsymmetric ? 3 : 2}>
-                        {entry.content}
-                    </Text>
+    const onSpeechError = (e) => {
+        console.error("Speech error", e.error);
+        setIsRecording(false);
+        if (e.error?.message?.includes('not available') || e.error === undefined) {
+            Alert.alert("Lỗi", "Tính năng này yêu cầu tải thư viện Native. Khi sử dụng Expo Go, hãy dùng biểu tượng Micro 🎤 trên bàn phím điện thoại của bạn để nhập bằng giọng nói nhé!");
+        }
+    };
 
-                    {entry.image && (
-                        <View style={styles.entryImageWrapper}>
-                            <Image source={{ uri: entry.image }} style={styles.entryImage} />
-                            <BlurView intensity={20} style={StyleSheet.absoluteFill} />
-                        </View>
-                    )}
+    const startRecording = async () => {
+        try {
+            // Hiển thị alert nếu có khả năng đang dùng Expo Go
+            setIsRecording(true);
+            await Voice.start('vi-VN');
+        } catch (e) {
+            console.error(e);
+            setIsRecording(false);
+            Alert.alert("Lỗi", "Không thể chạy tính năng ghi âm trên Expo Go. Hãy dùng Micro trên bàn phím ảo thay thế!");
+        }
+    };
 
-                    {entry.isAsymmetric && (
-                        <View style={styles.asymmetricVisual}>
-                            <MaterialIcons name="air" size={48} color={theme.colors.secondary} />
-                        </View>
-                    )}
+    const stopRecording = async () => {
+        try {
+            await Voice.stop();
+        } catch (e) {
+            console.error(e);
+        }
+        setIsRecording(false);
+    };
 
-                    {entry.isLibrary && (
-                        <View style={styles.libraryFooter}>
-                            <View style={styles.libraryLine} />
-                            <MaterialIcons name="auto-stories" size={18} color={theme.colors.onSurfaceVariant} />
-                        </View>
-                    )}
-                </View>
-            ))}
+    const loadEntries = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/journals');
+            setEntries(Array.isArray(res.data) ? res.data : []);
+        } catch (error) {
+            console.error("Failed to load journals:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-            <TouchableOpacity style={styles.fab}>
-                <MaterialIcons name="add" size={32} color="#fff" />
-            </TouchableOpacity>
-        </View>
-    );
+    const loadDeletedEntries = async () => {
+        try {
+            const res = await api.get('/journals/deleted');
+            setTrashEntries(Array.isArray(res.data) ? res.data : []);
+        } catch (error) {
+            console.error("Failed to load trash:", error);
+        }
+    };
 
-    const renderTrash = () => (
-        <View style={styles.trashContainer}>
-            <View style={styles.trashInfoBanner}>
-                <View style={styles.bannerIconBox}>
-                    <MaterialIcons name="cleaning-services" size={20} color={theme.colors.primary} />
-                </View>
-                <Text style={styles.bannerText}>
-                    Items in trash will be permanently deleted after 30 days to keep your sanctuary clear.
-                </Text>
-                <View style={styles.bannerDecor} />
-            </View>
+    const handlePickImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsMultipleSelection: true,
+            quality: 0.8,
+        });
 
-            {trashedEntries.map((item) => (
-                <View key={item.id} style={[styles.trashCard, item.isUrgent && styles.urgentTrashCard]}>
-                    <View style={styles.trashCardTop}>
-                        <View style={[styles.trashBadge, item.isUrgent && styles.urgentBadge]}>
-                            <Text style={styles.trashBadgeText}>{item.remain}</Text>
-                        </View>
-                        <Text style={styles.trashDateText}>{item.deleted}</Text>
-                    </View>
-                    <Text style={styles.trashTitle}>{item.title}</Text>
-                    <Text style={styles.trashContent} numberOfLines={2}>{item.content}</Text>
-                    <View style={styles.trashActions}>
-                        <TouchableOpacity style={styles.restoreBtn}>
-                            <MaterialIcons name="settings-backup-restore" size={18} color={theme.colors.primary} />
-                            <Text style={styles.restoreBtnText}>Restore</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity>
-                            <MaterialIcons name="delete-forever" size={22} color="rgba(186, 26, 26, 0.6)" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            ))}
-        </View>
+        if (!result.canceled) {
+            const maxAllowed = 3 - images.length;
+            const selectedImages = result.assets.slice(0, maxAllowed).map(asset => asset.uri);
+            if (images.length + result.assets.length > 3) {
+                Alert.alert("Limit Reached", "You can upload a maximum of 3 images.");
+            }
+            setImages([...images, ...selectedImages]);
+        }
+    };
+
+    const removeImage = (index) => {
+        setImages(images.filter((_, i) => i !== index));
+    };
+
+    const toggleEmotion = (emotion) => {
+        if (selectedEmotions.includes(emotion)) {
+            setSelectedEmotions(selectedEmotions.filter((e) => e !== emotion));
+        } else {
+            setSelectedEmotions([...selectedEmotions, emotion]);
+        }
+    };
+
+    const handleSaveEntry = async () => {
+        if (!content.trim()) {
+            Alert.alert("Empty Entry", "Please write something in your journal.");
+            return;
+        }
+
+        setSaving(true);
+        try {
+            let formData = new FormData();
+            formData.append('text', content);
+            formData.append('title', content.substring(0, 30) + '...');
+            formData.append('mood', selectedMood);
+            selectedEmotions.forEach(e => formData.append('trigger_tags[]', e));
+
+            images.forEach((imgUri, index) => {
+                let filename = imgUri.split('/').pop();
+                let match = /\.(\w+)$/.exec(filename);
+                let type = match ? `image/${match[1]}` : `image`;
+                formData.append('images', {
+                    uri: imgUri,
+                    name: filename,
+                    type,
+                });
+            });
+
+            await api.post('/journals', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            Alert.alert("Success", "Journal saved successfully!");
+            setContent("");
+            setImages([]);
+            setSelectedEmotions([]);
+            setSelectedMood("😊");
+            setActiveTab("entries");
+            loadEntries();
+        } catch (error) {
+            console.error("Save error:", error);
+            Alert.alert("Error", "Could not save journal entry.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteEntry = async (id) => {
+        Alert.alert(
+            "Delete Journal",
+            "Move this entry to trash?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await api.delete(`/journals/${id}`);
+                            loadEntries();
+                            loadDeletedEntries();
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const filteredEntries = entries.filter((entry) =>
+        (entry.text || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (entry.title || "").toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
 
-            {/* TOP BAR */}
-            <BlurView intensity={80} style={styles.topBar}>
-                <View style={styles.topBarLeft}>
-                    <Text style={styles.appTitle}>Journal</Text>
-                </View>
-                <View style={styles.avatarContainer}>
-                    <Image source={logo} style={styles.avatar} resizeMode="contain" />
-                </View>
-            </BlurView>
-
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
-                {/* TABS NAVIGATION */}
-                <View style={styles.tabsWrapper}>
-                    <View style={styles.tabsInner}>
-                        {['Write', 'My Entries', 'Trash'].map((tab) => (
-                            <TouchableOpacity
-                                key={tab}
-                                style={[styles.tabBtn, activeTab === tab && styles.activeTabBtn]}
-                                onPress={() => setActiveTab(tab)}
-                            >
-                                <Text style={[styles.tabBtnText, activeTab === tab && styles.activeTabBtnText]}>
-                                    {tab}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+            {/* HEADER */}
+            <View style={styles.header}>
+                <View style={styles.profileRow}>
+                    <Image
+                        source={{ uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuBz1wh155THxa5_MK-wkpRcOkhWwYI9RsHE3E8yq1hMgcJlJrEguJ2Uea0L43CZ4OervfoD41a2q9VJHTNgz3vCL2Wi5xAw5LobEKtdo9NgwKzV5vwiLkgD3J9ud9j7IVTJn0FWS6XTmf61vgpvv27sUU2kKz-mCaX6kBEtTEmhjAPeTXbG5U-z9Pl1peKIeT4Xt1VbixHw0SxIo3YA8mkIf24UsGVpzkQdc31Vimuoqh4U2mI1OES0w37WAnAO7881H-U8jaCDfc0" }}
+                        style={styles.avatar}
+                    />
+                    <Text style={styles.logo}>Digital Sanctuary</Text>
                 </View>
 
-                {activeTab === 'Write' && renderWrite()}
-                {activeTab === 'My Entries' && renderEntries()}
-                {activeTab === 'Trash' && renderTrash()}
-            </ScrollView>
+                <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate("Settings")}>
+                    <MaterialIcons name="settings" size={24} color="#064e3b" />
+                </TouchableOpacity>
+            </View>
 
-            {/* CONTEXTUAL ACTIONS FOR WRITE TAB */}
-            {activeTab === 'Write' && (
-                <View style={styles.contextualFooter}>
-                    <View style={styles.footerTools}>
-                        <TouchableOpacity style={styles.toolBtn}>
-                            <MaterialIcons name="image" size={24} color={theme.colors.primary} />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.toolBtn}>
-                            <MaterialIcons name="mic" size={24} color={theme.colors.primary} />
-                        </TouchableOpacity>
-                    </View>
-                    <TouchableOpacity style={styles.saveBtn}>
-                        <Text style={styles.saveBtnText}>Save Entry</Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+
+                {/* TITLE */}
+                <View style={styles.pageHeader}>
+                    <Text style={styles.pageTitle}>My Journal</Text>
+                    <Text style={styles.subtitle}>Reflecting on your garden's growth.</Text>
+                </View>
+
+                {/* TABS */}
+                <View style={styles.tabs}>
+                    <TouchableOpacity style={[styles.tab, activeTab === "write" && styles.tabActive]} onPress={() => setActiveTab("write")}>
+                        <Text style={[styles.tabText, activeTab === "write" && styles.tabActiveText]}>Write</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.tab, activeTab === "entries" && styles.tabActive]} onPress={() => setActiveTab("entries")}>
+                        <Text style={[styles.tabText, activeTab === "entries" && styles.tabActiveText]}>My Entries</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.tab, activeTab === "trash" && styles.tabActive]} onPress={() => setActiveTab("trash")}>
+                        <Text style={[styles.tabText, activeTab === "trash" && styles.tabActiveText]}>Trash</Text>
                     </TouchableOpacity>
                 </View>
+
+                {/* SEARCH */}
+                {activeTab === "entries" && (
+                    <View style={styles.searchBox}>
+                        <MaterialIcons name="search" size={22} color="#6b7280" />
+                        <TextInput
+                            placeholder="Search your memories..."
+                            style={styles.searchInput}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                    </View>
+                )}
+
+                {/* CONTENT LIST */}
+                {loading ? (
+                    <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 20 }} />
+                ) : (
+                    <View style={{ paddingBottom: 100 }}>
+                        {activeTab === "write" && (
+                            <View style={styles.writeContainer}>
+                                <TextInput
+                                    style={styles.textarea}
+                                    placeholder="Start your journey here, share your soul..."
+                                    multiline
+                                    value={content}
+                                    onChangeText={setContent}
+                                />
+                                <Text style={styles.charCount}>{content.length} characters</Text>
+
+                                {/* Mood */}
+                                <Text style={styles.sectionHeading}>Feeling:</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.moodScroll}>
+                                    {MOODS.map(m => (
+                                        <TouchableOpacity key={m} onPress={() => setSelectedMood(m)} style={[styles.moodItem, selectedMood === m && styles.moodItemActive]}>
+                                            <Text style={styles.moodText}>{m}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+
+                                {/* Emotions */}
+                                <Text style={styles.sectionHeading}>Emotions:</Text>
+                                <View style={styles.emotionsContainer}>
+                                    {EMOTIONS.map(e => (
+                                        <TouchableOpacity key={e} onPress={() => toggleEmotion(e)} style={[styles.emotionChip, selectedEmotions.includes(e) && styles.emotionChipActive]}>
+                                            <Text style={[styles.emotionText, selectedEmotions.includes(e) && styles.emotionTextActive]}>{e}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+
+                                {/* Images Preview */}
+                                {images.length > 0 && (
+                                    <View style={styles.imageGrid}>
+                                        {images.map((uri, idx) => (
+                                            <View key={idx} style={styles.imageWrapper}>
+                                                <Image source={{ uri }} style={styles.previewImage} />
+                                                <TouchableOpacity style={styles.removeImageBtn} onPress={() => removeImage(idx)}>
+                                                    <MaterialIcons name="close" size={14} color="#fff" />
+                                                </TouchableOpacity>
+                                            </View>
+                                        ))}
+                                    </View>
+                                )}
+
+                                {/* Tools & Save */}
+                                <View style={styles.toolsRow}>
+                                    <View style={{ flexDirection: "row", gap: 16 }}>
+                                        <TouchableOpacity style={styles.toolBtn} onPress={handlePickImage}>
+                                            <MaterialIcons name="image" size={22} color={theme.colors.primary} />
+                                            <Text style={styles.toolText}>Images ({images.length}/3)</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={styles.toolBtn} onPress={isRecording ? stopRecording : startRecording}>
+                                            <MaterialIcons name={isRecording ? "mic-off" : "mic"} size={22} color={isRecording ? "#ba1a1a" : theme.colors.primary} />
+                                            <Text style={[styles.toolText, isRecording && { color: "#ba1a1a" }]}>{isRecording ? "Recording..." : "Voice"}</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <TouchableOpacity style={styles.saveBtn} onPress={handleSaveEntry} disabled={saving}>
+                                        {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.saveText}>Save</Text>}
+                                        <MaterialIcons name="save" size={16} color="#fff" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
+
+                        {activeTab === "entries" && filteredEntries.map((e) => (
+                            <View key={e._id} style={styles.card}>
+                                <View style={styles.cardHeader}>
+                                    <View>
+                                        <Text style={styles.date}>{new Date(e.created_at).toLocaleDateString()}</Text>
+                                        <Text style={styles.title}>{e.title}</Text>
+                                    </View>
+                                    <View style={styles.moodBlob}>
+                                        <Text style={{ fontSize: 20 }}>{e.mood}</Text>
+                                    </View>
+                                </View>
+                                {e.trigger_tags && e.trigger_tags.length > 0 && (
+                                    <View style={styles.tagsRow}>
+                                        {e.trigger_tags.map((tag, i) => (
+                                            <View key={i} style={styles.tag}>
+                                                <Text style={styles.tagText}>{tag}</Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                )}
+                                <Text style={styles.content}>{e.text}</Text>
+                                {e.images && e.images.length > 0 && (
+                                    <Image source={{ uri: e.images[0] }} style={styles.image} />
+                                )}
+                                <TouchableOpacity style={styles.deleteInlineBtn} onPress={() => handleDeleteEntry(e._id)}>
+                                    <MaterialIcons name="delete-outline" size={20} color="#ba1a1a" />
+                                </TouchableOpacity>
+                            </View>
+                        ))}
+
+                        {activeTab === "entries" && filteredEntries.length === 0 && (
+                            <View style={styles.emptyContainer}>
+                                <MaterialIcons name="menu-book" size={48} color={theme.colors.outline} />
+                                <Text style={styles.emptyText}>No entries yet. Start writing your first entry!</Text>
+                            </View>
+                        )}
+
+                        {activeTab === "trash" && trashEntries.map((e) => (
+                            <View key={e._id} style={[styles.card, { opacity: 0.8 }]}>
+                                <View style={styles.cardHeader}>
+                                    <View>
+                                        <Text style={styles.date}>Deleted {new Date(e.updated_at).toLocaleDateString()}</Text>
+                                        <Text style={styles.title}>{e.title}</Text>
+                                    </View>
+                                </View>
+                                <Text style={styles.content}>{e.text}</Text>
+                                <View style={styles.trashActions}>
+                                    <TouchableOpacity style={styles.restoreBtn} onPress={async () => {
+                                        try { await api.patch(`/journals/${e._id}/restore`); loadDeletedEntries(); loadEntries(); } catch (err) { }
+                                    }}>
+                                        <MaterialIcons name="restore" size={18} color="#276b2e" />
+                                        <Text style={styles.restoreText}>Restore</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.permDeleteBtn} onPress={async () => {
+                                        try { await api.delete(`/journals/${e._id}/permanent`); loadDeletedEntries(); } catch (err) { }
+                                    }}>
+                                        <MaterialIcons name="delete-forever" size={20} color="#ba1a1a" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+            </ScrollView>
+
+            {/* FAB */}
+            {activeTab !== "write" && (
+                <TouchableOpacity style={styles.fab} onPress={() => setActiveTab("write")}>
+                    <LinearGradient colors={["#caa910", "#705d00"]} style={styles.fab}>
+                        <MaterialIcons name="add" size={30} color="white" />
+                    </LinearGradient>
+                </TouchableOpacity>
             )}
 
+            {/* BOTTOM NAVIGATION */}
             <BottomNavBar navigation={navigation} activeTab="Journal" />
         </View>
-    );
-};
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    topBar: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: 60,
-        paddingBottom: 20,
-        paddingHorizontal: 24,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 100,
-        ...theme.shadows.soft,
-    },
-    topBarLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    menuBtn: {
-        padding: 8,
-        borderRadius: 20,
-    },
-    appTitle: {
-        fontSize: 22,
-        fontWeight: '800',
-        color: '#064e3b',
-        fontFamily: theme.fonts.headline,
-    },
-    avatarContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        overflow: 'hidden',
-        borderWidth: 2,
-        borderColor: 'rgba(96, 165, 96, 0.3)',
-    },
-    avatar: {
-        width: '100%',
-        height: '100%',
-    },
-    scrollContainer: {
-        paddingTop: 140,
-        paddingBottom: 160,
-    },
-    pageHeaderText: {
-        paddingHorizontal: 24,
-        marginBottom: 32,
-    },
-    mainTitle: {
-        fontSize: 40,
-        fontWeight: '800',
-        color: theme.colors.onSurface,
-        fontFamily: theme.fonts.headline,
-        letterSpacing: -1,
-    },
-    subTitle: {
-        fontSize: 16,
-        color: 'rgba(64, 73, 62, 0.8)',
-        marginTop: 4,
-    },
-    tabsWrapper: {
-        paddingHorizontal: 24,
-        marginBottom: 32,
-    },
-    tabsInner: {
-        flexDirection: 'row',
-        backgroundColor: theme.colors.surfaceContainerLow,
-        padding: 6,
-        borderRadius: 99,
-    },
-    tabBtn: {
-        flex: 1,
-        paddingVertical: 12,
-        alignItems: 'center',
-        borderRadius: 99,
-    },
-    activeTabBtn: {
-        backgroundColor: theme.colors.primaryContainer,
-        ...theme.shadows.soft,
-    },
-    tabBtnText: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: theme.colors.onSurfaceVariant,
-        fontFamily: theme.fonts.headline,
-    },
-    activeTabBtnText: {
-        color: theme.colors.onPrimaryContainer,
-    },
-    // WRITE TAB
-    writeContainer: {
-        paddingHorizontal: 24,
-        gap: 24,
-    },
-    editorCard: {
-        backgroundColor: theme.colors.surfaceContainerLowest,
-        borderRadius: theme.borderRadius.lg,
-        padding: 32,
-        ...theme.shadows.soft,
-        minHeight: 300,
-    },
-    decorativeMoodBloom: {
-        position: 'absolute',
-        top: -24,
-        right: -24,
-        width: 100,
-        height: 100,
-        backgroundColor: 'rgba(112, 93, 0, 0.1)',
-        borderRadius: 50,
-        transform: [{ scaleY: 1.5 }],
-    },
-    journalTitleInput: {
-        fontSize: 32,
-        fontWeight: '800',
-        color: theme.colors.onSurface,
-        fontFamily: theme.fonts.headline,
-        padding: 0,
-        marginBottom: 24,
-    },
-    journalTextArea: {
-        fontSize: 18,
-        lineHeight: 28,
-        color: theme.colors.onSurfaceVariant,
-        padding: 0,
-    },
-    feelingSection: {
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: theme.borderRadius.lg,
-        padding: 24,
-    },
-    sectionTitleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: theme.colors.onPrimaryContainer,
-        fontFamily: theme.fonts.headline,
-    },
-    moodsRow: {
-        gap: 16,
-    },
-    moodItem: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center',
-        ...theme.shadows.soft,
-    },
-    activeMoodItem: {
-        backgroundColor: theme.colors.surfaceContainerHighest,
-        borderWidth: 2,
-        borderColor: theme.colors.primary,
-    },
-    moodEmoji: {
-        fontSize: 32,
-    },
-    emotionsSection: {
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: theme.borderRadius.lg,
-        padding: 24,
-    },
-    emotionsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    emotionTag: {
-        backgroundColor: '#fff',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 99,
-        ...theme.shadows.soft,
-    },
-    activeEmotionTag: {
-        backgroundColor: theme.colors.primaryContainer,
-    },
-    emotionTagText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: theme.colors.outline,
-    },
-    activeEmotionTagText: {
-        color: theme.colors.onPrimaryContainer,
-        fontWeight: '700',
-    },
-    brandCard: {
-        backgroundColor: theme.colors.primary,
-        borderRadius: theme.borderRadius.lg,
-        padding: 40,
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 20,
-        overflow: 'hidden',
-    },
-    brandContent: {
-        flex: 1,
-        zIndex: 10,
-    },
-    brandTitle: {
-        fontSize: 28,
-        fontWeight: '800',
-        color: '#fff',
-        fontFamily: theme.fonts.headline,
-        marginBottom: 16,
-    },
-    brandDesc: {
-        fontSize: 16,
-        lineHeight: 24,
-        color: 'rgba(255,255,255,0.9)',
-    },
-    brandVisual: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 10,
-    },
-    brandDecor1: {
-        position: 'absolute',
-        bottom: -40,
-        left: -40,
-        width: 120,
-        height: 120,
-        backgroundColor: 'rgba(171, 244, 167, 0.3)',
-        borderRadius: 60,
-        filter: 'blur(30px)',
-    },
-    brandDecor2: {
-        position: 'absolute',
-        top: -40,
-        right: -40,
-        width: 120,
-        height: 120,
-        backgroundColor: 'rgba(154, 225, 255, 0.2)',
-        borderRadius: 60,
-        filter: 'blur(30px)',
-    },
-    // ENTRIES TAB
-    entriesContainer: {
-        paddingHorizontal: 24,
-        gap: 32,
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: theme.colors.surfaceContainerHigh,
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        marginBottom: 10,
-    },
-    searchIcon: {
-        marginRight: 12,
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: 16,
-        color: theme.colors.onSurface,
-    },
-    entryCard: {
-        backgroundColor: theme.colors.surfaceContainerLowest,
-        borderRadius: theme.borderRadius.lg,
-        padding: 24,
-        ...theme.shadows.soft,
-    },
-    asymmetricCard: {
-        backgroundColor: theme.colors.surfaceContainerLow,
-        flexDirection: 'row',
-        gap: 20,
-        padding: 32,
-    },
-    entryHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 16,
-    },
-    entryDate: {
-        fontSize: 11,
-        fontWeight: '800',
-        color: theme.colors.secondary,
-        letterSpacing: 2,
-        marginBottom: 4,
-    },
-    entryTitle: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: theme.colors.onSurface,
-    },
-    moodCircle: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: theme.colors.tertiaryContainer,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    peacefulBadge: {
-        backgroundColor: '#fff',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 99,
-        ...theme.shadows.soft,
-        position: 'absolute',
-        top: -10,
-        right: -10,
-    },
-    peacefulBadgeText: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: theme.colors.secondary,
-    },
-    tagRow: {
-        flexDirection: 'row',
-        gap: 8,
-        marginBottom: 16,
-    },
-    tag: {
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 99,
-    },
-    gratitudeTag: { backgroundColor: theme.colors.secondaryContainer },
-    natureTag: { backgroundColor: theme.colors.surfaceContainer },
-    mindfulnessTag: { backgroundColor: 'rgba(39, 107, 46, 0.1)' },
-    libraryTag: { backgroundColor: theme.colors.tertiaryFixed },
-    tagText: {
-        fontSize: 11,
-        fontWeight: '700',
-        color: theme.colors.onSecondaryContainer,
-    },
-    entryExcerpt: {
-        fontSize: 15,
-        lineHeight: 24,
-        color: theme.colors.onSurfaceVariant,
-        marginBottom: 20,
-    },
-    libraryExcerpt: {
-        fontStyle: 'italic',
-    },
-    entryImageWrapper: {
-        height: 200,
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    entryImage: {
-        width: '100%',
-        height: '100%',
-    },
-    asymmetricVisual: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    libraryFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        marginTop: 10,
-    },
-    libraryLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: 'rgba(192, 201, 187, 0.2)',
-    },
-    fab: {
-        position: 'absolute',
-        bottom: 20,
-        right: 0,
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: theme.colors.tertiary,
-        alignItems: 'center',
-        justifyContent: 'center',
-        ...theme.shadows.primary,
-    },
-    // TRASH TAB
-    trashContainer: {
-        paddingHorizontal: 24,
-        gap: 24,
-    },
-    trashInfoBanner: {
-        flexDirection: 'row',
-        backgroundColor: 'rgba(202, 235, 198, 0.4)',
-        padding: 24,
-        borderRadius: theme.borderRadius.lg,
-        borderWidth: 1,
-        borderColor: 'rgba(39, 107, 46, 0.05)',
-        alignItems: 'center',
-        gap: 16,
-        overflow: 'hidden',
-    },
-    bannerIconBox: {
-        backgroundColor: 'rgba(39, 107, 46, 0.1)',
-        padding: 8,
-        borderRadius: 99,
-    },
-    bannerText: {
-        flex: 1,
-        fontSize: 14,
-        lineHeight: 20,
-        fontWeight: '500',
-        color: theme.colors.onSurfaceVariant,
-    },
-    bannerDecor: {
-        position: 'absolute',
-        top: -30,
-        right: -30,
-        width: 100,
-        height: 100,
-        backgroundColor: 'rgba(39, 107, 46, 0.05)',
-        borderRadius: 50,
-        transform: [{ rotate: '45deg' }],
-    },
-    trashCard: {
-        backgroundColor: theme.colors.surfaceContainerLowest,
-        padding: 24,
-        borderRadius: theme.borderRadius.lg,
-        ...theme.shadows.soft,
-        borderWidth: 1,
-        borderColor: 'transparent',
-    },
-    urgentTrashCard: {
-        opacity: 0.8,
-    },
-    trashCardTop: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    trashBadge: {
-        backgroundColor: 'rgba(255, 218, 214, 0.5)',
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 99,
-    },
-    urgentBadge: {
-        backgroundColor: 'rgba(255, 218, 214, 0.8)',
-    },
-    trashBadgeText: {
-        fontSize: 11,
-        fontWeight: '800',
-        color: '#93000a',
-        textTransform: 'uppercase',
-    },
-    trashDateText: {
-        fontSize: 12,
-        fontWeight: '500',
-        color: theme.colors.outline,
-    },
-    trashTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: theme.colors.onSurface,
-        marginBottom: 8,
-        fontFamily: theme.fonts.headline,
-    },
-    trashContent: {
-        fontSize: 14,
-        color: theme.colors.onSurfaceVariant,
-        fontStyle: 'italic',
-        lineHeight: 20,
-        marginBottom: 24,
-    },
-    trashActions: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: 16,
-        borderTopWidth: 1,
-        borderTopColor: theme.colors.surfaceContainer,
-    },
-    restoreBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    restoreBtnText: {
-        fontSize: 14,
-        fontWeight: '800',
-        color: theme.colors.primary,
-    },
-    contextualFooter: {
-        position: 'absolute',
-        bottom: 100,
-        left: 20,
-        right: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        padding: 16,
-        borderRadius: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        ...theme.shadows.soft,
-        borderWidth: 1,
-        borderColor: 'rgba(192, 201, 187, 0.1)',
-        zIndex: 10,
-    },
-    footerTools: {
-        flexDirection: 'row',
-        gap: 8,
-    },
-    toolBtn: {
-        width: 48,
-        height: 48,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 24,
-    },
-    saveBtn: {
-        backgroundColor: theme.colors.primary,
-        paddingHorizontal: 40,
-        paddingVertical: 12,
-        borderRadius: 16,
-        ...theme.shadows.primary,
-    },
-    saveBtnText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: '700',
-        fontFamily: theme.fonts.headline,
-    }
-});
+    )
+}
 
 export default JournalScreen;
+
+const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: "#EBFFE6" },
+    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingTop: 50, paddingBottom: 10 },
+    profileRow: { flexDirection: "row", alignItems: "center" },
+    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
+    logo: { fontSize: 20, fontWeight: "700" },
+    iconBtn: { width: 40, height: 40, justifyContent: "center", alignItems: "center" },
+    pageHeader: { paddingHorizontal: 20, marginTop: 10 },
+    pageTitle: { fontSize: 32, fontWeight: "800" },
+    subtitle: { opacity: .6 },
+    tabs: { flexDirection: "row", backgroundColor: "#d6f7d1", margin: 20, borderRadius: 30, padding: 4 },
+    tab: { flex: 1, alignItems: "center", paddingVertical: 10, borderRadius: 30 },
+    tabActive: { backgroundColor: "#60a560" },
+    tabText: { fontSize: 13, fontWeight: "600", color: "#606e62" },
+    tabActiveText: { color: "#fff", fontWeight: "700" },
+    searchBox: { flexDirection: "row", alignItems: "center", backgroundColor: "#e8f9e4", marginHorizontal: 20, borderRadius: 12, paddingHorizontal: 10, marginBottom: 20 },
+    searchInput: { flex: 1, padding: 12 },
+
+    // Write Form
+    writeContainer: { backgroundColor: "#fff", margin: 20, padding: 20, borderRadius: 16 },
+    textarea: { height: 120, textAlignVertical: "top", fontSize: 16, color: "#333" },
+    charCount: { textAlign: "right", fontSize: 11, color: "#888", marginBottom: 20 },
+    sectionHeading: { fontSize: 14, fontWeight: "600", marginBottom: 10, color: "#444" },
+    moodScroll: { flexDirection: "row", marginBottom: 20 },
+    moodItem: { padding: 8, borderRadius: 8, marginRight: 8, backgroundColor: "#f5f5f5" },
+    moodItemActive: { backgroundColor: "#e0f2e9", transform: [{ scale: 1.1 }] },
+    moodText: { fontSize: 24 },
+    emotionsContainer: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 20 },
+    emotionChip: { backgroundColor: "#f0f0f0", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+    emotionChipActive: { backgroundColor: theme.colors.primary },
+    emotionText: { fontSize: 12, color: "#555" },
+    emotionTextActive: { color: "#fff" },
+    imageGrid: { flexDirection: "row", gap: 8, marginBottom: 20 },
+    imageWrapper: { width: 60, height: 60, borderRadius: 8, overflow: "hidden" },
+    previewImage: { width: "100%", height: "100%" },
+    removeImageBtn: { position: "absolute", top: 2, right: 2, backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 10, padding: 2 },
+    toolsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderTopWidth: 1, borderColor: "#eee", paddingTop: 16 },
+    toolBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
+    toolText: { fontSize: 12, fontWeight: "500", color: theme.colors.primary },
+    saveBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: theme.colors.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
+    saveText: { color: "#fff", fontWeight: "600", fontSize: 13 },
+
+    // Entry Card
+    card: { backgroundColor: "#fff", marginHorizontal: 20, marginBottom: 20, padding: 20, borderRadius: 16 },
+    cardHeader: { flexDirection: "row", justifyContent: "space-between" },
+    date: { fontSize: 11, fontWeight: "700", opacity: .6 },
+    title: { fontSize: 18, fontWeight: "700", marginTop: 4 },
+    moodBlob: { width: 44, height: 44, borderRadius: 22, backgroundColor: "#eff9f0", justifyContent: "center", alignItems: "center" },
+    tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginVertical: 10 },
+    tag: { backgroundColor: "#9ae1ff", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+    tagText: { fontSize: 11, fontWeight: "700", color: "#005a80" },
+    content: { opacity: .7, marginBottom: 12, fontSize: 14, lineHeight: 20 },
+    image: { width: "100%", height: 160, borderRadius: 12, marginBottom: 10 },
+    deleteInlineBtn: { flexDirection: "row", alignSelf: "flex-end", marginTop: 8 },
+
+    // Empty state
+    emptyContainer: { alignItems: "center", paddingVertical: 40 },
+    emptyText: { color: theme.colors.outline, marginTop: 16 },
+
+    // Trash
+    trashActions: { flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderColor: "#eee", paddingTop: 12, marginTop: 12 },
+    restoreBtn: { flexDirection: "row", alignItems: "center", gap: 6 },
+    restoreText: { color: "#276b2e", fontWeight: "700", fontSize: 13 },
+    permDeleteBtn: { padding: 4 },
+
+    fab: { position: "absolute", right: 20, bottom: 100, width: 64, height: 64, borderRadius: 32, justifyContent: "center", alignItems: "center", shadowColor: "#000", shadowOpacity: 0.2, shadowOffset: { width: 0, height: 4 }, shadowRadius: 8 }
+});

@@ -13,7 +13,7 @@ const BottomNavBar = ({ navigation, activeTab = 'Garden' }) => {
     const navItems = [
         { id: 'Garden', icon: 'filter-vintage', label: 'Garden', screen: 'Dashboard' },
         { id: 'Journal', icon: 'menu-book', label: 'Journal', screen: 'Journal' },
-        { id: 'Insights', icon: 'monitoring', label: 'Insights', screen: 'Insights' },
+        { id: 'Insights', icon: 'bar-chart', label: 'Insights', screen: 'Insights' },
         { id: 'Settings', icon: 'settings', label: 'Settings', screen: 'Settings' }
     ];
 
