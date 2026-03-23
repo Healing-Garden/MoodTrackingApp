@@ -147,23 +147,6 @@ const JournalScreen = ({ navigation }) => {
         <View style={styles.writeContainer}>
             <View style={styles.editorCard}>
                 <View style={styles.decorativeMoodBloom} />
-                
-                {suggestedQuestions.length > 0 && !title && !content && (
-                    <View style={styles.suggestionsContainer}>
-                        <Text style={styles.suggestionsHeader}>✨ Writing Suggestions:</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                            {suggestedQuestions.map((q, idx) => (
-                                <TouchableOpacity 
-                                    key={idx} 
-                                    style={styles.suggestionPill}
-                                    onPress={() => setContent(prev => prev + (prev ? '\n' : '') + q)}
-                                >
-                                    <Text style={styles.suggestionPillText}>{q}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
-                )}
 
                 <TextInput
                     style={styles.journalTitleInput}
@@ -172,6 +155,7 @@ const JournalScreen = ({ navigation }) => {
                     value={title}
                     onChangeText={setTitle}
                 />
+                
                 <TextInput
                     style={styles.journalTextArea}
                     placeholder="Share your thoughts..."
@@ -399,6 +383,27 @@ const JournalScreen = ({ navigation }) => {
                         ))}
                     </View>
                 </View>
+
+                {activeTab === 'Write' && suggestedQuestions.length > 0 && !title && !content && (
+                    <View style={styles.middleSuggestionsContainer}>
+                        <View style={styles.suggestionsHeaderRow}>
+                            <MaterialIcons name="lightbulb" size={18} color={theme.colors.primary} />
+                            <Text style={styles.middleSuggestionsHeader}>✨ Writing Suggestions</Text>
+                        </View>
+
+                        {suggestedQuestions.slice(0, 3).map((q, idx) => (
+                            <TouchableOpacity
+                                key={idx}
+                                style={styles.middleSuggestionItem}
+                                onPress={() => setContent(prev => prev + (prev ? '\n' : '') + q)}
+                            >
+                                <Text style={styles.middleSuggestionText}>
+                                    {idx + 1}. {q}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                )}
 
                 {activeTab === 'Write' && renderWrite()}
                 {activeTab === 'My Entries' && renderEntries()}
@@ -703,6 +708,31 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         filter: 'blur(30px)',
     },
+
+    middleSuggestionsContainer: {
+        marginHorizontal: 24,
+        marginBottom: 16,
+        padding: 16,
+        backgroundColor: 'rgba(39, 107, 46, 0.05)',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.1)',
+    },
+
+    middleSuggestionsHeader: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: theme.colors.primary,
+    },
+
+    middleSuggestionItem: {
+        marginTop: 8,
+    },
+
+    middleSuggestionText: {
+        fontSize: 14,
+        color: theme.colors.onSurface,
+    },
     // ENTRIES TAB
     entriesContainer: {
         paddingHorizontal: 24,
@@ -989,6 +1019,49 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '700',
         fontFamily: theme.fonts.headline,
+    },
+    // EXTERNAL SUGGESTIONS STYLES
+    externalSuggestionsContainer: {
+        position: 'absolute',
+        bottom: 180,
+        left: 20,
+        right: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        padding: 16,
+        borderRadius: 16,
+        ...theme.shadows.soft,
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.1)',
+        zIndex: 5,
+    },
+    suggestionsHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 12,
+    },
+    externalSuggestionsHeader: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: theme.colors.primary,
+        fontFamily: theme.fonts.headline,
+    },
+    suggestionsScrollContainer: {
+        gap: 8,
+    },
+    externalSuggestionPill: {
+        backgroundColor: 'rgba(39, 107, 46, 0.05)',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.15)',
+        marginRight: 8,
+    },
+    externalSuggestionPillText: {
+        fontSize: 13,
+        color: theme.colors.onSurface,
+        fontWeight: '500',
     }
 });
 
