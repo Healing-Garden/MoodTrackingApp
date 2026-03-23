@@ -11,33 +11,58 @@ import {
     Dimensions,
     KeyboardAvoidingView,
     Platform,
-    Modal,
     Animated
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { theme } from '../../theme';
+import api from '../../services/api';
+import { io } from 'socket.io-client';
 import BottomNavBar from '../../components/common/BottomNavBar';
 import logo from '../../../assets/images/logo.png';
 
 const { width, height } = Dimensions.get('window');
 
 const ChatbotScreen = ({ navigation }) => {
-    const [messages, setMessages] = useState([
-        { id: 1, text: "Welcome to your sanctuary. I am Lumina, your empathetic guide. How are you feeling in your garden today?", sender: 'ai', time: '10:00 AM' }
-    ]);
+    const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
     const [isMenuVisible, setIsMenuVisible] = useState(false);
+    const [user, setUser] = useState(null);
+    const [isConnected, setIsConnected] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
+    const [sessionId, setSessionId] = useState(null);
+    const [chatHistory, setChatHistory] = useState([]);
     const scrollViewRef = useRef();
+    const socketRef = useRef(null);
+    const hasInitialJoinRef = useRef(false);
 
     const menuAnim = useRef(new Animated.Value(-width)).current;
+    
+    // Dynamically derive socket URL from API base URL to ensure they match
+    const apiBaseUrl = api.defaults.baseURL || 'http://192.168.1.253:8080/api';
+    const socketUrl = apiBaseUrl.replace('/api', '');
+    const moodContext = {
+        recentMood: 'anxious',
+        energyLevel: 3,
+        timestamp: new Date().toISOString()
+    };
+    const userId = user?._id ? String(user._id) : (user?.id ? String(user.id) : null);
 
-    const chatHistory = [
-        { id: 'h1', title: "Morning Anxiety", date: "Oct 24" },
-        { id: 'h2', title: "Finding Gratitude", date: "Oct 22" },
-        { id: 'h3', title: "Workplace Stress", date: "Oct 21" },
-        { id: 'h4', title: "Peaceful Evening", date: "Oct 19" }
-    ];
+    const formatTime = (ts) => {
+        const d = ts ? new Date(ts) : new Date();
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const mapSocketMessageToUi = (msg) => {
+        return {
+            id: msg.id || msg._id || `${Date.now()}-${Math.random()}`,
+            sender: msg.sender === 'user' ? 'user' : 'ai',
+            text: msg.text || '',
+            time: formatTime(msg.timestamp),
+            exercise: msg.exercise || null,
+            isCrisis: msg.isCrisis || false
+        };
+    };
 
     const toggleMenu = (show) => {
         setIsMenuVisible(show);
@@ -48,34 +73,155 @@ const ChatbotScreen = ({ navigation }) => {
         }).start();
     };
 
-    const handleSend = () => {
-        if (inputText.trim() === '') return;
-
-        const newUserMsg = {
-            id: Date.now(),
-            text: inputText,
-            sender: 'user',
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
-
-        setMessages([...messages, newUserMsg]);
-        setInputText('');
-
-        // Simulate AI Response
-        setTimeout(() => {
-            const aiMsg = {
-                id: Date.now() + 1,
-                text: "Thank you for sharing that with me. It’s important to acknowledge these feelings. Let's take a deep breath together.",
-                sender: 'ai',
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages(prev => [...prev, aiMsg]);
-        }, 1500);
+    const refreshChatHistory = async () => {
+        if (!userId) return;
+        try {
+            const res = await api.get(`/chat/sessions/${userId}`);
+            const sessions = Array.isArray(res.data?.data) ? res.data.data : [];
+            setChatHistory(
+                sessions.map((s) => ({
+                    id: s._id,
+                    title: (s.sessionSummary && String(s.sessionSummary).trim())
+                        ? String(s.sessionSummary).trim().slice(0, 40)
+                        : 'Chat Session',
+                    date: s.startTime ? new Date(s.startTime).toLocaleDateString(undefined, { month: 'short', day: '2-digit' }) : '',
+                }))
+            );
+        } catch (err) {
+            console.log('Failed to load chat sessions:', err?.message || err);
+            setChatHistory([]);
+        }
     };
 
+    // Load user profile once (needed for socket userId)
+    useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const res = await api.get('/profile');
+                setUser(res.data?.user || null);
+            } catch (err) {
+                console.log('Failed to load profile:', err?.message || err);
+            }
+        };
+        loadProfile();
+    }, []);
+
+    // Load socket connection + auto-create session (same as web)
+    useEffect(() => {
+        if (!userId) return;
+        if (socketRef.current) return;
+
+        const socket = io(socketUrl, {
+            transports: ['websocket'],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            timeout: 10000
+        });
+
+        socketRef.current = socket;
+
+        socket.on('connect', () => {
+            setIsConnected(true);
+            if (!hasInitialJoinRef.current) {
+                hasInitialJoinRef.current = true;
+                socket.emit('join-chat', { userId, moodContext });
+            }
+        });
+
+        socket.on('disconnect', () => {
+            setIsConnected(false);
+        });
+
+        socket.on('connect_error', (error) => {
+            console.log('Socket connect_error:', error?.message || error);
+            setIsConnected(false);
+        });
+
+        socket.on('session_created', (data) => {
+            setSessionId(data?.sessionId || null);
+        });
+
+        socket.on('session_loaded', (data) => {
+            setSessionId(data?.sessionId || null);
+            const loaded = Array.isArray(data?.messages) ? data.messages : [];
+            setMessages(loaded.map(mapSocketMessageToUi));
+            setIsTyping(false);
+        });
+
+        socket.on('message', (msg) => {
+            setIsTyping(false);
+            setMessages((prev) => [...prev, mapSocketMessageToUi(msg)]);
+        });
+
+        socket.on('error', (err) => {
+            console.log('Socket error event:', err?.message || err);
+            setIsTyping(false);
+        });
+
+        return () => {
+            try {
+                socket.disconnect();
+            } catch {
+                // ignore
+            }
+            socketRef.current = null;
+            hasInitialJoinRef.current = false;
+            setIsConnected(false);
+        };
+    }, [userId]);
+
+    // Refresh sessions when menu opens
+    useEffect(() => {
+        if (!isMenuVisible || !userId) return;
+        refreshChatHistory();
+    }, [isMenuVisible, userId]);
+
     const startNewChat = () => {
-        setMessages([{ id: 1, text: "Welcome back. Let's start a fresh conversation. What's on your mind?", sender: 'ai', time: 'Just now' }]);
+        if (!socketRef.current || !isConnected || !userId) return;
+
+        setMessages([]);
+        setSessionId(null);
+        setIsTyping(false);
+
+        socketRef.current.emit('join-chat', { userId, moodContext });
         toggleMenu(false);
+    };
+
+    const loadSession = (targetSessionId) => {
+        if (!socketRef.current || !isConnected || !userId) return;
+
+        setMessages([]);
+        setSessionId(null);
+        setIsTyping(false);
+
+        socketRef.current.emit('join-chat', {
+            userId,
+            moodContext,
+            sessionId: targetSessionId
+        });
+        toggleMenu(false);
+    };
+
+    const handleSend = () => {
+        if (!socketRef.current || !isConnected || !userId) return;
+        if (!sessionId) return; // need active session from server
+        if (isTyping) return;
+        if (inputText.trim() === '') return;
+
+        const text = inputText.trim();
+        const newUserMsg = {
+            id: Date.now(),
+            text,
+            sender: 'user',
+            time: formatTime(new Date()),
+            exercise: null,
+            isCrisis: false
+        };
+
+        setMessages((prev) => [...prev, newUserMsg]);
+        setInputText('');
+        setIsTyping(true);
+        socketRef.current.emit('send-message', { text });
     };
 
     return (
@@ -111,6 +257,18 @@ const ChatbotScreen = ({ navigation }) => {
                         <View key={msg.id} style={[styles.messageContainer, msg.sender === 'user' ? styles.userMsgContainer : styles.aiMsgContainer]}>
                             <View style={[styles.bubble, msg.sender === 'user' ? styles.userBubble : styles.aiBubble]}>
                                 <Text style={[styles.messageText, msg.sender === 'user' ? styles.userText : styles.aiText]}>{msg.text}</Text>
+                                {msg.exercise && (
+                                    <View style={styles.exerciseCard}>
+                                        <Text style={styles.exerciseTitle}>Suggested Exercise</Text>
+                                        <Text style={styles.exerciseText}>{msg.exercise}</Text>
+                                    </View>
+                                )}
+                                {msg.isCrisis && (
+                                    <View style={styles.crisisCard}>
+                                        <Text style={styles.crisisTitle}>Support is available</Text>
+                                        <Text style={styles.crisisText}>If you're in crisis, please contact Emergency: 115 (VN) or 911 (US)</Text>
+                                    </View>
+                                )}
                             </View>
                             <Text style={styles.timeText}>{msg.time}</Text>
                         </View>
@@ -127,11 +285,15 @@ const ChatbotScreen = ({ navigation }) => {
                             value={inputText}
                             onChangeText={setInputText}
                             multiline
+                            editable={!isTyping && isConnected && !!sessionId}
                         />
                         <TouchableOpacity 
-                            style={[styles.sendButton, !inputText && styles.sendButtonDisabled]} 
+                            style={[
+                                styles.sendButton,
+                                (!isConnected || !sessionId || isTyping || !inputText.trim()) && styles.sendButtonDisabled
+                            ]}
                             onPress={handleSend}
-                            disabled={!inputText}
+                            disabled={!isConnected || !sessionId || isTyping || !inputText.trim()}
                         >
                             <MaterialIcons name="send" size={24} color="#fff" />
                         </TouchableOpacity>
@@ -159,8 +321,13 @@ const ChatbotScreen = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
                     <ScrollView style={styles.historyList}>
-                        {chatHistory.map((item) => (
-                            <TouchableOpacity key={item.id} style={styles.historyItem}>
+                        {chatHistory.length === 0 ? (
+                            <View style={styles.historyEmpty}>
+                                <Text style={styles.historyEmptyText}>No chat sessions yet</Text>
+                            </View>
+                        ) : (
+                            chatHistory.map((item) => (
+                            <TouchableOpacity key={item.id} style={styles.historyItem} onPress={() => loadSession(item.id)}>
                                 <View style={styles.historyIconBox}>
                                     <MaterialIcons name="chat-bubble-outline" size={18} color={theme.colors.primary} />
                                 </View>
@@ -169,7 +336,8 @@ const ChatbotScreen = ({ navigation }) => {
                                     <Text style={styles.historyItemDate}>{item.date}</Text>
                                 </View>
                             </TouchableOpacity>
-                        ))}
+                            ))
+                        )}
                     </ScrollView>
                     <View style={styles.menuFooter}>
                         <TouchableOpacity style={styles.footerLink}>
@@ -405,6 +573,56 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#666',
+    },
+    historyEmpty: {
+        padding: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    historyEmptyText: {
+        fontSize: 12,
+        color: '#999',
+        fontWeight: '600',
+    },
+    exerciseCard: {
+        marginTop: 10,
+        padding: 12,
+        borderRadius: 14,
+        backgroundColor: 'rgba(39, 107, 46, 0.08)',
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.15)',
+    },
+    exerciseTitle: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#276b2e',
+        marginBottom: 6,
+    },
+    exerciseText: {
+        fontSize: 13,
+        lineHeight: 18,
+        color: theme.colors.onSurface,
+        fontWeight: '600',
+    },
+    crisisCard: {
+        marginTop: 10,
+        padding: 12,
+        borderRadius: 14,
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.2)',
+    },
+    crisisTitle: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#b91c1c',
+        marginBottom: 6,
+    },
+    crisisText: {
+        fontSize: 12,
+        lineHeight: 16,
+        color: '#991b1b',
+        fontWeight: '600',
     }
 });
 

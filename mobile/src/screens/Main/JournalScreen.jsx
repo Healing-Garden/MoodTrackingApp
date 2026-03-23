@@ -15,6 +15,8 @@ import { BlurView } from 'expo-blur';
 import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
 import logo from '../../../assets/images/logo.png';
+import { aiApi } from '../../services/aiApi';
+import api from '../../services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +26,68 @@ const JournalScreen = ({ navigation }) => {
     const [activeTab, setActiveTab] = useState('Write');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedMood, setSelectedMood] = useState(null);
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+    const [suggestedQuestions, setSuggestedQuestions] = useState([]);
+    const [user, setUser] = useState(null);
+    const [searchResults, setSearchResults] = useState(null);
+    const [isSearching, setIsSearching] = useState(false);
+
+    React.useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const res = await api.get('/profile');
+                setUser(res.data?.user || null);
+            } catch (err) { }
+        };
+        loadProfile();
+    }, []);
+
+    React.useEffect(() => {
+        if (activeTab !== 'Write') return;
+        if (content.trim() || title.trim()) return;
+
+        const timer = setTimeout(async () => {
+            if (!content.trim() && !title.trim() && suggestedQuestions.length === 0 && user?._id) {
+                try {
+                    const moodLabel = selectedMood !== null ? MOODS[selectedMood] : '😊';
+                    const res = await aiApi.getQuestions(user._id, moodLabel, 3, "vi");
+                    if (res?.data?.success) {
+                        setSuggestedQuestions(res.data?.data?.questions || []);
+                    } else if (res?.data?.questions?.length) {
+                        setSuggestedQuestions(res.data.questions);
+                    }
+                } catch (error) {
+                    console.log("Failed to fetch questions", error);
+                }
+            }
+        }, 3000); // 3 seconds delay for mobile
+        return () => clearTimeout(timer);
+    }, [activeTab, content, title, user, selectedMood, suggestedQuestions]);
+
+    React.useEffect(() => {
+        if (activeTab !== 'My Entries') return;
+        if (!searchQuery.trim() || !user?._id) {
+            setSearchResults(null);
+            return;
+        }
+
+        const blurTimer = setTimeout(async () => {
+            setIsSearching(true);
+            try {
+                const res = await aiApi.semanticSearch(user._id, searchQuery, 5);
+                if (res?.data?.success && res.data?.data?.results) {
+                    setSearchResults(res.data.data.results);
+                }
+            } catch (error) {
+                console.log("Failed to perform semantic search", error);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 800); // Debounce search
+
+        return () => clearTimeout(blurTimer);
+    }, [searchQuery, activeTab, user]);
 
     const entries = [
         {
@@ -83,10 +147,30 @@ const JournalScreen = ({ navigation }) => {
         <View style={styles.writeContainer}>
             <View style={styles.editorCard}>
                 <View style={styles.decorativeMoodBloom} />
+                
+                {suggestedQuestions.length > 0 && !title && !content && (
+                    <View style={styles.suggestionsContainer}>
+                        <Text style={styles.suggestionsHeader}>✨ Writing Suggestions:</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                            {suggestedQuestions.map((q, idx) => (
+                                <TouchableOpacity 
+                                    key={idx} 
+                                    style={styles.suggestionPill}
+                                    onPress={() => setContent(prev => prev + (prev ? '\n' : '') + q)}
+                                >
+                                    <Text style={styles.suggestionPillText}>{q}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+
                 <TextInput
                     style={styles.journalTitleInput}
                     placeholder="Journal Title"
                     placeholderTextColor="#c0c9bb"
+                    value={title}
+                    onChangeText={setTitle}
                 />
                 <TextInput
                     style={styles.journalTextArea}
@@ -95,6 +179,8 @@ const JournalScreen = ({ navigation }) => {
                     multiline
                     numberOfLines={8}
                     textAlignVertical="top"
+                    value={content}
+                    onChangeText={setContent}
                 />
             </View>
 
@@ -150,15 +236,42 @@ const JournalScreen = ({ navigation }) => {
                 <MaterialIcons name="search" size={24} color="rgba(113, 122, 109, 0.6)" style={styles.searchIcon} />
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search your memories..."
+                    placeholder="Search your memories (AI Semantic)..."
                     placeholderTextColor="rgba(113, 122, 109, 0.5)"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                 />
             </View>
 
-            {entries.map((entry) => (
-                <View key={entry.id} style={[styles.entryCard, entry.isAsymmetric && styles.asymmetricCard]}>
+            {isSearching ? (
+                <Text style={{ textAlign: 'center', marginTop: 20, color: theme.colors.primary }}>AI is searching your memories...</Text>
+            ) : searchResults ? (
+                searchResults.length > 0 ? (
+                    searchResults.map((entry, idx) => (
+                        <View key={idx} style={[styles.entryCard, entry.isAsymmetric && styles.asymmetricCard]}>
+                            <View style={styles.entryHeader}>
+                                <View>
+                                    <Text style={styles.entryDate}>{(new Date(entry.metadata?.date)).toLocaleDateString() || "RECENT"}</Text>
+                                    <Text style={styles.entryTitle}>{entry.metadata?.title || 'Journal Entry'}</Text>
+                                </View>
+                                <View style={styles.moodCircle}>
+                                    <Text style={{ fontSize: 20 }}>{entry.metadata?.mood || "📝"}</Text>
+                                </View>
+                            </View>
+                            <Text style={styles.entryExcerpt} numberOfLines={3}>
+                                {entry.text}
+                            </Text>
+                            <Text style={{ fontSize: 10, color: theme.colors.primary, marginTop: 4 }}>
+                                Match Score: {(entry.score * 100).toFixed(1)}%
+                            </Text>
+                        </View>
+                    ))
+                ) : (
+                    <Text style={{ textAlign: 'center', marginTop: 20, color: theme.colors.onSurfaceVariant }}>No matching entries found.</Text>
+                )
+            ) : (
+                entries.map((entry) => (
+                    <View key={entry.id} style={[styles.entryCard, entry.isAsymmetric && styles.asymmetricCard]}>
                     <View style={styles.entryHeader}>
                         <View>
                             <Text style={styles.entryDate}>{entry.date.toUpperCase()}</Text>
@@ -211,7 +324,7 @@ const JournalScreen = ({ navigation }) => {
                         </View>
                     )}
                 </View>
-            ))}
+            )))}
 
             <TouchableOpacity style={styles.fab}>
                 <MaterialIcons name="add" size={32} color="#fff" />
@@ -444,6 +557,32 @@ const styles = StyleSheet.create({
         lineHeight: 28,
         color: theme.colors.onSurfaceVariant,
         padding: 0,
+    },
+    suggestionsContainer: {
+        marginBottom: 16,
+        padding: 12,
+        backgroundColor: 'rgba(39, 107, 46, 0.05)',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.1)',
+    },
+    suggestionsHeader: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: theme.colors.primary,
+        marginBottom: 8,
+    },
+    suggestionPill: {
+        backgroundColor: '#fff',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.05)',
+    },
+    suggestionPillText: {
+        fontSize: 12,
+        color: theme.colors.onSurface,
     },
     feelingSection: {
         backgroundColor: theme.colors.surfaceContainerLow,
