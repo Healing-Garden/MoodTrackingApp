@@ -19,7 +19,6 @@ import IntroTwoScreen from './src/screens/Onboarding/IntroTwoScreen';
 import DashboardScreen from './src/screens/Main/DashboardScreen';
 import JournalScreen from './src/screens/Main/JournalScreen';
 import InsightsScreen from './src/screens/Main/InsightsScreen';
-import TrashScreen from './src/screens/Main/TrashScreen';
 import FeedbackScreen from './src/screens/Main/FeedbackScreen';
 
 // Settings Screens
@@ -57,7 +56,6 @@ export default function App() {
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Journal" component={JournalScreen} />
         <Stack.Screen name="Insights" component={InsightsScreen} />
-        <Stack.Screen name="Trash" component={TrashScreen} />
         <Stack.Screen name="Feedback" component={FeedbackScreen} />
 
         {/* Settings Flow */}
