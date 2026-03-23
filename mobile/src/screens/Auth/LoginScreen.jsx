@@ -43,6 +43,7 @@ const LoginScreen = ({ navigation }) => {
             // Successfully logged in
             if (user && user.role === 'admin') {
                 navigation.replace("AdminDashboard");
+                return;
             }
             // 1. Check Onboarding Status
             try {
