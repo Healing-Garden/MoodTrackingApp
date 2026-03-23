@@ -220,7 +220,7 @@ const SettingScreen = ({ navigation }) => {
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>SUPPORT & INFO</Text>
                         <View style={styles.group}>
-                            <TouchableOpacity style={styles.menuItem}>
+                            <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Feedback')}>
                                 <View style={[styles.menuIconBg, { backgroundColor: theme.colors.white }]}>
                                     <MaterialIcons name="chat-bubble" size={22} color="#705d00" />
                                 </View>

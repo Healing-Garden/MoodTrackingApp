@@ -8,7 +8,7 @@ import {
     StatusBar,
     TextInput,
     Alert,
-    KeyboardAvoidingView, 
+    KeyboardAvoidingView,
     Platform
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -31,7 +31,7 @@ const FeedbackScreen = ({ navigation }) => {
 
     const handleSubmit = async () => {
         if (!subject.trim() || !message.trim()) {
-            Alert.alert('Thông báo', 'Vui lòng điền đầy đủ tiêu đề và nội dung');
+            Alert.alert('Notification', 'Please fill in both subject and message');
             return;
         }
 
@@ -44,16 +44,16 @@ const FeedbackScreen = ({ navigation }) => {
             });
 
             if (response.data.success) {
-                Alert.alert('Thành công', 'Cảm ơn ý kiến của bạn! Chúng tôi đã nhận được góp ý.');
+                Alert.alert('Success', 'Thank you for your feedback! We have received your suggestion.');
                 setSubject('');
                 setMessage('');
                 setType('feature');
             } else {
-                Alert.alert('Lỗi', response.data.message || 'Không thể gửi feedback');
+                Alert.alert('Error', response.data.message || 'Cannot send feedback');
             }
         } catch (error) {
             console.error('Submit feedback error:', error);
-            Alert.alert('Lỗi', error.response?.data?.message || 'Có lỗi xảy ra khi gửi feedback. Vui lòng thử lại.');
+            Alert.alert('Error', error.response?.data?.message || 'An error occurred while sending feedback. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -62,7 +62,7 @@ const FeedbackScreen = ({ navigation }) => {
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'android'} 
         >
             <View style={styles.container}>
                 <StatusBar barStyle="dark-content" />
