@@ -43,21 +43,25 @@ const LandingScreen = ({ navigation }) => {
                     <TouchableOpacity
                         activeOpacity={0.9}
                         onPress={() => navigation.navigate("OnboardingWelcome")}
+                        style={styles.primaryButton}
                     >
-                        <BlurView intensity={50} tint="dark" style={styles.primaryButton}>
-                            <Text style={styles.primaryText}>Begin a new journey</Text>
-                            <MaterialIcons name="arrow-forward" size={22} color="#fff" />
-                        </BlurView>
+                        <View style={styles.blurWrapper}>
+                            <BlurView intensity={30} tint="default" style={styles.blur} />
+                            <View style={styles.buttonContent}>
+                                <Text style={styles.primaryText}>Begin a new journey</Text>
+                                <MaterialIcons name="arrow-forward" size={22} color="#fff" />
+                            </View>
+                        </View>
                     </TouchableOpacity>
 
                     {/* Login */}
                     <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => navigation.navigate("Login")}
+                        style={styles.secondaryButton}
                     >
-                        <BlurView intensity={40} tint="light" style={styles.secondaryButton}>
-                            <Text style={styles.secondaryText}>Already have an account</Text>
-                        </BlurView>
+                        <BlurView intensity={20} tint="default" style={StyleSheet.absoluteFill} />
+                        <Text style={styles.secondaryText}>Already have an account</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -108,7 +112,8 @@ const styles = StyleSheet.create({
     primaryButton: {
         height: 60,
         borderRadius: 30,
-        backgroundColor: "rgba(255, 202, 123, 0.9)", // Tăng độ tối
+        backgroundColor: "#FF8F00",
+        overflow: 'hidden',
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
@@ -116,7 +121,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "rgba(255,255,255,0.3)",
     },
-    
+
 
     primaryText: {
         color: "#fff",
@@ -128,6 +133,7 @@ const styles = StyleSheet.create({
         height: 60,
         borderRadius: 30,
         backgroundColor: "rgba(255,255,255,0.25)", // Giảm độ trong suốt
+        overflow: 'hidden',
         alignItems: "center",
         justifyContent: "center",
         borderWidth: 1,
@@ -138,5 +144,18 @@ const styles = StyleSheet.create({
         color: "#fff", // Đổi màu chữ cho phù hợp
         fontSize: 17,
         fontWeight: "600",
+    },
+    blurWrapper: {
+        ...StyleSheet.absoluteFillObject,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    blur: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    buttonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
     },
 });

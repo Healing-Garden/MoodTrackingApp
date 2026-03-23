@@ -6,47 +6,54 @@ import {
     StyleSheet,
     Dimensions,
     StatusBar,
+    Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 const { width } = Dimensions.get("window");
 
 const WelcomeScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" />
+            <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
             {/* Background blobs */}
-            <View style={styles.blob1} />
             <View style={styles.blob2} />
 
             {/* Header */}
             <View style={styles.header}>
-                <MaterialIcons name="spa" size={28} color="#276b2e" />
+                <MaterialIcons name="spa" size={32} color="#276b2e" />
                 <Text style={styles.brand}>Healing Garden</Text>
             </View>
 
             {/* Illustration */}
             <View style={styles.illustrationWrapper}>
-                <View style={styles.blurCard}>
+                <View style={styles.blobBackground} />
+                <View style={styles.glassCard}>
                     <View style={styles.gradientCircle}>
-                        <MaterialIcons name="psychology" size={64} color="#fff" />
-
+                        <MaterialIcons name="psychology" size={72} color="#fff" style={{ fill: 1 }} />
                         <View style={styles.floatingIcon}>
                             <MaterialIcons name="chat" size={24} color="#4c3e00" />
                         </View>
                     </View>
                 </View>
+                {/* Visual Decorations */}
+                <View style={styles.decoFlower}>
+                    <MaterialIcons name="local-florist" size={60} color="rgba(39, 107, 46, 0.3)" />
+                </View>
+                <View style={styles.decoPlant}>
+                    <MaterialIcons name="potted-plant" size={50} color="rgba(0, 77, 98, 0.2)" />
+                </View>
             </View>
 
-            {/* Title */}
-            <Text style={styles.title}>You are not alone</Text>
-
-            {/* Description */}
-            <Text style={styles.description}>
-                Our chatbot is always here to listen and support you{" "}
-                <Text style={styles.highlight}>24/7</Text> to soothe your mind.
-            </Text>
+            {/* Content Area */}
+            <View style={styles.content}>
+                <Text style={styles.title}>You are not alone</Text>
+                <Text style={styles.description}>
+                    Our chatbot is always listening and supporting you <Text style={styles.highlight}>24/7</Text> to soothe your mind.
+                </Text>
+            </View>
 
             {/* Footer */}
             <View style={styles.footer}>
@@ -59,8 +66,15 @@ const WelcomeScreen = ({ navigation }) => {
                     style={styles.button}
                     onPress={() => navigation.navigate("OnboardingIntro2")}
                 >
-                    <Text style={styles.buttonText}>Next</Text>
-                    <MaterialIcons name="arrow-forward" size={22} color="#fff" />
+                    <LinearGradient
+                        colors={['#276b2e', '#60a560']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.buttonGradient}
+                    >
+                        <Text style={styles.buttonText}>Next</Text>
+                        <MaterialIcons name="arrow-forward" size={24} color="#fff" />
+                    </LinearGradient>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => navigation.navigate("Login")}>
@@ -78,56 +92,65 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#ebffe6",
         alignItems: "center",
+        justifyContent: "space-between",
         paddingHorizontal: 32,
-        paddingTop: 80,
-    },
-
-    blob1: {
-        position: "absolute",
-        top: -120,
-        left: -80,
-        width: 300,
-        height: 200,
-        backgroundColor: "#d0f1cc",
-        borderRadius: 120,
-        opacity: 0.6,
+        paddingBottom: 40,
     },
 
     blob2: {
         position: "absolute",
-        bottom: -120,
-        right: -80,
-        width: 260,
-        height: 180,
-        backgroundColor: "#60a560",
-        borderRadius: 120,
-        opacity: 0.2,
+        bottom: "-10%",
+        right: "-10%",
+        width: "70%",
+        height: "40%",
+        backgroundColor: "rgba(96, 165, 96, 0.2)",
+        borderRadius: 150,
+        opacity: 0.5,
     },
 
     header: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 6,
-        marginBottom: 40,
+        gap: 8,
+        marginTop: Platform.OS === "android" ? 40 : 60,
     },
 
     brand: {
-        fontSize: 20,
-        fontWeight: "800",
+        fontSize: 22,
+        fontWeight: "900",
         color: "#276b2e",
+        fontFamily: Platform.OS === 'ios' ? 'Plus Jakarta Sans' : 'sans-serif',
     },
 
     illustrationWrapper: {
-        marginBottom: 40,
+        position: 'relative',
+        width: 288,
+        height: 288,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
-    blurCard: {
-        width: 260,
-        height: 260,
-        borderRadius: 80,
-        backgroundColor: "rgba(255,255,255,0.4)",
+    blobBackground: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(96, 165, 96, 0.1)',
+        borderRadius: 100,
+        transform: [{ scale: 1.25 }],
+    },
+
+    glassCard: {
+        width: 288,
+        height: 288,
+        borderRadius: 100,
+        backgroundColor: "#f1fbeb",
         alignItems: "center",
         justifyContent: "center",
+        shadowColor: "#276b2e",
+        shadowOffset: { width: 0, height: 20 },
+        shadowOpacity: 0.05,
+        shadowRadius: 40,
+        elevation: 5,
     },
 
     gradientCircle: {
@@ -141,30 +164,55 @@ const styles = StyleSheet.create({
 
     floatingIcon: {
         position: "absolute",
-        top: -10,
-        right: -10,
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: "#caa910",
+        top: -8,
+        right: -8,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: "#FCA308",
         alignItems: "center",
         justifyContent: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+    },
+
+    decoFlower: {
+        position: 'absolute',
+        bottom: -16,
+        left: -16,
+        transform: [{ rotate: '12deg' }],
+    },
+
+    decoPlant: {
+        position: 'absolute',
+        top: '50%',
+        right: -32,
+        transform: [{ rotate: '-45deg' }],
+    },
+
+    content: {
+        alignItems: 'center',
+        width: '100%',
     },
 
     title: {
-        fontSize: 32,
-        fontWeight: "800",
+        fontSize: 36,
+        fontWeight: "900",
         textAlign: "center",
-        marginBottom: 16,
+        marginBottom: 24,
         color: "#06210a",
+        lineHeight: 44,
     },
 
     description: {
         fontSize: 18,
         textAlign: "center",
         color: "#40493e",
-        marginBottom: 40,
-        paddingHorizontal: 12,
+        lineHeight: 28,
+        paddingHorizontal: 16,
+        opacity: 0.9,
     },
 
     highlight: {
@@ -175,48 +223,51 @@ const styles = StyleSheet.create({
     footer: {
         width: "100%",
         alignItems: "center",
-        gap: 20,
+        gap: 32,
     },
 
     stepper: {
         flexDirection: "row",
-        gap: 10,
+        gap: 12,
     },
 
     activeStep: {
         width: 32,
-        height: 6,
+        height: 10,
         backgroundColor: "#276b2e",
-        borderRadius: 4,
+        borderRadius: 5,
     },
 
     inactiveStep: {
         width: 10,
-        height: 6,
+        height: 10,
         backgroundColor: "#60a560",
-        borderRadius: 4,
+        borderRadius: 5,
     },
 
     button: {
+        width: "100%",
+        borderRadius: 16,
+        overflow: 'hidden',
+    },
+
+    buttonGradient: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        width: "100%",
-        height: 60,
-        backgroundColor: "#276b2e",
-        borderRadius: 20,
+        height: 64,
         gap: 8,
     },
 
     buttonText: {
         color: "#fff",
         fontSize: 18,
-        fontWeight: "700",
+        fontWeight: "800",
     },
 
     skip: {
-        marginTop: 8,
         color: "#40493e",
         fontSize: 14,
+        fontWeight: '600',
     },
 });
