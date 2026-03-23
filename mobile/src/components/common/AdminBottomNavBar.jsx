@@ -3,8 +3,7 @@ import {
     View,
     Text,
     TouchableOpacity,
-    StyleSheet,
-    Platform
+    StyleSheet
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -27,18 +26,19 @@ const AdminBottomNavBar = ({ navigation, activeTab = 'Dashboard' }) => {
                     return (
                         <TouchableOpacity
                             key={item.id}
-                            style={styles.item}
+                            style={isActive ? styles.activeItem : styles.item}
                             onPress={() => navigation.navigate(item.screen)}
                         >
                             <MaterialIcons 
                                 name={item.icon} 
                                 size={24} 
                                 color={isActive ? theme.colors.primary : "rgba(39, 107, 46, 0.4)"} 
-                                style={isActive ? styles.activeIcon : null}
                             />
-                            <Text style={[styles.label, isActive && styles.activeLabel]}>
-                                {item.label}
-                            </Text>
+                            {isActive ? (
+                                <Text style={styles.activeLabel}>{item.label}</Text>
+                            ) : (
+                                <Text style={styles.label}>{item.label}</Text>
+                            )}
                         </TouchableOpacity>
                     );
                 })}
@@ -53,28 +53,38 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
         backgroundColor: 'transparent',
     },
     blurBackground: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(235, 255, 230, 0.9)',
-        height: Platform.OS === 'ios' ? 90 : 70,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        borderRadius: 40,
+        height: 80,
         justifyContent: 'space-around',
         alignItems: 'center',
         paddingHorizontal: 8,
-        paddingBottom: Platform.OS === 'ios' ? 20 : 0,
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.5)',
         ...theme.shadows.soft,
     },
     item: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
         gap: 4,
     },
-    activeIcon: {
-        transform: [{ scale: 1.1 }],
+    activeItem: {
+        flex: 1.5,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(39, 107, 46, 0.1)',
+        height: 54,
+        borderRadius: 27,
+        gap: 8,
+        paddingHorizontal: 10,
     },
     label: {
         fontSize: 10,
@@ -83,8 +93,10 @@ const styles = StyleSheet.create({
         fontFamily: theme.fonts.label,
     },
     activeLabel: {
+        fontSize: 12,
+        fontWeight: '700',
         color: theme.colors.primary,
-        fontWeight: '800',
+        fontFamily: theme.fonts.label,
     }
 });
 
