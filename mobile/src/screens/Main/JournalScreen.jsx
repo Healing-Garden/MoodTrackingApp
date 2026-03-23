@@ -1,281 +1,856 @@
-import React from "react";
+import React, { useState } from 'react';
 import {
     View,
     Text,
     ScrollView,
     TouchableOpacity,
     TextInput,
-    Image,
     StyleSheet,
-    StatusBar
-} from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { theme } from "../../theme";
-import BottomNavBar from "../../components/common/BottomNavBar";
+    StatusBar,
+    Image,
+    Dimensions
+} from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { theme } from '../../theme';
+import BottomNavBar from '../../components/common/BottomNavBar';
+import logo from '../../../assets/images/logo.png';
+
+const { width } = Dimensions.get('window');
+
+const MOODS = ["😊", "😢", "😡", "😠", "😐", "🙂", "🙃", "😍"];
 
 const JournalScreen = ({ navigation }) => {
+    const [activeTab, setActiveTab] = useState('Write');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedMood, setSelectedMood] = useState(null);
 
     const entries = [
         {
             id: 1,
             date: "October 24, 2023",
             title: "The Morning Dew",
-            tag: "Gratitude",
-            content: "Today the garden felt particularly vibrant. I spent thirty minutes just watching the sun hit the hydrangea petals.",
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDllPwbkrifogq-y4jjgPMVxmkpY3iy_aizhGgvjPmUGpzxwMXeYOSqPewYedwq8NtMw9VXULhBTSdiayueg4QnZBGojxU45hmrlx5wppLLpzaq4CmfQxsPqvjRnqNm1_t1C-oLayDSMVUIXJ77SKpvueBo4uSKS0pE2EOSi7cTDTH-IjBUpxg0WySLCDrDlD8ZoGWFbsyymlo5gGubcYKL9e2eI961z93hNjQaSEsbF8Qt0knme2-8faqyAAxwZUbf3wGSkFr5dTs"
+            tags: ["Gratitude", "Nature"],
+            content: "Today the garden felt particularly vibrant. I spent thirty minutes just watching the sun hit the hydrangea petals. It reminded me that growth is often silent but certain...",
+            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDllPwbkrifogq-y4jjgPMVxmkpY3iy_aizhGgvjPmUGpzxwMXeYOSqPewYedwq8NtMw9VXULhBTSdiayueg4QnZBGojxU45hmrlx5wppLLpzaq4CmfQxsPqvjRnqNm1_t1C-oLayDSMVUIXJ77SKpvueBo4uSKS0pE2EOSi7cTDTH-IjBUpxg0WySLCDrDlD8ZoGWFbsyymlo5gGubcYKL9e2eI961z93hNjQaSEsbF8Qt0knme2-8faqyAAxwZUbf3wGSkFr5dTs",
+            mood: "🌞"
+        },
+        {
+            id: 2,
+            date: "October 21, 2023",
+            title: "Finding Stillness in Storms",
+            tags: ["Mindfulness"],
+            content: "When the rain started, I felt a surge of anxiety. But then I realized the garden needs the rain just as much as the sun. I practiced deep breathing for 10 minutes...",
+            moodChar: "Peaceful",
+            isAsymmetric: true
+        },
+        {
+            id: 3,
+            date: "October 19, 2023",
+            title: "Reflections on 'The Hidden Life of Trees'",
+            content: "\"Trees are social beings. They share food with their own species and sometimes even nourish their competitors.\" This book has completely changed how I walk through the park...",
+            tags: ["Library"],
+            isLibrary: true
         }
-    ]
+    ];
+
+    const trashedEntries = [
+        {
+            id: 'T1',
+            title: "Morning Reflection on Growth",
+            content: "\"I felt like a seedling pushing through the soil today. The weight of expectations was heavy, but the sunlight felt...\"",
+            deleted: "Deleted Oct 12",
+            remain: "24 days remaining"
+        },
+        {
+            id: 'T2',
+            title: "Unspoken Storm Clouds",
+            content: "\"Sometimes the silence is louder than the rain. I'm trying to find where the tension lives in my body and just let it...\"",
+            deleted: "Deleted Oct 04",
+            remain: "12 days remaining"
+        },
+        {
+            id: 'T3',
+            title: "Draft: The River Path",
+            content: "\"Walking by the creek helped me realize that life doesn't always have to be a straight line. The curves are where...\"",
+            deleted: "Deleted Sep 22",
+            remain: "2 days remaining",
+            isUrgent: true
+        }
+    ];
+
+    const renderWrite = () => (
+        <View style={styles.writeContainer}>
+            <View style={styles.editorCard}>
+                <View style={styles.decorativeMoodBloom} />
+                <TextInput
+                    style={styles.journalTitleInput}
+                    placeholder="Journal Title"
+                    placeholderTextColor="#c0c9bb"
+                />
+                <TextInput
+                    style={styles.journalTextArea}
+                    placeholder="Share your thoughts..."
+                    placeholderTextColor="rgba(64, 73, 62, 0.6)"
+                    multiline
+                    numberOfLines={8}
+                    textAlignVertical="top"
+                />
+            </View>
+
+            <View style={styles.feelingSection}>
+                <View style={[styles.sectionTitleRow, { marginBottom: 16 }]}>
+                    <MaterialIcons name="mood" size={24} color={theme.colors.primary} />
+                    <Text style={styles.sectionTitle}>Current Feeling</Text>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moodsRow}>
+                    {MOODS.map((mood, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={[styles.moodItem, selectedMood === index && styles.activeMoodItem]}
+                            onPress={() => setSelectedMood(index)}
+                        >
+                            <Text style={styles.moodEmoji}>{mood}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+
+            <View style={styles.emotionsSection}>
+                <View style={[styles.sectionTitleRow, { marginBottom: 16 }]}>
+                    <MaterialIcons name="label" size={24} color={theme.colors.secondary} />
+                    <Text style={styles.sectionTitle}>Identify Emotions</Text>
+                </View>
+                <View style={styles.emotionsGrid}>
+                    {['Happy', 'Sad', 'Anxious', 'Grateful', 'Peaceful', 'Energized', 'Overwhelmed', 'Hopeful'].map((emotion) => (
+                        <TouchableOpacity key={emotion} style={[styles.emotionTag, emotion === 'Happy' && styles.activeEmotionTag]}>
+                            <Text style={[styles.emotionTagText, emotion === 'Happy' && styles.activeEmotionTagText]}>{emotion}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            </View>
+
+            <View style={styles.brandCard}>
+                <View style={styles.brandContent}>
+                    <Text style={styles.brandTitle}>Your Digital Sanctuary</Text>
+                    <Text style={styles.brandDesc}>Every word you plant here grows into a more mindful version of yourself. Take your time, there's no rush in the garden.</Text>
+                </View>
+                <View style={styles.brandVisual}>
+                    <MaterialIcons name="energy-savings-leaf" size={48} color="#fff" style={{ opacity: 0.6 }} />
+                </View>
+                <View style={styles.brandDecor1} />
+                <View style={styles.brandDecor2} />
+            </View>
+        </View>
+    );
+
+    const renderEntries = () => (
+        <View style={styles.entriesContainer}>
+            <View style={styles.searchContainer}>
+                <MaterialIcons name="search" size={24} color="rgba(113, 122, 109, 0.6)" style={styles.searchIcon} />
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search your memories..."
+                    placeholderTextColor="rgba(113, 122, 109, 0.5)"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                />
+            </View>
+
+            {entries.map((entry) => (
+                <View key={entry.id} style={[styles.entryCard, entry.isAsymmetric && styles.asymmetricCard]}>
+                    <View style={styles.entryHeader}>
+                        <View>
+                            <Text style={styles.entryDate}>{entry.date.toUpperCase()}</Text>
+                            <Text style={styles.entryTitle}>{entry.title}</Text>
+                        </View>
+                        {entry.mood && (
+                            <View style={styles.moodCircle}>
+                                <Text style={{ fontSize: 20 }}>{entry.mood}</Text>
+                            </View>
+                        )}
+                        {entry.moodChar && (
+                            <View style={styles.peacefulBadge}>
+                                <Text style={styles.peacefulBadgeText}>{entry.moodChar}</Text>
+                            </View>
+                        )}
+                        {entry.isLibrary && (
+                            <MaterialIcons name="more-horiz" size={24} color={theme.colors.onSurfaceVariant} />
+                        )}
+                    </View>
+
+                    <View style={styles.tagRow}>
+                        {entry.tags?.map(tag => (
+                            <View key={tag} style={[styles.tag, tag === 'Gratitude' ? styles.gratitudeTag : tag === 'Nature' ? styles.natureTag : tag === 'Mindfulness' ? styles.mindfulnessTag : styles.libraryTag]}>
+                                <Text style={[styles.tagText, tag === 'Library' && { color: theme.colors.onTertiaryFixed }]}>{tag}</Text>
+                            </View>
+                        ))}
+                    </View>
+
+                    <Text style={[styles.entryExcerpt, entry.isLibrary && styles.libraryExcerpt]} numberOfLines={entry.isAsymmetric ? 3 : 2}>
+                        {entry.content}
+                    </Text>
+
+                    {entry.image && (
+                        <View style={styles.entryImageWrapper}>
+                            <Image source={{ uri: entry.image }} style={styles.entryImage} />
+                            <BlurView intensity={20} style={StyleSheet.absoluteFill} />
+                        </View>
+                    )}
+
+                    {entry.isAsymmetric && (
+                        <View style={styles.asymmetricVisual}>
+                            <MaterialIcons name="air" size={48} color={theme.colors.secondary} />
+                        </View>
+                    )}
+
+                    {entry.isLibrary && (
+                        <View style={styles.libraryFooter}>
+                            <View style={styles.libraryLine} />
+                            <MaterialIcons name="auto-stories" size={18} color={theme.colors.onSurfaceVariant} />
+                        </View>
+                    )}
+                </View>
+            ))}
+
+            <TouchableOpacity style={styles.fab}>
+                <MaterialIcons name="add" size={32} color="#fff" />
+            </TouchableOpacity>
+        </View>
+    );
+
+    const renderTrash = () => (
+        <View style={styles.trashContainer}>
+            <View style={styles.trashInfoBanner}>
+                <View style={styles.bannerIconBox}>
+                    <MaterialIcons name="cleaning-services" size={20} color={theme.colors.primary} />
+                </View>
+                <Text style={styles.bannerText}>
+                    Items in trash will be permanently deleted after 30 days to keep your sanctuary clear.
+                </Text>
+                <View style={styles.bannerDecor} />
+            </View>
+
+            {trashedEntries.map((item) => (
+                <View key={item.id} style={[styles.trashCard, item.isUrgent && styles.urgentTrashCard]}>
+                    <View style={styles.trashCardTop}>
+                        <View style={[styles.trashBadge, item.isUrgent && styles.urgentBadge]}>
+                            <Text style={styles.trashBadgeText}>{item.remain}</Text>
+                        </View>
+                        <Text style={styles.trashDateText}>{item.deleted}</Text>
+                    </View>
+                    <Text style={styles.trashTitle}>{item.title}</Text>
+                    <Text style={styles.trashContent} numberOfLines={2}>{item.content}</Text>
+                    <View style={styles.trashActions}>
+                        <TouchableOpacity style={styles.restoreBtn}>
+                            <MaterialIcons name="settings-backup-restore" size={18} color={theme.colors.primary} />
+                            <Text style={styles.restoreBtnText}>Restore</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity>
+                            <MaterialIcons name="delete-forever" size={22} color="rgba(186, 26, 26, 0.6)" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            ))}
+        </View>
+    );
 
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
 
-            {/* HEADER */}
-            <View style={styles.header}>
-                <View style={styles.profileRow}>
-                    <Image
-                        source={{ uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuBz1wh155THxa5_MK-wkpRcOkhWwYI9RsHE3E8yq1hMgcJlJrEguJ2Uea0L43CZ4OervfoD41a2q9VJHTNgz3vCL2Wi5xAw5LobEKtdo9NgwKzV5vwiLkgD3J9ud9j7IVTJn0FWS6XTmf61vgpvv27sUU2kKz-mCaX6kBEtTEmhjAPeTXbG5U-z9Pl1peKIeT4Xt1VbixHw0SxIo3YA8mkIf24UsGVpzkQdc31Vimuoqh4U2mI1OES0w37WAnAO7881H-U8jaCDfc0" }}
-                        style={styles.avatar}
-                    />
-                    <Text style={styles.logo}>Digital Sanctuary</Text>
+            {/* TOP BAR */}
+            <BlurView intensity={80} style={styles.topBar}>
+                <View style={styles.topBarLeft}>
+                    <Text style={styles.appTitle}>Journal</Text>
                 </View>
-
-                <TouchableOpacity style={styles.iconBtn}>
-                    <MaterialIcons name="settings" size={24} color="#064e3b" />
-                </TouchableOpacity>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-
-                {/* TITLE */}
-                <View style={styles.pageHeader}>
-                    <Text style={styles.pageTitle}>My Journal</Text>
-                    <Text style={styles.subtitle}>Reflecting on your garden's growth.</Text>
+                <View style={styles.avatarContainer}>
+                    <Image source={logo} style={styles.avatar} resizeMode="contain" />
                 </View>
+            </BlurView>
 
-                {/* TABS */}
-                <View style={styles.tabs}>
-                    <Text style={styles.tab}>Write</Text>
-                    <Text style={styles.tabActive}>My Entries</Text>
-                    <Text style={styles.tab}>Trash</Text>
-                </View>
-
-                {/* SEARCH */}
-                <View style={styles.searchBox}>
-                    <MaterialIcons name="search" size={22} color="#6b7280" />
-                    <TextInput
-                        placeholder="Search your memories..."
-                        style={styles.searchInput}
-                    />
-                </View>
-
-                {/* ENTRY CARD */}
-                {entries.map(e => (
-                    <View key={e.id} style={styles.card}>
-
-                        <View style={styles.cardHeader}>
-                            <View>
-                                <Text style={styles.date}>{e.date}</Text>
-                                <Text style={styles.title}>{e.title}</Text>
-                            </View>
-
-                            <View style={styles.moodBlob}>
-                                <MaterialIcons name="wb-sunny" size={22} color="#fff" />
-                            </View>
-
-                        </View>
-
-                        <View style={styles.tag}>
-                            <Text style={styles.tagText}>{e.tag}</Text>
-                        </View>
-
-                        <Text style={styles.content}>{e.content}</Text>
-
-                        <Image source={{ uri: e.image }} style={styles.image} />
-
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
+                {/* TABS NAVIGATION */}
+                <View style={styles.tabsWrapper}>
+                    <View style={styles.tabsInner}>
+                        {['Write', 'My Entries', 'Trash'].map((tab) => (
+                            <TouchableOpacity
+                                key={tab}
+                                style={[styles.tabBtn, activeTab === tab && styles.activeTabBtn]}
+                                onPress={() => setActiveTab(tab)}
+                            >
+                                <Text style={[styles.tabBtnText, activeTab === tab && styles.activeTabBtnText]}>
+                                    {tab}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
-                ))}
+                </View>
 
+                {activeTab === 'Write' && renderWrite()}
+                {activeTab === 'My Entries' && renderEntries()}
+                {activeTab === 'Trash' && renderTrash()}
             </ScrollView>
 
-            {/* FAB */}
-            <TouchableOpacity style={styles.fab}>
-                <LinearGradient
-                    colors={["#caa910", "#705d00"]}
-                    style={styles.fab}
-                >
-                    <MaterialIcons name="add" size={30} color="white" />
-                </LinearGradient>
-            </TouchableOpacity>
+            {/* CONTEXTUAL ACTIONS FOR WRITE TAB */}
+            {activeTab === 'Write' && (
+                <View style={styles.contextualFooter}>
+                    <View style={styles.footerTools}>
+                        <TouchableOpacity style={styles.toolBtn}>
+                            <MaterialIcons name="image" size={24} color={theme.colors.primary} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.toolBtn}>
+                            <MaterialIcons name="mic" size={24} color={theme.colors.primary} />
+                        </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity style={styles.saveBtn}>
+                        <Text style={styles.saveBtnText}>Save Entry</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
 
-            {/* BOTTOM NAVIGATION */}
             <BottomNavBar navigation={navigation} activeTab="Journal" />
-
         </View>
-    )
-}
-
-export default JournalScreen
+    );
+};
 
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
-        backgroundColor: "#EBFFE6"
+        backgroundColor: theme.colors.background,
     },
-
-    header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 20,
-        paddingTop: 50,
-        paddingBottom: 10
+    topBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingTop: 60,
+        paddingBottom: 20,
+        paddingHorizontal: 24,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        ...theme.shadows.soft,
     },
-
-    profileRow: {
-        flexDirection: "row",
-        alignItems: "center"
+    topBarLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
     },
-
-    avatar: {
+    menuBtn: {
+        padding: 8,
+        borderRadius: 20,
+    },
+    appTitle: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#064e3b',
+        fontFamily: theme.fonts.headline,
+    },
+    avatarContainer: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        marginRight: 10
+        overflow: 'hidden',
+        borderWidth: 2,
+        borderColor: 'rgba(96, 165, 96, 0.3)',
     },
-
-    logo: {
-        fontSize: 20,
-        fontWeight: "700"
+    avatar: {
+        width: '100%',
+        height: '100%',
     },
-
-    iconBtn: {
-        width: 40,
-        height: 40,
-        justifyContent: "center",
-        alignItems: "center"
+    scrollContainer: {
+        paddingTop: 140,
+        paddingBottom: 160,
     },
-
-    pageHeader: {
-        paddingHorizontal: 20,
-        marginTop: 10
+    pageHeaderText: {
+        paddingHorizontal: 24,
+        marginBottom: 32,
     },
-
-    pageTitle: {
+    mainTitle: {
+        fontSize: 40,
+        fontWeight: '800',
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
+        letterSpacing: -1,
+    },
+    subTitle: {
+        fontSize: 16,
+        color: 'rgba(64, 73, 62, 0.8)',
+        marginTop: 4,
+    },
+    tabsWrapper: {
+        paddingHorizontal: 24,
+        marginBottom: 32,
+    },
+    tabsInner: {
+        flexDirection: 'row',
+        backgroundColor: theme.colors.surfaceContainerLow,
+        padding: 6,
+        borderRadius: 99,
+    },
+    tabBtn: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+        borderRadius: 99,
+    },
+    activeTabBtn: {
+        backgroundColor: theme.colors.primaryContainer,
+        ...theme.shadows.soft,
+    },
+    tabBtnText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: theme.colors.onSurfaceVariant,
+        fontFamily: theme.fonts.headline,
+    },
+    activeTabBtnText: {
+        color: theme.colors.onPrimaryContainer,
+    },
+    // WRITE TAB
+    writeContainer: {
+        paddingHorizontal: 24,
+        gap: 24,
+    },
+    editorCard: {
+        backgroundColor: theme.colors.surfaceContainerLowest,
+        borderRadius: theme.borderRadius.lg,
+        padding: 32,
+        ...theme.shadows.soft,
+        minHeight: 300,
+    },
+    decorativeMoodBloom: {
+        position: 'absolute',
+        top: -24,
+        right: -24,
+        width: 100,
+        height: 100,
+        backgroundColor: 'rgba(112, 93, 0, 0.1)',
+        borderRadius: 50,
+        transform: [{ scaleY: 1.5 }],
+    },
+    journalTitleInput: {
         fontSize: 32,
-        fontWeight: "800"
+        fontWeight: '800',
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
+        padding: 0,
+        marginBottom: 24,
     },
-
-    subtitle: {
-        opacity: .6
+    journalTextArea: {
+        fontSize: 18,
+        lineHeight: 28,
+        color: theme.colors.onSurfaceVariant,
+        padding: 0,
     },
-
-    tabs: {
-        flexDirection: "row",
-        backgroundColor: "#d6f7d1",
-        margin: 20,
+    feelingSection: {
+        backgroundColor: theme.colors.surfaceContainerLow,
+        borderRadius: theme.borderRadius.lg,
+        padding: 24,
+    },
+    sectionTitleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: theme.colors.onPrimaryContainer,
+        fontFamily: theme.fonts.headline,
+    },
+    moodsRow: {
+        gap: 16,
+    },
+    moodItem: {
+        width: 60,
+        height: 60,
         borderRadius: 30,
-        padding: 4
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...theme.shadows.soft,
     },
-
-    tab: {
+    activeMoodItem: {
+        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderWidth: 2,
+        borderColor: theme.colors.primary,
+    },
+    moodEmoji: {
+        fontSize: 32,
+    },
+    emotionsSection: {
+        backgroundColor: theme.colors.surfaceContainerLow,
+        borderRadius: theme.borderRadius.lg,
+        padding: 24,
+    },
+    emotionsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    emotionTag: {
+        backgroundColor: '#fff',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 99,
+        ...theme.shadows.soft,
+    },
+    activeEmotionTag: {
+        backgroundColor: theme.colors.primaryContainer,
+    },
+    emotionTagText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: theme.colors.outline,
+    },
+    activeEmotionTagText: {
+        color: theme.colors.onPrimaryContainer,
+        fontWeight: '700',
+    },
+    brandCard: {
+        backgroundColor: theme.colors.primary,
+        borderRadius: theme.borderRadius.lg,
+        padding: 40,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 20,
+        overflow: 'hidden',
+    },
+    brandContent: {
         flex: 1,
-        textAlign: "center",
-        padding: 10
+        zIndex: 10,
     },
-
-    tabActive: {
-        flex: 1,
-        textAlign: "center",
-        padding: 10,
-        backgroundColor: "#60a560",
-        borderRadius: 30,
-        color: "#fff"
+    brandTitle: {
+        fontSize: 28,
+        fontWeight: '800',
+        color: '#fff',
+        fontFamily: theme.fonts.headline,
+        marginBottom: 16,
     },
-
-    searchBox: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#e8f9e4",
-        marginHorizontal: 20,
+    brandDesc: {
+        fontSize: 16,
+        lineHeight: 24,
+        color: 'rgba(255,255,255,0.9)',
+    },
+    brandVisual: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
+    },
+    brandDecor1: {
+        position: 'absolute',
+        bottom: -40,
+        left: -40,
+        width: 120,
+        height: 120,
+        backgroundColor: 'rgba(171, 244, 167, 0.3)',
+        borderRadius: 60,
+        filter: 'blur(30px)',
+    },
+    brandDecor2: {
+        position: 'absolute',
+        top: -40,
+        right: -40,
+        width: 120,
+        height: 120,
+        backgroundColor: 'rgba(154, 225, 255, 0.2)',
+        borderRadius: 60,
+        filter: 'blur(30px)',
+    },
+    // ENTRIES TAB
+    entriesContainer: {
+        paddingHorizontal: 24,
+        gap: 32,
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: theme.colors.surfaceContainerHigh,
         borderRadius: 12,
-        paddingHorizontal: 10,
-        marginBottom: 20
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        marginBottom: 10,
     },
-
+    searchIcon: {
+        marginRight: 12,
+    },
     searchInput: {
         flex: 1,
-        padding: 12
+        fontSize: 16,
+        color: theme.colors.onSurface,
     },
-
-    card: {
-        backgroundColor: "#fff",
-        margin: 20,
-        padding: 20,
-        borderRadius: 16
+    entryCard: {
+        backgroundColor: theme.colors.surfaceContainerLowest,
+        borderRadius: theme.borderRadius.lg,
+        padding: 24,
+        ...theme.shadows.soft,
     },
-
-    cardHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between"
+    asymmetricCard: {
+        backgroundColor: theme.colors.surfaceContainerLow,
+        flexDirection: 'row',
+        gap: 20,
+        padding: 32,
     },
-
-    date: {
+    entryHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 16,
+    },
+    entryDate: {
         fontSize: 11,
-        fontWeight: "700",
-        opacity: .6
+        fontWeight: '800',
+        color: theme.colors.secondary,
+        letterSpacing: 2,
+        marginBottom: 4,
     },
-
-    title: {
-        fontSize: 22,
-        fontWeight: "700"
+    entryTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
     },
-
-    moodBlob: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: "#caa910",
-        justifyContent: "center",
-        alignItems: "center"
+    moodCircle: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: theme.colors.tertiaryContainer,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-
-    tag: {
-        backgroundColor: "#9ae1ff",
-        alignSelf: "flex-start",
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 20,
-        marginVertical: 8
+    peacefulBadge: {
+        backgroundColor: '#fff',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 99,
+        ...theme.shadows.soft,
+        position: 'absolute',
+        top: -10,
+        right: -10,
     },
-
-    tagText: {
+    peacefulBadgeText: {
         fontSize: 12,
-        fontWeight: "700"
+        fontWeight: '700',
+        color: theme.colors.secondary,
     },
-
-    content: {
-        opacity: .7,
-        marginBottom: 10
+    tagRow: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 16,
     },
-
-    image: {
-        width: "100%",
-        height: 160,
-        borderRadius: 12
+    tag: {
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 99,
     },
-
+    gratitudeTag: { backgroundColor: theme.colors.secondaryContainer },
+    natureTag: { backgroundColor: theme.colors.surfaceContainer },
+    mindfulnessTag: { backgroundColor: 'rgba(39, 107, 46, 0.1)' },
+    libraryTag: { backgroundColor: theme.colors.tertiaryFixed },
+    tagText: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: theme.colors.onSecondaryContainer,
+    },
+    entryExcerpt: {
+        fontSize: 15,
+        lineHeight: 24,
+        color: theme.colors.onSurfaceVariant,
+        marginBottom: 20,
+    },
+    libraryExcerpt: {
+        fontStyle: 'italic',
+    },
+    entryImageWrapper: {
+        height: 200,
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    entryImage: {
+        width: '100%',
+        height: '100%',
+    },
+    asymmetricVisual: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    libraryFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginTop: 10,
+    },
+    libraryLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: 'rgba(192, 201, 187, 0.2)',
+    },
     fab: {
-        position: "absolute",
-        right: 20,
-        bottom: 100,
+        position: 'absolute',
+        bottom: 20,
+        right: 0,
         width: 64,
         height: 64,
         borderRadius: 32,
-        justifyContent: "center",
-        alignItems: "center"
+        backgroundColor: theme.colors.tertiary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...theme.shadows.primary,
+    },
+    // TRASH TAB
+    trashContainer: {
+        paddingHorizontal: 24,
+        gap: 24,
+    },
+    trashInfoBanner: {
+        flexDirection: 'row',
+        backgroundColor: 'rgba(202, 235, 198, 0.4)',
+        padding: 24,
+        borderRadius: theme.borderRadius.lg,
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.05)',
+        alignItems: 'center',
+        gap: 16,
+        overflow: 'hidden',
+    },
+    bannerIconBox: {
+        backgroundColor: 'rgba(39, 107, 46, 0.1)',
+        padding: 8,
+        borderRadius: 99,
+    },
+    bannerText: {
+        flex: 1,
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: '500',
+        color: theme.colors.onSurfaceVariant,
+    },
+    bannerDecor: {
+        position: 'absolute',
+        top: -30,
+        right: -30,
+        width: 100,
+        height: 100,
+        backgroundColor: 'rgba(39, 107, 46, 0.05)',
+        borderRadius: 50,
+        transform: [{ rotate: '45deg' }],
+    },
+    trashCard: {
+        backgroundColor: theme.colors.surfaceContainerLowest,
+        padding: 24,
+        borderRadius: theme.borderRadius.lg,
+        ...theme.shadows.soft,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    urgentTrashCard: {
+        opacity: 0.8,
+    },
+    trashCardTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    trashBadge: {
+        backgroundColor: 'rgba(255, 218, 214, 0.5)',
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 99,
+    },
+    urgentBadge: {
+        backgroundColor: 'rgba(255, 218, 214, 0.8)',
+    },
+    trashBadgeText: {
+        fontSize: 11,
+        fontWeight: '800',
+        color: '#93000a',
+        textTransform: 'uppercase',
+    },
+    trashDateText: {
+        fontSize: 12,
+        fontWeight: '500',
+        color: theme.colors.outline,
+    },
+    trashTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+        marginBottom: 8,
+        fontFamily: theme.fonts.headline,
+    },
+    trashContent: {
+        fontSize: 14,
+        color: theme.colors.onSurfaceVariant,
+        fontStyle: 'italic',
+        lineHeight: 20,
+        marginBottom: 24,
+    },
+    trashActions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.surfaceContainer,
+    },
+    restoreBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    restoreBtnText: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: theme.colors.primary,
+    },
+    contextualFooter: {
+        position: 'absolute',
+        bottom: 100,
+        left: 20,
+        right: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: 16,
+        borderRadius: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        ...theme.shadows.soft,
+        borderWidth: 1,
+        borderColor: 'rgba(192, 201, 187, 0.1)',
+        zIndex: 10,
+    },
+    footerTools: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    toolBtn: {
+        width: 48,
+        height: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 24,
+    },
+    saveBtn: {
+        backgroundColor: theme.colors.primary,
+        paddingHorizontal: 40,
+        paddingVertical: 12,
+        borderRadius: 16,
+        ...theme.shadows.primary,
+    },
+    saveBtnText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '700',
+        fontFamily: theme.fonts.headline,
     }
+});
 
-})
+export default JournalScreen;
