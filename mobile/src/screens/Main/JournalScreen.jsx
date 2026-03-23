@@ -26,6 +26,7 @@ import { uploadToCloudinary } from '../../utils/cloudinary';
 const { width } = Dimensions.get('window');
 
 const MOODS = ["😊", "😢", "😡", "😠", "😐", "🙂", "🙃", "😍"];
+const EMOTIONS = ['Happy', 'Sad', 'Anxious', 'Grateful', 'Peaceful', 'Energized', 'Overwhelmed', 'Hopeful'];
 
 const JournalScreen = ({ navigation }) => {
     const [activeTab, setActiveTab] = useState('Write');
@@ -41,6 +42,7 @@ const JournalScreen = ({ navigation }) => {
     const [trashedEntries, setTrashedEntries] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [editingEntryId, setEditingEntryId] = useState(null);
+    const [selectedEmotions, setSelectedEmotions] = useState([]);
 
     // New states for Advanced Features
     const [imagePreviews, setImagePreviews] = useState([]);
@@ -231,7 +233,7 @@ const JournalScreen = ({ navigation }) => {
                 text: currentContent,
                 mood: currentMoodIdx !== null ? MOODS[currentMoodIdx] : '😐',
                 energy_level: 5,
-                trigger_tags: [],
+                trigger_tags: selectedEmotions,
                 images: uploadedUrls.filter(u => u !== null),
                 voice_note_url: uploadedAudioUrl,
             };
@@ -253,6 +255,7 @@ const JournalScreen = ({ navigation }) => {
                 setTitle('');
                 setContent('');
                 setSelectedMood(null);
+                setSelectedEmotions([]);
                 setEditingEntryId(null);
                 setImagePreviews([]);
                 setAudioUri(null);
@@ -303,6 +306,7 @@ const JournalScreen = ({ navigation }) => {
         setExpandingMood(moodIdx !== -1 ? moodIdx : null);
         setExpandingImagePreviews(entry.images || []);
         setExpandingAudioUri(entry.voice_note_url || null);
+        setSelectedEmotions(entry.trigger_tags || []);
         // No need to setActiveTab('Write') because we are doing in-place editing
     };
 
@@ -396,11 +400,26 @@ const JournalScreen = ({ navigation }) => {
                     <Text style={styles.sectionTitle}>Identify Emotions</Text>
                 </View>
                 <View style={styles.emotionsGrid}>
-                    {['Happy', 'Sad', 'Anxious', 'Grateful', 'Peaceful', 'Energized', 'Overwhelmed', 'Hopeful'].map((emotion) => (
-                        <TouchableOpacity key={emotion} style={[styles.emotionTag, emotion === 'Happy' && styles.activeEmotionTag]}>
-                            <Text style={[styles.emotionTagText, emotion === 'Happy' && styles.activeEmotionTagText]}>{emotion}</Text>
-                        </TouchableOpacity>
-                    ))}
+                    {EMOTIONS.map((emotion) => {
+                        const isSelected = selectedEmotions.includes(emotion);
+                        return (
+                            <TouchableOpacity 
+                                key={emotion} 
+                                style={[styles.emotionTag, isSelected && styles.activeEmotionTag]}
+                                onPress={() => {
+                                    setSelectedEmotions(prev => 
+                                        prev.includes(emotion) 
+                                            ? prev.filter(e => e !== emotion) 
+                                            : [...prev, emotion]
+                                    );
+                                }}
+                            >
+                                <Text style={[styles.emotionTagText, isSelected && styles.activeEmotionTagText]}>
+                                    {emotion}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
             </View>
 
