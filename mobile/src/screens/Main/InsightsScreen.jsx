@@ -12,6 +12,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import Svg, { Path, Circle } from "react-native-svg";
 import { theme } from "../../theme";
+import BottomNavBar from "../../components/common/BottomNavBar";
 
 const { width } = Dimensions.get("window");
 
@@ -235,45 +236,23 @@ const InsightsScreen = ({ navigation }) => {
             </ScrollView>
 
 
-            {/* BOTTOM NAV */}
-
-            <View style={styles.bottomNav}>
-
-                <TouchableOpacity onPress={() => navigation.navigate("Dashboard")}>
-                    <MaterialIcons name="local-florist" size={26} color="#888" />
-                </TouchableOpacity>
-
-                <TouchableOpacity>
-                    <MaterialIcons name="analytics" size={26} color={theme.colors.primary} />
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={() => navigation.navigate("Journal")}>
-                    <MaterialIcons name="auto-stories" size={26} color="#888" />
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={() => navigation.navigate("Growth")}>
-                    <MaterialIcons name="psychology" size={26} color="#888" />
-                </TouchableOpacity>
-
-            </View>
+            {/* BOTTOM NAVIGATION */}
+            <BottomNavBar navigation={navigation} activeTab="Insights" />
 
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
         backgroundColor: theme.colors.surface
     },
-
     content: {
         paddingHorizontal: 24,
         paddingTop: 80,
         paddingBottom: 120
     },
-
     header: {
         position: "absolute",
         top: 0,
@@ -285,26 +264,22 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 24
     },
-
     headerLeft: {
         flexDirection: "row",
         alignItems: "center",
         gap: 12
     },
-
     headerTitle: {
         fontSize: 24,
         fontWeight: "700",
         color: theme.colors.primary
     },
-
     avatar: {
         width: 40,
         height: 40,
         borderRadius: 20,
         backgroundColor: theme.colors.primaryContainer
     },
-
     tabsContainer: {
         flexDirection: "row",
         alignSelf: "center",
@@ -313,35 +288,29 @@ const styles = StyleSheet.create({
         padding: 6,
         marginBottom: 32
     },
-
     tab: {
         paddingHorizontal: 24,
         paddingVertical: 8,
         borderRadius: 10
     },
-
     tabActive: {
         backgroundColor: "#fff",
         shadowColor: "#000",
         shadowOpacity: 0.05,
         shadowRadius: 4
     },
-
     tabText: {
         fontSize: 12,
         fontWeight: "600",
         color: "#888"
     },
-
     tabTextActive: {
         color: theme.colors.primary
     },
-
     statsGrid: {
         flexDirection: "row",
         marginBottom: 32
     },
-
     statCardLarge: {
         flex: 1.2,
         backgroundColor: "#fff",
@@ -349,125 +318,104 @@ const styles = StyleSheet.create({
         padding: 24,
         marginRight: 16
     },
-
     statsRight: {
         flex: 1
     },
-
     statCardSmall: {
         backgroundColor: "#fff",
         borderRadius: 16,
         padding: 20
     },
-
     statLabel: {
         fontSize: 10,
         letterSpacing: 1,
         color: "#888",
         marginBottom: 10
     },
-
     statValue: {
         fontSize: 48,
         fontWeight: "800",
         color: theme.colors.primary
     },
-
     statSmallValue: {
         fontSize: 30,
         fontWeight: "700",
         color: theme.colors.secondary
     },
-
     trendRow: {
         flexDirection: "row",
         alignItems: "center",
         gap: 4
     },
-
     trendText: {
         fontSize: 11,
         color: theme.colors.primary,
         fontWeight: "700"
     },
-
     chartCard: {
         backgroundColor: theme.colors.surfaceContainerLow,
         borderRadius: 16,
         padding: 24,
         marginBottom: 32
     },
-
     chartHeader: {
         marginBottom: 16
     },
-
     chartTitle: {
         fontSize: 20,
         fontWeight: "700"
     },
-
     chartSubtitle: {
         fontSize: 13,
         color: "#888"
     },
-
     chartXAxis: {
         flexDirection: "row",
         justifyContent: "space-between",
         marginTop: 10
     },
-
     axisLabel: {
         fontSize: 11,
         color: "#888"
     },
-
     heatmapCard: {
         backgroundColor: "#fff",
         borderRadius: 16,
         padding: 24,
         marginBottom: 32
     },
-
     heatTitle: {
         fontSize: 18,
         fontWeight: "700",
         marginBottom: 16
     },
-
     heatGrid: {
         flexDirection: "row",
         flexWrap: "wrap",
         gap: 6,
         marginBottom: 16
     },
-
     heatCell: {
         width: 22,
         height: 22,
         backgroundColor: theme.colors.primary,
         borderRadius: 4
     },
-
     heatInsight: {
         fontSize: 13,
         fontStyle: "italic",
         marginBottom: 14
     },
-
     tagRow: {
         flexDirection: "row",
         gap: 8
     },
-
     tag: {
         backgroundColor: theme.colors.secondaryContainer,
         paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 12
     },
-
     ctaCard: {
         flexDirection: "row",
         backgroundColor: theme.colors.primary,
@@ -476,23 +424,19 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between"
     },
-
     ctaText: {
         flex: 1
     },
-
     ctaTitle: {
         fontSize: 22,
         fontWeight: "700",
         color: "#fff",
         marginBottom: 10
     },
-
     ctaDesc: {
         color: "rgba(255,255,255,0.8)",
         marginBottom: 16
     },
-
     ctaButton: {
         backgroundColor: "#fff",
         paddingVertical: 10,
@@ -500,31 +444,14 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         alignSelf: "flex-start"
     },
-
     ctaButtonText: {
         color: theme.colors.primary,
         fontWeight: "700"
     },
-
     ctaVisual: {
         width: 100,
         alignItems: "center"
-    },
-
-    bottomNav: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 80,
-        backgroundColor: "rgba(255,255,255,0.9)",
-        flexDirection: "row",
-        justifyContent: "space-around",
-        alignItems: "center",
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32
     }
-
 });
 
 export default InsightsScreen;
