@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -11,6 +11,7 @@ import {
     Image,
     ActivityIndicator,
     Alert,
+    Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -23,6 +24,33 @@ const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [banData, setBanData] = useState(null);
+    const [showBanModal, setShowBanModal] = useState(false);
+    const [countdownObj, setCountdownObj] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+    useEffect(() => {
+        let timer;
+        if (showBanModal && banData && banData.banExpiresAt) {
+            const expireDate = new Date(banData.banExpiresAt).getTime();
+            timer = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = expireDate - now;
+
+                if (distance < 0) {
+                    clearInterval(timer);
+                    setShowBanModal(false);
+                } else {
+                    setCountdownObj({
+                        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+                        hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+                        seconds: Math.floor((distance % (1000 * 60)) / 1000)
+                    });
+                }
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [showBanModal, banData]);
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -73,6 +101,18 @@ const LoginScreen = ({ navigation }) => {
             }
         } catch (error) {
             console.error("Login failed:", error);
+            if (error.response?.status === 403) {
+                try {
+                    const parsedMsg = JSON.parse(error.response.data.message);
+                    if (parsedMsg.isBanned) {
+                        setBanData(parsedMsg);
+                        setShowBanModal(true);
+                        return;
+                    }
+                } catch (e) {
+                    // Not JSON
+                }
+            }
             const errorMsg = error.response?.data?.message || "Login failed. Please check your information.";
             Alert.alert("Error", errorMsg);
         } finally {
@@ -218,6 +258,43 @@ const LoginScreen = ({ navigation }) => {
                 </View>
 
             </ScrollView>
+
+            {/* BAN MODAL */}
+            <Modal visible={showBanModal} transparent animationType="fade">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.banModalContainer}>
+                        <MaterialIcons name="block" size={48} color="#ba1a1a" style={{ marginBottom: 16 }} />
+                        <Text style={styles.banTitle}>Tài khoản bị cấm</Text>
+                        <Text style={styles.banSubtitle}>Bạn không thể đăng nhập vào lúc này.</Text>
+                        
+                        <View style={styles.banReasonBox}>
+                            <Text style={styles.banReasonLabel}>Lý do khóa:</Text>
+                            <Text style={styles.banReasonText}>{banData?.banReason || 'Vi phạm chính sách'}</Text>
+                        </View>
+
+                        {banData?.banExpiresAt && (
+                            <View style={styles.countdownContainer}>
+                                <Text style={styles.countdownLabel}>Mở khóa sau:</Text>
+                                <View style={styles.countdownRow}>
+                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.days}</Text><Text style={styles.countdownUnit}>Ngày</Text></View>
+                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.hours}</Text><Text style={styles.countdownUnit}>Giờ</Text></View>
+                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.minutes}</Text><Text style={styles.countdownUnit}>Phút</Text></View>
+                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.seconds}</Text><Text style={styles.countdownUnit}>Giây</Text></View>
+                                </View>
+                            </View>
+                        )}
+                        {!banData?.banExpiresAt && (
+                            <View style={styles.countdownContainer}>
+                                <Text style={[styles.countdownLabel, { color: "#ba1a1a" }]}>Tài khoản bị khóa vĩnh viễn</Text>
+                            </View>
+                        )}
+
+                        <TouchableOpacity style={styles.banCloseBtn} onPress={() => setShowBanModal(false)}>
+                            <Text style={styles.banCloseText}>Đóng</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -391,6 +468,51 @@ const styles = StyleSheet.create({
     register: {
         color: "#276b2e",
         fontWeight: "700"
-    }
+    },
 
+    modalOverlay: {
+        flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center'
+    },
+    banModalContainer: {
+        backgroundColor: '#fff', width: '85%', padding: 24, borderRadius: 20, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10
+    },
+    banTitle: {
+        fontSize: 22, fontWeight: '800', color: '#ba1a1a', marginBottom: 8
+    },
+    banSubtitle: {
+        fontSize: 14, color: '#555', marginBottom: 20, textAlign: 'center'
+    },
+    banReasonBox: {
+        width: '100%', backgroundColor: '#fff0f0', padding: 16, borderRadius: 12, marginBottom: 20
+    },
+    banReasonLabel: {
+        fontSize: 12, fontWeight: '700', color: '#93000a', marginBottom: 4
+    },
+    banReasonText: {
+        fontSize: 14, color: '#555'
+    },
+    countdownContainer: {
+        width: '100%', alignItems: 'center', marginBottom: 24
+    },
+    countdownLabel: {
+        fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 12
+    },
+    countdownRow: {
+        flexDirection: 'row', gap: 12
+    },
+    countdownBox: {
+        alignItems: 'center', backgroundColor: '#f0f0f0', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, minWidth: 50
+    },
+    countdownNumber: {
+        fontSize: 18, fontWeight: '800', color: '#005a80'
+    },
+    countdownUnit: {
+        fontSize: 10, color: '#666', marginTop: 2
+    },
+    banCloseBtn: {
+        backgroundColor: '#005a80', width: '100%', paddingVertical: 14, borderRadius: 12, alignItems: 'center'
+    },
+    banCloseText: {
+        color: '#fff', fontSize: 16, fontWeight: '700'
+    }
 });

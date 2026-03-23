@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -9,116 +9,126 @@ import {
     SafeAreaView,
     StatusBar,
     Platform,
-    Dimensions
+    Dimensions,
+    ActivityIndicator,
+    Modal,
+    TextInput,
+    Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { theme } from '../../theme';
 import AdminBottomNavBar from '../../components/common/AdminBottomNavBar';
+import api from '../../services/api';
 
 const { width } = Dimensions.get('window');
 
-const FeedbackCard = ({ item }) => {
+const FeedbackCard = ({ item, onPressCard }) => {
+    // Determine colors
+    let statusColor = '#0c6780'; // reviewed
+    if (item.status === 'pending') statusColor = '#705d00';
+    if (item.status === 'resolved') statusColor = '#276b2e';
+
+    let tagBg = '#60a560'; // feature
+    let tagTextColor = '#00370b';
+    if (item.type === 'bug') { tagBg = '#ffdad6'; tagTextColor = '#ba1a1a'; }
+    if (item.type === 'content_rating') { tagBg = '#0c6780'; tagTextColor = '#ffffff'; }
+
+    const initials = item.user_id?.fullName ? item.user_id.fullName.substring(0,2).toUpperCase() : 'U';
+
     return (
-        <View style={styles.card}>
+        <TouchableOpacity style={styles.card} onPress={() => onPressCard(item)}>
             <View style={styles.cardHeader}>
                 <View style={styles.userInfo}>
                     <View style={styles.initialsContainer}>
-                        <Text style={styles.initialsText}>{item.initials}</Text>
+                        <Text style={styles.initialsText}>{initials}</Text>
                     </View>
                     <View>
-                        <Text style={styles.userName}>{item.name}</Text>
-                        <Text style={styles.userEmail}>{item.email}</Text>
+                        <Text style={styles.userName} numberOfLines={1}>{item.user_id?.fullName || 'Anonymous'}</Text>
+                        <Text style={styles.userEmail} numberOfLines={1}>{item.user_id?.email || 'N/A'}</Text>
                     </View>
                 </View>
-                <View style={[styles.statusBadge, { backgroundColor: item.statusColor + '20' }]}>
-                    <Text style={[styles.statusBadgeText, { color: item.statusColor }]}>{item.status}</Text>
+                <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+                    <Text style={[styles.statusBadgeText, { color: statusColor }]}>{item.status?.toUpperCase() || 'UNKNOWN'}</Text>
                 </View>
             </View>
 
             <View style={styles.cardBody}>
-                <View style={[styles.tag, { backgroundColor: item.tagBg }]}>
-                    <Text style={[styles.tagText, { color: item.tagTextColor }]}>{item.tag.toUpperCase()}</Text>
+                <View style={[styles.tag, { backgroundColor: tagBg }]}>
+                    <Text style={[styles.tagText, { color: tagTextColor }]}>{(item.type || '').toUpperCase()}</Text>
                 </View>
-                <Text style={styles.feedbackTitle}>{item.title}</Text>
+                <Text style={styles.feedbackTitle} numberOfLines={2}>{item.subject}</Text>
+                <Text style={styles.feedbackMessage} numberOfLines={2}>{item.message}</Text>
             </View>
 
             <View style={styles.cardFooter}>
                 <View style={styles.footerInfo}>
-                    <View style={styles.ratingRow}>
-                        <MaterialIcons name="star" size={16} color={theme.colors.tertiary} />
-                        <Text style={styles.ratingText}>{item.rating || '-'}</Text>
-                    </View>
+                    {item.rating != null && (
+                        <View style={styles.ratingRow}>
+                            <MaterialIcons name="star" size={16} color={theme.colors.tertiary} />
+                            <Text style={styles.ratingText}>{item.rating}/5</Text>
+                        </View>
+                    )}
                     <View style={styles.dateRow}>
                         <MaterialIcons name="calendar-today" size={14} color={theme.colors.onSurfaceVariant} />
-                        <Text style={styles.dateText}>{item.date}</Text>
+                        <Text style={styles.dateText}>{new Date(item.created_at).toLocaleDateString()}</Text>
                     </View>
                 </View>
 
-                <TouchableOpacity style={[styles.actionButton, { backgroundColor: item.actionColor || theme.colors.primary }]}>
-                    <MaterialIcons 
-                        name={item.actionIcon || "arrow-forward"} 
-                        size={20} 
-                        color={item.actionIconColor || theme.colors.onPrimary} 
-                    />
-                </TouchableOpacity>
+                <View style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}>
+                    <MaterialIcons name="arrow-forward" size={20} color={theme.colors.onPrimary} />
+                </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 };
 
 const AdminFeedbackScreen = ({ navigation }) => {
-    const feedbackItems = [
-        {
-            id: '1',
-            name: 'Trần Nguyễn Minh Duy',
-            email: 'de180491...gmail.com',
-            initials: 'TN',
-            status: 'Reviewed',
-            statusColor: '#0c6780',
-            tag: 'Feature',
-            tagBg: '#60a560',
-            tagTextColor: '#00370b',
-            title: 'Feed Back UI Profile',
-            rating: '4/5',
-            date: '3/12/2026',
-            actionIcon: 'arrow-forward',
-            actionColor: theme.colors.primary
-        },
-        {
-            id: '2',
-            name: 'Lê Minh',
-            email: 'leminh_dev@outlook.com',
-            initials: 'LM',
-            status: 'Pending',
-            statusColor: '#705d00',
-            tag: 'Bug',
-            tagBg: '#ffdad6',
-            tagTextColor: '#ba1a1a',
-            title: 'Login Session Expiry Error',
-            rating: '-',
-            date: '3/11/2026',
-            actionIcon: 'edit',
-            actionColor: theme.colors.surfaceContainerHigh,
-            actionIconColor: theme.colors.onSurfaceVariant
-        },
-        {
-            id: '3',
-            name: 'Anya K.',
-            email: 'anya.k@wellbeing.io',
-            initials: 'AK',
-            status: 'Reviewed',
-            statusColor: '#0c6780',
-            tag: 'Content Rating',
-            tagBg: '#0c6780',
-            tagTextColor: '#ffffff',
-            title: 'Meditation Guide Clarity',
-            rating: '5/5',
-            date: '3/10/2026',
-            actionIcon: 'check',
-            actionColor: theme.colors.primary
+    const [feedbacks, setFeedbacks] = useState([]);
+    const [loading, setLoading] = useState(false);
+    
+    // Modal states
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedFeedback, setSelectedFeedback] = useState(null);
+    const [adminResponse, setAdminResponse] = useState('');
+    const [updateStatus, setUpdateStatus] = useState('');
+
+    useEffect(() => {
+        fetchFeedbacks();
+    }, []);
+
+    const fetchFeedbacks = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get('/admin/feedback');
+            setFeedbacks(res.data || []);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    const handlePressCard = (item) => {
+        setSelectedFeedback(item);
+        setAdminResponse(item.admin_response || '');
+        setUpdateStatus(item.status || 'pending');
+        setModalVisible(true);
+    };
+
+    const handleUpdateStatus = async () => {
+        if (!selectedFeedback) return;
+        try {
+            await api.patch(`/admin/feedback/${selectedFeedback._id}/status`, {
+                status: updateStatus,
+                admin_response: adminResponse
+            });
+            Alert.alert("Thành công", "Đã cập nhật phản hồi!");
+            setModalVisible(false);
+            fetchFeedbacks();
+        } catch (error) {
+            Alert.alert("Lỗi", "Không thể cập nhật phản hồi.");
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -130,10 +140,9 @@ const AdminFeedbackScreen = ({ navigation }) => {
                     <MaterialIcons name="spa" size={24} color={theme.colors.primary} />
                     <Text style={styles.headerTitle}>Healing Garden Admin</Text>
                 </View>
-                <Image 
-                    source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDQSsu0mBwWOzY67NeHV8yOe96MQeLnwKpfGoj9NsmPLza0uR39dc_olUxE7A_805CeRxWhJ6g52p_HzKz-BVNcdCsa_Kh5Cq7f8IA3GdXXjSN2gqHJb0EI-ktjICVIKhB3ZJHL5isPp0XNIFXZ6adJ-PMUc2qED1Tkmq6A77goeXHllKPr0dEVnJ7m47gesN3opIQvjq7EN88isEpmhNBI0tfE-JKYnf674xUn3FK8nYRTh3JZsoP1ivtNkmc0wQOMNLz_DrpmsWc' }}
-                    style={styles.profileImage}
-                />
+                <TouchableOpacity onPress={fetchFeedbacks}>
+                    <MaterialIcons name="refresh" size={24} color={theme.colors.primary} />
+                </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -143,52 +152,79 @@ const AdminFeedbackScreen = ({ navigation }) => {
                     <Text style={styles.mainSubtitle}>Listening to the garden's whispers. Review and manage user thoughts.</Text>
                 </View>
 
-                {/* Filters */}
-                <View style={styles.filterGrid}>
-                    <View style={styles.filterBox}>
-                        <Text style={styles.filterLabel}>TYPE</Text>
-                        <TouchableOpacity style={styles.dropdownTrigger}>
-                            <Text style={styles.dropdownText}>All Types</Text>
-                            <MaterialIcons name="expand-more" size={20} color={theme.colors.onSurface} />
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.filterBox}>
-                        <Text style={styles.filterLabel}>STATUS</Text>
-                        <TouchableOpacity style={styles.dropdownTrigger}>
-                            <Text style={styles.dropdownText}>All Status</Text>
-                            <MaterialIcons name="expand-more" size={20} color={theme.colors.onSurface} />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
                 {/* Feedback List */}
-                <View style={styles.list}>
-                    {feedbackItems.map(item => (
-                        <FeedbackCard key={item.id} item={item} />
-                    ))}
-                </View>
-
-                {/* Pagination */}
-                <View style={styles.pagination}>
-                    <TouchableOpacity style={styles.pageArrow}>
-                        <MaterialIcons name="chevron-left" size={24} color={theme.colors.onSurface} />
-                    </TouchableOpacity>
-                    <View style={styles.pageNumbers}>
-                        <TouchableOpacity style={[styles.pageCircle, styles.activePage]}>
-                            <Text style={styles.activePageText}>1</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.pageText}>2</Text>
-                        <Text style={styles.pageText}>3</Text>
-                        <Text style={styles.ellipsis}>...</Text>
-                        <Text style={styles.pageText}>8</Text>
+                {loading ? (
+                    <ActivityIndicator size="large" color="#276b2e" style={{ marginTop: 20 }} />
+                ) : (
+                    <View style={styles.list}>
+                        {feedbacks.length === 0 ? (
+                            <Text style={{ textAlign: 'center', color: '#666', marginTop: 20 }}>Không có phản hồi nào.</Text>
+                        ) : (
+                            feedbacks.map(item => (
+                                <FeedbackCard key={item._id} item={item} onPressCard={handlePressCard} />
+                            ))
+                        )}
                     </View>
-                    <TouchableOpacity style={styles.pageArrow}>
-                        <MaterialIcons name="chevron-right" size={24} color={theme.colors.onSurface} />
-                    </TouchableOpacity>
-                </View>
+                )}
             </ScrollView>
 
             <AdminBottomNavBar navigation={navigation} activeTab="Feedback" />
+
+            {/* DETAIL / EDIT MODAL */}
+            <Modal visible={modalVisible} transparent animationType="slide">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        {selectedFeedback && (
+                            <>
+                                <View style={styles.modalHeader}>
+                                    <Text style={styles.modalTitle}>Chi tiết Feedback</Text>
+                                    <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.closeBtn}>
+                                        <MaterialIcons name="close" size={24} color="#666" />
+                                    </TouchableOpacity>
+                                </View>
+
+                                <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+                                    <Text style={styles.detailLabel}>Chủ đề:</Text>
+                                    <Text style={styles.detailText}>{selectedFeedback.subject}</Text>
+
+                                    <Text style={styles.detailLabel}>Nội dung:</Text>
+                                    <View style={styles.messageBox}>
+                                        <Text style={styles.detailText}>{selectedFeedback.message}</Text>
+                                    </View>
+
+                                    <Text style={styles.detailLabel}>Từ: <Text style={{fontWeight: '400'}}>{selectedFeedback.user_id?.fullName} ({selectedFeedback.user_id?.email})</Text></Text>
+
+                                    <Text style={styles.detailLabel}>Đổi trạng thái:</Text>
+                                    <View style={styles.statusChips}>
+                                        {['pending', 'reviewed', 'resolved'].map(statusVal => (
+                                            <TouchableOpacity 
+                                                key={statusVal}
+                                                style={[styles.statusChip, updateStatus === statusVal && styles.statusChipActive]}
+                                                onPress={() => setUpdateStatus(statusVal)}
+                                            >
+                                                <Text style={[styles.statusChipText, updateStatus === statusVal && styles.statusChipTextActive]}>{statusVal.toUpperCase()}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+
+                                    <Text style={styles.detailLabel}>Phản hồi / Ghi chú admin:</Text>
+                                    <TextInput 
+                                        style={styles.responseInput}
+                                        value={adminResponse}
+                                        onChangeText={setAdminResponse}
+                                        multiline
+                                        placeholder="Admin memo..."
+                                    />
+
+                                    <TouchableOpacity style={styles.updateBtn} onPress={handleUpdateStatus}>
+                                        <Text style={styles.updateBtnText}>Lưu & Cập nhật</Text>
+                                    </TouchableOpacity>
+                                </ScrollView>
+                            </>
+                        )}
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 };
@@ -215,14 +251,6 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '700',
         color: '#065f46',
-        fontFamily: theme.fonts.headline,
-    },
-    profileImage: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        borderWidth: 2,
-        borderColor: theme.colors.primaryContainer,
     },
     scrollContent: {
         paddingHorizontal: 20,
@@ -236,42 +264,12 @@ const styles = StyleSheet.create({
         fontSize: 32,
         fontWeight: '800',
         color: theme.colors.onSurface,
-        fontFamily: theme.fonts.headline,
         letterSpacing: -1,
     },
     mainSubtitle: {
         fontSize: 13,
         color: theme.colors.onSurfaceVariant,
-        fontFamily: theme.fonts.body,
         marginTop: 4,
-    },
-    filterGrid: {
-        flexDirection: 'row',
-        gap: 12,
-        marginBottom: 25,
-    },
-    filterBox: {
-        flex: 1,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        padding: 12,
-        borderRadius: 16,
-    },
-    filterLabel: {
-        fontSize: 10,
-        fontWeight: '700',
-        color: theme.colors.outline,
-        marginBottom: 4,
-        letterSpacing: 1,
-    },
-    dropdownTrigger: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    dropdownText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: theme.colors.onSurface,
     },
     list: {
         gap: 16,
@@ -293,6 +291,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
+        flex: 1,
+        paddingRight: 10
     },
     initialsContainer: {
         width: 44,
@@ -311,7 +311,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
         color: theme.colors.onSurface,
-        fontFamily: theme.fonts.headline,
     },
     userEmail: {
         fontSize: 11,
@@ -343,10 +342,15 @@ const styles = StyleSheet.create({
         fontWeight: '800',
     },
     feedbackTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '700',
         color: '#065f46',
-        fontFamily: theme.fonts.headline,
+        marginBottom: 4
+    },
+    feedbackMessage: {
+        fontSize: 13,
+        color: '#666',
+        lineHeight: 18
     },
     cardFooter: {
         flexDirection: 'row',
@@ -385,49 +389,55 @@ const styles = StyleSheet.create({
         ...theme.shadows.primary,
         elevation: 4,
     },
-    pagination: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 30,
-        gap: 15,
+    // Modal
+    modalOverlay: {
+        flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end'
     },
-    pageNumbers: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
+    modalContent: {
+        backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        padding: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, height: '80%'
     },
-    pageCircle: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
+    modalHeader: {
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20
     },
-    activePage: {
-        backgroundColor: theme.colors.primary,
-        ...theme.shadows.primary,
+    modalTitle: {
+        fontSize: 18, fontWeight: '800', color: '#064e3b'
     },
-    activePageText: {
-        color: '#fff',
-        fontWeight: '800',
-        fontSize: 12,
+    closeBtn: {
+        padding: 4, backgroundColor: '#f5f5f5', borderRadius: 20
     },
-    pageText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: theme.colors.onSurface,
+    detailLabel: {
+        fontSize: 14, fontWeight: '700', color: '#064e3b', marginBottom: 6, marginTop: 16
     },
-    ellipsis: {
-        color: theme.colors.outline,
+    detailText: {
+        fontSize: 15, color: '#333', lineHeight: 22
     },
-    pageArrow: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: theme.colors.surfaceContainerHigh,
-        alignItems: 'center',
-        justifyContent: 'center',
+    messageBox: {
+        backgroundColor: '#f5f5f5', padding: 12, borderRadius: 12
+    },
+    statusChips: {
+        flexDirection: 'row', gap: 10, marginTop: 4
+    },
+    statusChip: {
+        paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: '#ccc'
+    },
+    statusChipActive: {
+        backgroundColor: '#064e3b', borderColor: '#064e3b'
+    },
+    statusChipText: {
+        fontSize: 12, fontWeight: '600', color: '#666'
+    },
+    statusChipTextActive: {
+        color: '#fff'
+    },
+    responseInput: {
+        backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#eee', padding: 12, borderRadius: 12, fontSize: 14, color: '#333', minHeight: 80, textAlignVertical: 'top', marginTop: 4
+    },
+    updateBtn: {
+        backgroundColor: '#276b2e', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginTop: 24
+    },
+    updateBtnText: {
+        color: '#fff', fontWeight: '700', fontSize: 16
     }
 });
 

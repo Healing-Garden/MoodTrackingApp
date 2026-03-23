@@ -20,6 +20,7 @@ import logo from '../../../assets/images/logo.png';
 import userService from '../../services/userService';
 import api from '../../services/api';
 import { aiApi } from '../../services/aiApi';
+import ActionSuggestionModal from '../../components/modals/ActionSuggestionModal';
 
 const { width } = Dimensions.get('window');
 
@@ -40,6 +41,8 @@ const DashboardScreen = ({ navigation }) => {
     const [moodFlow, setMoodFlow] = useState([]);
     const [dailyQuote, setDailyQuote] = useState(null);
     const [loadingData, setLoadingData] = useState(true);
+    const [actionModalVisible, setActionModalVisible] = useState(false);
+    const [lastMood, setLastMood] = useState('neutral');
 
     useEffect(() => {
         const loadDashboardData = async () => {
@@ -69,6 +72,31 @@ const DashboardScreen = ({ navigation }) => {
         };
         loadDashboardData();
     }, []);
+
+    useEffect(() => {
+        const checkActionEligibility = async () => {
+            if (!user?._id) return;
+            try {
+                const res = await aiApi.checkActionEligibility(user._id);
+                // The API might return { eligible: true } or { data: { eligible: true } }
+                const isEligible = res.data?.data?.eligible || res.data?.eligible || res.eligible;
+                
+                if (isEligible) {
+                    // Try to find last mood from flow or use neutral
+                    const latest = moodFlow.length > 0 ? moodFlow[moodFlow.length - 1].mood : 3;
+                    const moodLabel = latest <= 2 ? 'sad' : (latest >= 4 ? 'happy' : 'neutral');
+                    setLastMood(moodLabel);
+                    setActionModalVisible(true);
+                }
+            } catch (error) {
+                console.log('Action eligibility check failed:', error);
+            }
+        };
+        
+        if (!loadingData && user?._id) {
+            checkActionEligibility();
+        }
+    }, [loadingData, user?._id]);
 
     useEffect(() => {
         const fetchSummary = async () => {
@@ -367,6 +395,14 @@ const DashboardScreen = ({ navigation }) => {
 
             {/* BOTTOM NAVIGATION */}
             <BottomNavBar navigation={navigation} activeTab="Garden" />
+
+            {/* ACTION SUGGESTION MODAL */}
+            <ActionSuggestionModal
+                isVisible={actionModalVisible}
+                onClose={() => setActionModalVisible(false)}
+                userId={user?._id}
+                mood={lastMood}
+            />
         </View>
     );
 };
