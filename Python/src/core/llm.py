@@ -16,7 +16,9 @@ async def call_llm(messages: list, temperature: float = 0.7, max_tokens: int = 5
     openai_key = settings.get_openai_api_key()
     if openai_key:
         try:
-            client = AsyncOpenAI(api_key=openai_key, timeout=12.0)
+            import httpx
+            http_client = httpx.AsyncClient()
+            client = AsyncOpenAI(api_key=openai_key, timeout=12.0, http_client=http_client)
             response = await client.chat.completions.create(
                 model=settings.openai_model,
                 messages=messages,

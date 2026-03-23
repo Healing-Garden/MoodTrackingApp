@@ -75,12 +75,12 @@ const IntroTwoScreen = ({ navigation }) => {
 
             {/* Title */}
             <Text style={styles.title}>
-                Theo dõi sự phát triển tâm hồn
+                Track Your Soul's Growth
             </Text>
 
             {/* Description */}
             <Text style={styles.description}>
-                Ghi lại cảm xúc hàng ngày và nhìn lại hành trình chữa lành của chính bạn qua từng khoảnh khắc.
+                Record your daily emotions and look back at your own healing journey through every moment.
             </Text>
 
             {/* Footer */}
@@ -102,7 +102,7 @@ const IntroTwoScreen = ({ navigation }) => {
                     >
 
                         <Text style={styles.buttonText}>
-                            Đến trang đăng nhập
+                            Go to Login
                         </Text>
 
                         <MaterialIcons

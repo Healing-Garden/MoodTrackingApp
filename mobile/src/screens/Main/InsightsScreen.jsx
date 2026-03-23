@@ -15,11 +15,47 @@ import { BlurView } from 'expo-blur';
 import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
 import logo from '../../../assets/images/logo.png';
+import api from '../../services/api';
+import { aiApi } from '../../services/aiApi';
 
 const { width } = Dimensions.get('window');
 
 const InsightsScreen = ({ navigation }) => {
     const [tab, setTab] = useState('Month');
+    const [user, setUser] = useState(null);
+    const [trendData, setTrendData] = useState(null);
+    const [loadingAI, setLoadingAI] = useState(false);
+
+    React.useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const res = await api.get('/profile');
+                setUser(res.data?.user || null);
+            } catch (err) { }
+        };
+        loadProfile();
+    }, []);
+
+    React.useEffect(() => {
+        if (!user?._id) return;
+
+        const fetchTrends = async () => {
+            setLoadingAI(true);
+            try {
+                const days = tab === 'Week' ? 7 : tab === 'Month' ? 30 : 365;
+                const res = await aiApi.analyzeTrends(user._id, days);
+                if (res?.data?.success) {
+                    setTrendData(res.data.data);
+                }
+            } catch (error) {
+                console.log('Failed to fetch trend data:', error);
+            } finally {
+                setLoadingAI(false);
+            }
+        };
+
+        fetchTrends();
+    }, [tab, user?._id]);
 
     return (
         <View style={styles.container}>
@@ -240,6 +276,47 @@ const InsightsScreen = ({ navigation }) => {
                     </View>
                 </View>
 
+                {/* AI INSIGHTS SECTION */}
+                <View style={styles.aiInsightsContainer}>
+                    <View style={styles.aiInsightsHeader}>
+                        <View style={styles.aiIconContainer}>
+                            <MaterialIcons name="psychology" size={24} color="#fff" />
+                        </View>
+                        <View style={styles.aiHeaderTextContainer}>
+                            <Text style={styles.aiInsightsTitle}>AI Insights</Text>
+                            <Text style={styles.aiInsightsSubtitle}>Personalized discoveries from your journal</Text>
+                        </View>
+                    </View>
+                    
+                    {loadingAI ? (
+                        <View style={styles.aiLoadingContainer}>
+                            <View style={styles.loadingSpinner} />
+                            <Text style={styles.aiLoadingText}>Analyzing your emotional landscape...</Text>
+                        </View>
+                    ) : trendData?.insights?.length > 0 ? (
+                        <View style={styles.aiInsightsList}>
+                            {trendData.insights.map((insight, idx) => (
+                                <View key={idx} style={styles.aiInsightCard}>
+                                    <View style={styles.insightNumberContainer}>
+                                        <Text style={styles.insightNumber}>{idx + 1}</Text>
+                                    </View>
+                                    <View style={styles.insightContent}>
+                                        <Text style={styles.insightText}>{insight}</Text>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                    ) : (
+                        <View style={styles.aiEmptyState}>
+                            <View style={styles.emptyStateIcon}>
+                                <MaterialIcons name="lightbulb-outline" size={48} color={theme.colors.primary} />
+                            </View>
+                            <Text style={styles.emptyStateText}>Keep logging your mood to unlock deep AI insights!</Text>
+                            <Text style={styles.emptyStateSubtext}>The more you journal, the smarter your insights become</Text>
+                        </View>
+                    )}
+                </View>
+
                 {/* CTA SECTION */}
                 <View style={styles.ctaCard}>
                     <View style={styles.ctaContent}>
@@ -256,7 +333,6 @@ const InsightsScreen = ({ navigation }) => {
                             <MaterialIcons name="self-improvement" size={48} color="rgba(255,255,255,0.4)" />
                         </View>
                     </View>
-                    {/* Decorative element */}
                     <View style={styles.ctaDecor} />
                 </View>
             </ScrollView>
@@ -684,6 +760,119 @@ const styles = StyleSheet.create({
         height: 120,
         backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 60,
+    },
+    // AI INSIGHTS STYLES
+    aiInsightsContainer: {
+        backgroundColor: '#fff',
+        borderRadius: theme.borderRadius.lg,
+        padding: 24,
+        marginBottom: 32,
+        borderWidth: 2,
+        borderColor: 'rgba(39, 107, 46, 0.08)',
+        ...theme.shadows.soft,
+    },
+    aiInsightsHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+        marginBottom: 24,
+    },
+    aiIconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: theme.colors.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...theme.shadows.primary,
+    },
+    aiHeaderTextContainer: {
+        flex: 1,
+    },
+    aiInsightsTitle: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
+        marginBottom: 4,
+    },
+    aiInsightsSubtitle: {
+        fontSize: 13,
+        color: theme.colors.onSurfaceVariant,
+        lineHeight: 18,
+    },
+    aiLoadingContainer: {
+        alignItems: 'center',
+        paddingVertical: 32,
+        gap: 12,
+    },
+    loadingSpinner: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        borderWidth: 3,
+        borderColor: theme.colors.primary,
+        borderTopColor: 'transparent',
+        borderBottomColor: 'transparent',
+        borderLeftColor: 'transparent',
+    },
+    aiLoadingText: {
+        fontSize: 14,
+        color: theme.colors.onSurfaceVariant,
+        fontStyle: 'italic',
+    },
+    aiInsightsList: {
+        gap: 16,
+    },
+    aiInsightCard: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 16,
+        backgroundColor: 'rgba(39, 107, 46, 0.03)',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.08)',
+    },
+    insightNumberContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: theme.colors.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...theme.shadows.soft,
+    },
+    insightNumber: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#fff',
+        fontFamily: theme.fonts.headline,
+    },
+    insightContent: {
+        flex: 1,
+    },
+    aiEmptyState: {
+        alignItems: 'center',
+        paddingVertical: 40,
+        gap: 16,
+    },
+    emptyStateIcon: {
+        opacity: 0.6,
+    },
+    emptyStateText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: theme.colors.onSurface,
+        textAlign: 'center',
+        lineHeight: 24,
+    },
+    emptyStateSubtext: {
+        fontSize: 13,
+        color: theme.colors.onSurfaceVariant,
+        textAlign: 'center',
+        lineHeight: 18,
+        fontStyle: 'italic',
     }
 });
 

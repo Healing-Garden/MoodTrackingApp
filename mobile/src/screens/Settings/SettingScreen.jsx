@@ -19,6 +19,7 @@ import { theme } from '../../theme';
 import api, { setAuthToken } from '../../services/api';
 import { useFocusEffect } from '@react-navigation/native';
 import BottomNavBar from '../../components/common/BottomNavBar';
+import AdminBottomNavBar from '../../components/common/AdminBottomNavBar';
 
 const { width } = Dimensions.get('window');
 
@@ -116,12 +117,6 @@ const SettingScreen = ({ navigation }) => {
 
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.backCircle}
-                    onPress={() => navigation.goBack()}
-                >
-                    <MaterialIcons name="arrow-back" size={24} color={theme.colors.primary} />
-                </TouchableOpacity>
                 <Text style={styles.headerTitle}>Settings</Text>
                 <View style={styles.headerIcon}>
                     <MaterialIcons name="settings" size={24} color={theme.colors.primary} />
@@ -221,6 +216,30 @@ const SettingScreen = ({ navigation }) => {
                         </View>
                     </View>
 
+                    {/* Support & Info Section */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>SUPPORT & INFO</Text>
+                        <View style={styles.group}>
+                            <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Feedback')}>
+                                <View style={[styles.menuIconBg, { backgroundColor: theme.colors.white }]}>
+                                    <MaterialIcons name="chat-bubble" size={22} color="#705d00" />
+                                </View>
+                                <Text style={styles.menuLabel}>Send Feedback</Text>
+                                <MaterialIcons name="open-in-new" size={20} color={theme.colors.outline} />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.menuItem}>
+                                <View style={[styles.menuIconBg, { backgroundColor: theme.colors.white }]}>
+                                    <MaterialIcons name="info" size={22} color={theme.colors.onSurfaceVariant} />
+                                </View>
+                                <View style={styles.menuText}>
+                                    <Text style={styles.menuLabel}>About Healing Garden</Text>
+                                </View>
+                                <Text style={styles.versionText}>V2.4.0</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
                     {/* Account */}
                     <View style={styles.section}>
                         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
@@ -271,8 +290,12 @@ const SettingScreen = ({ navigation }) => {
                 </View>
             </Modal>
 
-            {/* BottomNavBar */}
-            <BottomNavBar navigation={navigation} activeTab="Settings" />
+            {/* Conditional BottomNavBar */}
+            {user?.role === 'admin' ? (
+                <AdminBottomNavBar navigation={navigation} activeTab="Settings" />
+            ) : (
+                <BottomNavBar navigation={navigation} activeTab="Settings" />
+            )}
 
         </View>
     );
@@ -321,6 +344,13 @@ const styles = StyleSheet.create({
     navLabel: { fontSize: 11, fontWeight: '500', marginTop: 2, color: theme.colors.stone500 },
     logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 20, backgroundColor: '#ffdad6', borderRadius: 24, gap: 12, marginTop: 12 },
     logoutText: { fontSize: 16, fontWeight: '700', color: '#ba1a1a' },
+    versionText: { 
+        fontSize: 12, 
+        fontWeight: '700', 
+        color: '#40493e', 
+        opacity: 0.5,
+        fontFamily: theme.fonts.body
+    },
 });
 
 export default SettingScreen;

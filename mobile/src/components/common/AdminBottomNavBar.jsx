@@ -9,13 +9,13 @@ import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 
-const BottomNavBar = ({ navigation, activeTab = 'Garden' }) => {
+const AdminBottomNavBar = ({ navigation, activeTab = 'Dashboard' }) => {
     const navItems = [
-        { id: 'Garden', icon: 'filter-vintage', label: 'Garden', screen: 'Dashboard' },
-        { id: 'Journal', icon: 'menu-book', label: 'Journal', screen: 'Journal' },
-        { id: 'Chatbot', icon: 'chat', label: 'Chat', screen: 'Chatbot' },
-        { id: 'Insights', icon: 'monitoring', label: 'Insights', screen: 'Insights' },
-        { id: 'Settings', icon: 'settings', label: 'Settings', screen: 'Settings' }
+        { id: 'Dashboard', icon: 'dashboard', label: 'Dashboard', screen: 'AdminDashboard' },
+        { id: 'Feedback', icon: 'forum', label: 'Feedback', screen: 'AdminFeedback' },
+        { id: 'Users', icon: 'group', label: 'Users', screen: 'AdminUsers' },
+        { id: 'Content', icon: 'auto_stories', label: 'Content', screen: 'AdminContent' },
+        { id: 'Settings', icon: 'settings', label: 'Settings', screen: 'AdminSettings' }
     ];
 
     return (
@@ -32,7 +32,7 @@ const BottomNavBar = ({ navigation, activeTab = 'Garden' }) => {
                             <MaterialIcons 
                                 name={item.icon} 
                                 size={24} 
-                                color={isActive ? theme.colors.primary : "rgba(12, 103, 128, 0.5)"} 
+                                color={isActive ? theme.colors.primary : "rgba(39, 107, 46, 0.4)"} 
                             />
                             {isActive ? (
                                 <Text style={styles.activeLabel}>{item.label}</Text>
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     activeItem: {
-        flex: 1.2,
+        flex: 1.5,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -84,18 +84,20 @@ const styles = StyleSheet.create({
         height: 54,
         borderRadius: 27,
         gap: 8,
-        paddingHorizontal: 12,
+        paddingHorizontal: 10,
     },
     label: {
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: '600',
-        color: 'rgba(12, 103, 128, 0.5)',
+        color: 'rgba(39, 107, 46, 0.5)',
+        fontFamily: theme.fonts.label,
     },
     activeLabel: {
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: '700',
         color: theme.colors.primary,
+        fontFamily: theme.fonts.label,
     }
 });
 
-export default BottomNavBar;
+export default AdminBottomNavBar;
