@@ -65,8 +65,8 @@ const RegisterScreen = ({ navigation }) => {
                 otp,
             });
 
-            Alert.alert("Thành công", "Đăng ký thành công! Vui lòng đăng nhập.");
-            navigation.navigate("Login");
+            Alert.alert("Thành công", "Đăng ký thành công! Hãy bắt đầu hành trình của bạn.");
+            navigation.replace("OnboardingStep1");
         } catch (error) {
             console.error("OTP Verification failed:", error);
             const errorMsg = error.response?.data?.message || "Mã OTP không hợp lệ hoặc đã hết hạn.";

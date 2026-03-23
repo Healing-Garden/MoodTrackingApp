@@ -18,7 +18,7 @@ import api from '../../services/api';
 const { width, height } = Dimensions.get('window');
 
 const StepFourScreen = ({ navigation, route }) => {
-    const { onboardingData } = route.params || { onboardingData: {} };
+    const { onboardingData, isDailyCheckIn } = route.params || { onboardingData: {}, isDailyCheckIn: false };
     const [loading, setLoading] = useState(false);
 
     const [selectedMood, setSelectedMood] = useState(3);
@@ -53,16 +53,18 @@ const StepFourScreen = ({ navigation, route }) => {
     const handleFinish = async () => {
         setLoading(true);
         try {
-            // 1. Save Onboarding Preferences
-            await api.post('/user/onboarding', {
-                ...onboardingData,
-                isOnboarded: true,
-            });
+            if (!isDailyCheckIn) {
+                // 1. Save Onboarding Preferences (Only if not just a daily check-in)
+                await api.post('/user/onboarding', {
+                    ...onboardingData,
+                    isOnboarded: true,
+                });
+            }
 
-            // 2. Save Initial Check-in
+            // 2. Save Daily Check-in
             await api.post('/user/checkins', {
                 mood: selectedMood,
-                energyLevel: energyLevel,
+                energy: energyLevel, // Corrected from energyLevel to match BE saveDailyCheckIn (line 149)
                 triggers: selectedTriggers,
                 note: note,
             });
@@ -70,7 +72,7 @@ const StepFourScreen = ({ navigation, route }) => {
             // 3. Navigate to Home
             navigation.replace('Dashboard');
         } catch (error) {
-            console.error('Onboarding failed:', error);
+            console.error('Submission failed:', error);
             Alert.alert(
                 'Lỗi',
                 'Không thể lưu thông tin. Vui lòng thử lại sau.'
@@ -94,10 +96,14 @@ const StepFourScreen = ({ navigation, route }) => {
                     <MaterialIcons name="arrow-back" size={24} color={theme.colors.onSurface} />
                 </TouchableOpacity>
                 <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Cột mốc 04: Nuôi dưỡng</Text>
+                    <Text style={styles.headerTitle}>
+                        {isDailyCheckIn ? 'Kiểm tra hàng ngày' : 'Cột mốc 04: Nuôi dưỡng'}
+                    </Text>
                 </View>
                 <View style={styles.stepBadge}>
-                    <Text style={styles.stepBadgeText}>GROW</Text>
+                    <Text style={styles.stepBadgeText}>
+                        {isDailyCheckIn ? 'DAILY' : 'GROW'}
+                    </Text>
                 </View>
             </View>
 
@@ -108,8 +114,12 @@ const StepFourScreen = ({ navigation, route }) => {
                 {/* Hero Section */}
                 <View style={styles.heroSection}>
                     <Text style={styles.displayTitle}>
-                        Hãy bắt đầu {"\n"}
-                        <Text style={styles.italicTitle}>kiểm tra</Text> cảm xúc đầu tiên
+                        {isDailyCheckIn ? 'Bạn đang ' : 'Hãy bắt đầu '}
+                        {"\n"}
+                        <Text style={styles.italicTitle}>
+                            {isDailyCheckIn ? 'cảm thấy' : 'kiểm tra'}
+                        </Text>
+                        {isDailyCheckIn ? ' thế nào?' : ' cảm xúc đầu tiên'}
                     </Text>
                 </View>
 

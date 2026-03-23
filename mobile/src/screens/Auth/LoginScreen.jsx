@@ -40,8 +40,32 @@ const LoginScreen = ({ navigation }) => {
             const { accessToken } = response.data;
             setAuthToken(accessToken);
 
-            // Successfully logged in
-            navigation.replace("Dashboard");
+            // 1. Check Onboarding Status
+            try {
+                const statusRes = await api.get("/user/onboarding/status");
+                if (statusRes.data.isOnboarded === false) {
+                    navigation.replace("OnboardingStep1");
+                    return;
+                }
+
+                // 2. Check Today's Check-in
+                try {
+                    await api.get("/user/checkins/today");
+                    // If 200/Success -> Already checked in
+                    navigation.replace("Dashboard");
+                } catch (checkinErr) {
+                    if (checkinErr.response?.status === 404) {
+                        // Not checked in yet -> Go to Step 4 (Daily Check-in)
+                        navigation.replace("OnboardingStep4", { isDailyCheckIn: true });
+                    } else {
+                        // Other error -> Default to Dashboard
+                        navigation.replace("Dashboard");
+                    }
+                }
+            } catch (statusErr) {
+                console.error("Status check failed:", statusErr);
+                navigation.replace("Dashboard");
+            }
         } catch (error) {
             console.error("Login failed:", error);
             const errorMsg = error.response?.data?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
