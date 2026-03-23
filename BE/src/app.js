@@ -22,19 +22,8 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: (origin, callback) => {
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        origin.includes("vercel.app")
-      ) {
-        callback(null, true);
-      } else {
-        callback("CORS error");
-      }
-    },
-    methods: ["GET", "POST"],
-    credentials: true
+    origin: "*",
+    methods: ["GET", "POST"]
   }
 });
 socketManager.init(io);

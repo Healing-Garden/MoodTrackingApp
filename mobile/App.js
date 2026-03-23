@@ -19,7 +19,7 @@ import IntroTwoScreen from './src/screens/Onboarding/IntroTwoScreen';
 import DashboardScreen from './src/screens/Main/DashboardScreen';
 import JournalScreen from './src/screens/Main/JournalScreen';
 import InsightsScreen from './src/screens/Main/InsightsScreen';
-import TrashScreen from './src/screens/Main/TrashScreen';
+import ChatbotScreen from './src/screens/Main/ChatbotScreen';
 import FeedbackScreen from './src/screens/Main/FeedbackScreen';
 import DashboardAdminScreens from './src/screens/Admin/DashboardAdminScreens';
 import ManagementFeedback from './src/screens/Admin/managementFeedback';
@@ -59,7 +59,7 @@ export default function App() {
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Journal" component={JournalScreen} />
         <Stack.Screen name="Insights" component={InsightsScreen} />
-        <Stack.Screen name="Trash" component={TrashScreen} />
+        <Stack.Screen name="Chatbot" component={ChatbotScreen} />
         <Stack.Screen name="Feedback" component={FeedbackScreen} />
         <Stack.Screen name="AdminDashboard" component={DashboardAdminScreens} />
         <Stack.Screen name="ManagementFeedback" component={ManagementFeedback} />

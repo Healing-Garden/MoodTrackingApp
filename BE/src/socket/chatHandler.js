@@ -1,7 +1,7 @@
 const chatService = require('../services/chatService');
 const mongoose = require('mongoose');
 
-module.exports = (io, socket) => {
+module.exports = function chatHandler(io, socket) {
   let currentSessionId = null;
   let currentUserId = null;
 
@@ -69,7 +69,8 @@ module.exports = (io, socket) => {
         timestamp: new Date(),
         technique: aiResponse.technique,
         exercise: aiResponse.exercise,
-        isCrisis: aiResponse.isCrisis
+        // Python microservice may return `is_crisis`; normalize here.
+        isCrisis: aiResponse.isCrisis ?? aiResponse.is_crisis ?? false
       });
 
     } catch (error) {

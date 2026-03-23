@@ -40,12 +40,12 @@ const WelcomeScreen = ({ navigation }) => {
             </View>
 
             {/* Title */}
-            <Text style={styles.title}>Bạn không đơn độc</Text>
+            <Text style={styles.title}>You are not alone</Text>
 
             {/* Description */}
             <Text style={styles.description}>
-                Chatbot của chúng mình luôn lắng nghe và hỗ trợ bạn{" "}
-                <Text style={styles.highlight}>24/7</Text> để xoa dịu tâm trí.
+                Our chatbot is always here to listen and support you{" "}
+                <Text style={styles.highlight}>24/7</Text> to soothe your mind.
             </Text>
 
             {/* Footer */}
@@ -59,12 +59,12 @@ const WelcomeScreen = ({ navigation }) => {
                     style={styles.button}
                     onPress={() => navigation.navigate("OnboardingIntro2")}
                 >
-                    <Text style={styles.buttonText}>Tiếp theo</Text>
+                    <Text style={styles.buttonText}>Next</Text>
                     <MaterialIcons name="arrow-forward" size={22} color="#fff" />
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                    <Text style={styles.skip}>Bỏ qua giới thiệu</Text>
+                    <Text style={styles.skip}>Skip Introduction</Text>
                 </TouchableOpacity>
             </View>
         </View>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -14,10 +14,69 @@ import { BlurView } from 'expo-blur';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
+import logo from '../../../assets/images/logo.png';
+import api from '../../services/api';
+import { aiApi } from '../../services/aiApi';
 
 const { width } = Dimensions.get('window');
 
 const DashboardScreen = ({ navigation }) => {
+    const [user, setUser] = useState(null);
+    const [dailySummary, setDailySummary] = useState(null);
+    const [loadingSummary, setLoadingSummary] = useState(true);
+
+    const getLocalDateString = () => {
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
+    useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const res = await api.get('/profile');
+                setUser(res.data?.user || null);
+            } catch (err) { }
+        };
+        loadProfile();
+    }, []);
+
+    useEffect(() => {
+        const fetchSummary = async () => {
+            if (!user?._id) return;
+            setLoadingSummary(true);
+            try {
+                const date = getLocalDateString();
+                const result = await api.get(`/ai/summary/daily/${user._id}?date=${encodeURIComponent(date)}`);
+                if (result?.data?.success && result.data.data?.summary) {
+                    setDailySummary(result.data.data.summary);
+                } else {
+                    const generateRes = await aiApi.getDailySummary(user._id, date, false);
+                    if (generateRes?.data?.success && generateRes.data?.data?.summary) {
+                        setDailySummary(generateRes.data.data.summary);
+                    }
+                }
+            } catch (error) {
+                if (error.response?.status === 404) {
+                    try {
+                        const date = getLocalDateString();
+                        const generateRes = await aiApi.getDailySummary(user._id, date, false);
+                        if (generateRes?.data?.success && generateRes.data?.data?.summary) {
+                            setDailySummary(generateRes.data.data.summary);
+                        }
+                    } catch (genErr) {
+                        console.log('Generate summary failed', genErr);
+                    }
+                }
+            } finally {
+                setLoadingSummary(false);
+            }
+        };
+        fetchSummary();
+    }, [user?._id]);
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
@@ -27,10 +86,9 @@ const DashboardScreen = ({ navigation }) => {
                 <View style={styles.topBarLeft}>
                     <View style={styles.avatarContainer}>
                         <Image
-                            source={{
-                                uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDsbf3FPBnCQO8QlMn0DdR5QVRs2ryfIKkcinkVMI2hiUtrBgaSPnjpWrLaOtRtm6VnVf5QbtHhPCv4drG5JRbp2eewb_muRNWTB4ZrdMA6zVyeQe4OE2f4hOxMhgYwevns0FNiV-Kxf3eMSCbLrRsOGphYV_tqmXwG9ZAYbJRv7_-lIW-9-gA4oMlJOaiTIF7gdwJUTjYwIq4-QNUltGvjIAlThA9CuJ5m6iNdc4GoXoTtjDlYIK-wvagPvH2-dKtN13DWSAHfnkM'
-                            }}
+                            source={logo}
                             style={styles.avatar}
+                            resizeMode="contain"
                         />
                     </View>
                     <Text style={styles.appTitle}>Healing Garden</Text>
@@ -150,6 +208,35 @@ const DashboardScreen = ({ navigation }) => {
                         </Text>
                         <View style={styles.quoteDivider} />
                         <Text style={styles.quoteLabel}>INSIGHT FOR YOUR GROWTH</Text>
+                    </View>
+                </View>
+
+                {/* DAILY AI SUMMARY */}
+                <View style={[styles.sectionHeader, { marginTop: 32 }]}>
+                    <Text style={styles.sectionLabel}>DAILY AI SUMMARY</Text>
+                </View>
+                <View style={[styles.quoteCard, { backgroundColor: 'rgba(96, 165, 96, 0.05)', borderColor: 'rgba(96, 165, 96, 0.2)' }]}>
+                    <MaterialCommunityIcons name="robot-outline" size={32} color={theme.colors.primary} style={styles.quoteIcon} />
+                    <View style={[styles.quoteContent, { marginLeft: 36 }]}>
+                        {loadingSummary ? (
+                            <Text style={[styles.quoteText, { fontStyle: 'normal', fontSize: 14 }]}>
+                                Analyzing your day...
+                            </Text>
+                        ) : dailySummary ? (
+                            <View>
+                                {dailySummary.split('\n').filter(line => line.trim() !== '').map((line, idx) => (
+                                    <Text key={idx} style={[styles.quoteText, { fontStyle: 'normal', fontSize: 14, marginBottom: 8 }]}>
+                                        • {line.replace(/^[-•]\s*/, '')}
+                                    </Text>
+                                ))}
+                            </View>
+                        ) : (
+                            <Text style={[styles.quoteText, { fontStyle: 'normal', fontSize: 14 }]}>
+                                No summary available for today yet. Check in to generate!
+                            </Text>
+                        )}
+                        <View style={[styles.quoteDivider, { backgroundColor: theme.colors.primary }]} />
+                        <Text style={[styles.quoteLabel, { color: theme.colors.primary }]}>YOUR DAY IN KEY POINTS</Text>
                     </View>
                 </View>
             </ScrollView>
