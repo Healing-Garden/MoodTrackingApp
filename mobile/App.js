@@ -23,6 +23,8 @@ import ChatbotScreen from './src/screens/Main/ChatbotScreen';
 import FeedbackScreen from './src/screens/Main/FeedbackScreen';
 import DashboardAdminScreens from './src/screens/Admin/DashboardAdminScreens';
 import ManagementFeedback from './src/screens/Admin/managementFeedback';
+import AdminFeedbackScreen from './src/screens/Admin/AdminFeedbackScreen';
+import AdminResourceManagementScreen from './src/screens/Admin/AdminResourceManagementScreen';
 
 // Settings Screens
 import EditProfileScreen from './src/screens/Settings/EditProfileScreen';
@@ -63,6 +65,10 @@ export default function App() {
         <Stack.Screen name="Feedback" component={FeedbackScreen} />
         <Stack.Screen name="AdminDashboard" component={DashboardAdminScreens} />
         <Stack.Screen name="ManagementFeedback" component={ManagementFeedback} />
+        <Stack.Screen name="AdminFeedback" component={AdminFeedbackScreen} />
+        <Stack.Screen name="AdminUsers" component={ManagementFeedback} />
+        <Stack.Screen name="AdminContent" component={AdminResourceManagementScreen} />
+        <Stack.Screen name="AdminSettings" component={SettingScreen} />
 
         {/* Settings Flow */}
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
