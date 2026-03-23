@@ -7,13 +7,15 @@ import {
     ScrollView,
     StyleSheet,
     StatusBar,
-    Dimensions
+    Dimensions,
+    ActivityIndicator
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
+import userService from '../../services/userService';
 import logo from '../../../assets/images/logo.png';
 import api from '../../services/api';
 import { aiApi } from '../../services/aiApi';
@@ -93,8 +95,8 @@ const DashboardScreen = ({ navigation }) => {
                     </View>
                     <Text style={styles.appTitle}>Healing Garden</Text>
                 </View>
-                <TouchableOpacity style={styles.notificationBtn}>
-                    <MaterialIcons name="notifications-none" size={24} color={theme.colors.onSurface} />
+                <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('Settings')}>
+                    <MaterialIcons name="settings" size={24} color={theme.colors.onSurface} />
                 </TouchableOpacity>
             </BlurView>
 
@@ -110,12 +112,14 @@ const DashboardScreen = ({ navigation }) => {
                     style={styles.heroCard}
                 >
                     <View style={styles.heroContent}>
-                        <Text style={styles.heroGreeting}>Good Morning, Elena</Text>
+                        <Text style={styles.heroGreeting}>{greeting}, {userProfile?.fullName || 'Elena'}</Text>
                         <Text style={styles.heroTitle}>Your garden is blooming beautifully</Text>
                         
                         <View style={styles.plantBadge}>
                             <MaterialIcons name="spa" size={14} color="#fff" />
-                            <Text style={styles.plantBadgeText}>12 plants in full bloom</Text>
+                            <Text style={styles.plantBadgeText}>
+                                Day {dashboardData?.journeyDays || 1} of your journey
+                            </Text>
                         </View>
                     </View>
                     
@@ -133,7 +137,7 @@ const DashboardScreen = ({ navigation }) => {
                 {/* Daily Check-in (Full Width) */}
                 <TouchableOpacity 
                     style={styles.checkInCard}
-                    onPress={() => navigation.navigate('OnboardingStep1')}
+                    onPress={() => navigation.navigate('OnboardingStep4', { isDailyCheckIn: true })}
                 >
                     <View style={styles.checkInLeft}>
                         <View style={styles.checkInIconBox}>
@@ -176,27 +180,13 @@ const DashboardScreen = ({ navigation }) => {
                         </View>
                         <View style={styles.trendBadge}>
                             <MaterialIcons name="trending-up" size={14} color={theme.colors.primary} />
-                            <Text style={styles.trendBadgeText}>Steadily Rising</Text>
+                            <Text style={styles.trendBadgeText}>
+                                {dashboardData?.weeklyStats?.avgMood >= 4 ? 'Blooming' : 'Growing'}
+                            </Text>
                         </View>
                     </View>
 
-                    <View style={styles.chartContainer}>
-                        {[0.5, 0.65, 0.45, 0.75, 1, 0.6, 0.9].map((val, i) => (
-                            <View key={i} style={styles.chartCol}>
-                                <View style={[styles.bar, { height: val * 80 }]}>
-                                    <MaterialIcons 
-                                        name={val >= 0.8 ? "sentiment-very-satisfied" : val >= 0.6 ? "sentiment-satisfied" : "sentiment-neutral"} 
-                                        size={16} 
-                                        color={i === 6 ? theme.colors.primary : "rgba(39, 107, 46, 0.4)"} 
-                                        style={styles.barIcon}
-                                    />
-                                </View>
-                                <Text style={[styles.dayLabel, i === 6 && styles.activeDay]}>
-                                    {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'TODAY'][i]}
-                                </Text>
-                            </View>
-                        ))}
-                    </View>
+                    {renderMoodTrend()}
                 </View>
 
                 {/* QUOTE SECTION */}
@@ -204,8 +194,9 @@ const DashboardScreen = ({ navigation }) => {
                     <MaterialIcons name="format-quote" size={40} color={theme.colors.tertiary} style={styles.quoteIcon} />
                     <View style={styles.quoteContent}>
                         <Text style={styles.quoteText}>
-                            "The soul cannot thrive in a garden of stones. Take a moment today to breathe in the green."
+                            {dailyQuote?.content || dailyQuote?.description || dailyQuote?.title || "The soul cannot thrive in a garden of stones. Take a moment today to breathe in the green."}
                         </Text>
+                        {dailyQuote?.author && <Text style={[styles.quoteLabel, { marginTop: 8, fontStyle: 'italic' }]}>— {dailyQuote.author}</Text>}
                         <View style={styles.quoteDivider} />
                         <Text style={styles.quoteLabel}>INSIGHT FOR YOUR GROWTH</Text>
                     </View>
