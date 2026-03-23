@@ -68,7 +68,7 @@ const LoginScreen = ({ navigation }) => {
             }
         } catch (error) {
             console.error("Login failed:", error);
-            const errorMsg = error.response?.data?.message || "Login failed. Please check your information again.";
+            const errorMsg = error.response?.data?.message || "Login failed. Please check your information.";
             Alert.alert("Error", errorMsg);
         } finally {
             setLoading(false);
@@ -94,7 +94,7 @@ const LoginScreen = ({ navigation }) => {
                     <Text style={styles.title}>Healing Garden</Text>
 
                     <Text style={styles.subtitle}>
-                        Welcome back to your soul's garden
+                        Welcome back to your soul garden
                     </Text>
                 </View>
 
@@ -164,7 +164,7 @@ const LoginScreen = ({ navigation }) => {
                             {loading ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
-                                <Text style={styles.buttonText}>Login</Text>
+                                <Text style={styles.buttonText}>Sign In</Text>
                             )}
                         </LinearGradient>
                     </TouchableOpacity>
@@ -173,7 +173,7 @@ const LoginScreen = ({ navigation }) => {
                     <View style={styles.dividerRow}>
                         <View style={styles.divider} />
                         <Text style={styles.dividerText}>
-                            Or login with
+                            Or sign in with
                         </Text>
                         <View style={styles.divider} />
                     </View>

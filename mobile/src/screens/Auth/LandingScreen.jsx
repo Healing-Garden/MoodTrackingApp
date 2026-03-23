@@ -31,8 +31,8 @@ const LandingScreen = ({ navigation }) => {
                 {/* slogan */}
                 <View>
                     <Text style={styles.slogan}>
-                        A place for your{"\n"}
-                        soul to find{" "}
+                        Where your soul{"\n"}
+                        finds its{" "}
                         <Text style={styles.sloganHighlight}>tranquility</Text>
                     </Text>
                 </View>
@@ -45,7 +45,7 @@ const LandingScreen = ({ navigation }) => {
                         onPress={() => navigation.navigate("OnboardingStep1")}
                     >
                         <BlurView intensity={50} tint="dark" style={styles.primaryButton}>
-                            <Text style={styles.primaryText}>Start a new journey</Text>
+                            <Text style={styles.primaryText}>Begin a new journey</Text>
                             <MaterialIcons name="arrow-forward" size={22} color="#fff" />
                         </BlurView>
                     </TouchableOpacity>

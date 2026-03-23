@@ -65,8 +65,8 @@ const RegisterScreen = ({ navigation }) => {
                 otp,
             });
 
-            Alert.alert("Success", "Registration successful! Start your journey.");
-            navigation.replace("OnboardingStep1");
+            Alert.alert("Success", "Registration successful! Please log in.");
+            navigation.navigate("Login");
         } catch (error) {
             console.error("OTP Verification failed:", error);
             const errorMsg = error.response?.data?.message || "Invalid or expired OTP code.";
@@ -100,13 +100,13 @@ const RegisterScreen = ({ navigation }) => {
                 {/* HERO */}
                 <View style={styles.hero}>
                     <Text style={styles.title}>
-                        {showOtp ? "OTP Verification" : "Start your\n" + "healing journey."}
+                        {showOtp ? "OTP Verification" : "Start your\nhealing journey."}
                     </Text>
 
                     <Text style={styles.subtitle}>
                         {showOtp 
                             ? "Please check your email for the verification code."
-                            : "Join the Healing Garden community to find your inner peace."}
+                            : "Join the Healing Garden community to find peace in your soul."}
                     </Text>
                 </View>
 
@@ -155,7 +155,7 @@ const RegisterScreen = ({ navigation }) => {
                             </TouchableOpacity>
 
                             <TouchableOpacity onPress={() => setShowOtp(false)} style={{ marginTop: 10 }}>
-                                <Text style={{ textAlign: 'center', color: theme.colors.primary }}>Go back</Text>
+                                <Text style={{ textAlign: 'center', color: theme.colors.primary }}>Back</Text>
                             </TouchableOpacity>
                         </>
                     )}
