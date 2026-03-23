@@ -37,9 +37,13 @@ const LoginScreen = ({ navigation }) => {
                 password,
             });
 
-            const { accessToken } = response.data;
+            const { accessToken, user } = response.data;
             setAuthToken(accessToken);
 
+            // Successfully logged in
+            if (user && user.role === 'admin') {
+                navigation.replace("AdminDashboard");
+            }
             // 1. Check Onboarding Status
             try {
                 const statusRes = await api.get("/user/onboarding/status");
