@@ -13,9 +13,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { theme } from "../../theme";
 import BottomNavBar from "../../components/common/BottomNavBar";
+import logo from "../../../assets/images/logo.png";
 
 const JournalScreen = ({ navigation }) => {
-
     const entries = [
         {
             id: 1,
@@ -25,7 +25,7 @@ const JournalScreen = ({ navigation }) => {
             content: "Today the garden felt particularly vibrant. I spent thirty minutes just watching the sun hit the hydrangea petals.",
             image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDllPwbkrifogq-y4jjgPMVxmkpY3iy_aizhGgvjPmUGpzxwMXeYOSqPewYedwq8NtMw9VXULhBTSdiayueg4QnZBGojxU45hmrlx5wppLLpzaq4CmfQxsPqvjRnqNm1_t1C-oLayDSMVUIXJ77SKpvueBo4uSKS0pE2EOSi7cTDTH-IjBUpxg0WySLCDrDlD8ZoGWFbsyymlo5gGubcYKL9e2eI961z93hNjQaSEsbF8Qt0knme2-8faqyAAxwZUbf3wGSkFr5dTs"
         }
-    ]
+    ];
 
     return (
         <View style={styles.container}>
@@ -35,8 +35,9 @@ const JournalScreen = ({ navigation }) => {
             <View style={styles.header}>
                 <View style={styles.profileRow}>
                     <Image
-                        source={{ uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuBz1wh155THxa5_MK-wkpRcOkhWwYI9RsHE3E8yq1hMgcJlJrEguJ2Uea0L43CZ4OervfoD41a2q9VJHTNgz3vCL2Wi5xAw5LobEKtdo9NgwKzV5vwiLkgD3J9ud9j7IVTJn0FWS6XTmf61vgpvv27sUU2kKz-mCaX6kBEtTEmhjAPeTXbG5U-z9Pl1peKIeT4Xt1VbixHw0SxIo3YA8mkIf24UsGVpzkQdc31Vimuoqh4U2mI1OES0w37WAnAO7881H-U8jaCDfc0" }}
+                        source={logo}
                         style={styles.avatar}
+                        resizeMode="contain"
                     />
                     <Text style={styles.logo}>Digital Sanctuary</Text>
                 </View>

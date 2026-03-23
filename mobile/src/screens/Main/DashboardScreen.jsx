@@ -14,6 +14,7 @@ import { BlurView } from 'expo-blur';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
+import logo from '../../../assets/images/logo.png';
 
 const { width } = Dimensions.get('window');
 
@@ -27,10 +28,9 @@ const DashboardScreen = ({ navigation }) => {
                 <View style={styles.topBarLeft}>
                     <View style={styles.avatarContainer}>
                         <Image
-                            source={{
-                                uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDsbf3FPBnCQO8QlMn0DdR5QVRs2ryfIKkcinkVMI2hiUtrBgaSPnjpWrLaOtRtm6VnVf5QbtHhPCv4drG5JRbp2eewb_muRNWTB4ZrdMA6zVyeQe4OE2f4hOxMhgYwevns0FNiV-Kxf3eMSCbLrRsOGphYV_tqmXwG9ZAYbJRv7_-lIW-9-gA4oMlJOaiTIF7gdwJUTjYwIq4-QNUltGvjIAlThA9CuJ5m6iNdc4GoXoTtjDlYIK-wvagPvH2-dKtN13DWSAHfnkM'
-                            }}
+                            source={logo}
                             style={styles.avatar}
+                            resizeMode="contain"
                         />
                     </View>
                     <Text style={styles.appTitle}>Healing Garden</Text>
