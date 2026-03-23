@@ -62,7 +62,7 @@ const FeedbackScreen = ({ navigation }) => {
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'androi'}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'android'} 
         >
             <View style={styles.container}>
                 <StatusBar barStyle="dark-content" />
