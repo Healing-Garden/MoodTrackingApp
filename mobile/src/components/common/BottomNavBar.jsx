@@ -13,6 +13,7 @@ const BottomNavBar = ({ navigation, activeTab = 'Garden' }) => {
     const navItems = [
         { id: 'Garden', icon: 'filter-vintage', label: 'Garden', screen: 'Dashboard' },
         { id: 'Journal', icon: 'menu-book', label: 'Journal', screen: 'Journal' },
+        { id: 'Chatbot', icon: 'chat', label: 'Chat', screen: 'Chatbot' },
         { id: 'Insights', icon: 'monitoring', label: 'Insights', screen: 'Insights' },
         { id: 'Settings', icon: 'settings', label: 'Settings', screen: 'Settings' }
     ];
@@ -52,8 +53,8 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        paddingHorizontal: 16,
-        paddingBottom: 32,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
         backgroundColor: 'transparent',
     },
     blurBackground: {
