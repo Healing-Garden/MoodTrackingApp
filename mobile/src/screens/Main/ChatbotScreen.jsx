@@ -37,7 +37,7 @@ const ChatbotScreen = ({ navigation }) => {
     const hasInitialJoinRef = useRef(false);
 
     const menuAnim = useRef(new Animated.Value(-width)).current;
-    
+
     // Dynamically derive socket URL from API base URL to ensure they match
     const apiBaseUrl = api.defaults.baseURL || 'http://192.168.1.253:8080/api';
     const socketUrl = apiBaseUrl.replace('/api', '');
@@ -234,7 +234,7 @@ const ChatbotScreen = ({ navigation }) => {
                     <MaterialIcons name="menu" size={28} color={theme.colors.primary} />
                 </TouchableOpacity>
                 <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Lumina Chat</Text>
+                    <Text style={styles.headerTitle}>Chat with Daisy</Text>
                     <View style={styles.onlineBadge} />
                 </View>
                 <View style={styles.avatarContainer}>
@@ -243,12 +243,12 @@ const ChatbotScreen = ({ navigation }) => {
             </BlurView>
 
             {/* CHAT AREA */}
-            <KeyboardAvoidingView 
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.chatWrapper}
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
-                <ScrollView 
+                <ScrollView
                     ref={scrollViewRef}
                     onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
                     contentContainerStyle={styles.scrollContent}
@@ -280,14 +280,17 @@ const ChatbotScreen = ({ navigation }) => {
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.input}
-                            placeholder="Message Lumina..."
+                            placeholder="Message..."
                             placeholderTextColor="#a0a99c"
                             value={inputText}
                             onChangeText={setInputText}
                             multiline
+                            blurOnSubmit={false}
+                            onSubmitEditing={handleSend}
+                            returnKeyType="send"
                             editable={!isTyping && isConnected && !!sessionId}
                         />
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={[
                                 styles.sendButton,
                                 (!isConnected || !sessionId || isTyping || !inputText.trim()) && styles.sendButtonDisabled
@@ -303,9 +306,9 @@ const ChatbotScreen = ({ navigation }) => {
 
             {/* SIDE HISTORY MENU */}
             {isMenuVisible && (
-                <TouchableOpacity 
-                    activeOpacity={1} 
-                    onPress={() => toggleMenu(false)} 
+                <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => toggleMenu(false)}
                     style={StyleSheet.absoluteFill}
                 >
                     <BlurView intensity={20} style={StyleSheet.absoluteFill} />
@@ -327,15 +330,15 @@ const ChatbotScreen = ({ navigation }) => {
                             </View>
                         ) : (
                             chatHistory.map((item) => (
-                            <TouchableOpacity key={item.id} style={styles.historyItem} onPress={() => loadSession(item.id)}>
-                                <View style={styles.historyIconBox}>
-                                    <MaterialIcons name="chat-bubble-outline" size={18} color={theme.colors.primary} />
-                                </View>
-                                <View style={styles.historyContent}>
-                                    <Text style={styles.historyItemTitle} numberOfLines={1}>{item.title}</Text>
-                                    <Text style={styles.historyItemDate}>{item.date}</Text>
-                                </View>
-                            </TouchableOpacity>
+                                <TouchableOpacity key={item.id} style={styles.historyItem} onPress={() => loadSession(item.id)}>
+                                    <View style={styles.historyIconBox}>
+                                        <MaterialIcons name="chat-bubble-outline" size={18} color={theme.colors.primary} />
+                                    </View>
+                                    <View style={styles.historyContent}>
+                                        <Text style={styles.historyItemTitle} numberOfLines={1}>{item.title}</Text>
+                                        <Text style={styles.historyItemDate}>{item.date}</Text>
+                                    </View>
+                                </TouchableOpacity>
                             ))
                         )}
                     </ScrollView>
@@ -410,7 +413,7 @@ const styles = StyleSheet.create({
     chatWrapper: {
         flex: 1,
         paddingTop: 140,
-        paddingBottom: 140,
+        paddingBottom: 100, // Tăng lên để tin nhắn cuối không bị che khi input xuất hiện
     },
     scrollContent: {
         paddingHorizontal: 20,
@@ -456,7 +459,8 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     inputOuter: {
-        padding: 16,
+        padding: 12,
+        paddingBottom: 15, // Đẩy lên rõ rệt để lộ toàn bộ khung input phía trên Bottom Navbar
         backgroundColor: 'rgba(246, 249, 245, 0.9)',
     },
     inputContainer: {

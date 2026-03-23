@@ -277,24 +277,43 @@ const InsightsScreen = ({ navigation }) => {
                 </View>
 
                 {/* AI INSIGHTS SECTION */}
-                <View style={[styles.ctaCard, { backgroundColor: '#fff', padding: 24, marginBottom: 32 }]}>
-                    <View style={styles.heatTitleRow}>
-                        <MaterialIcons name="auto-awesome" size={20} color={theme.colors.primary} />
-                        <Text style={[styles.cardTitle, { marginBottom: 0 }]}>AI Insights</Text>
+                <View style={styles.aiInsightsContainer}>
+                    <View style={styles.aiInsightsHeader}>
+                        <View style={styles.aiIconContainer}>
+                            <MaterialIcons name="psychology" size={24} color="#fff" />
+                        </View>
+                        <View style={styles.aiHeaderTextContainer}>
+                            <Text style={styles.aiInsightsTitle}>AI Insights</Text>
+                            <Text style={styles.aiInsightsSubtitle}>Personalized discoveries from your journal</Text>
+                        </View>
                     </View>
                     
                     {loadingAI ? (
-                        <Text style={styles.insightText}>Analyzing your emotional landscape...</Text>
+                        <View style={styles.aiLoadingContainer}>
+                            <View style={styles.loadingSpinner} />
+                            <Text style={styles.aiLoadingText}>Analyzing your emotional landscape...</Text>
+                        </View>
                     ) : trendData?.insights?.length > 0 ? (
-                        <View style={{ gap: 12, marginTop: 16 }}>
+                        <View style={styles.aiInsightsList}>
                             {trendData.insights.map((insight, idx) => (
-                                <View key={idx} style={styles.heatInsightBox}>
-                                    <Text style={styles.insightText}>{insight}</Text>
+                                <View key={idx} style={styles.aiInsightCard}>
+                                    <View style={styles.insightNumberContainer}>
+                                        <Text style={styles.insightNumber}>{idx + 1}</Text>
+                                    </View>
+                                    <View style={styles.insightContent}>
+                                        <Text style={styles.insightText}>{insight}</Text>
+                                    </View>
                                 </View>
                             ))}
                         </View>
                     ) : (
-                        <Text style={[styles.insightText, { marginTop: 16 }]}>Keep logging your mood to unlock deep AI insights!</Text>
+                        <View style={styles.aiEmptyState}>
+                            <View style={styles.emptyStateIcon}>
+                                <MaterialIcons name="lightbulb-outline" size={48} color={theme.colors.primary} />
+                            </View>
+                            <Text style={styles.emptyStateText}>Keep logging your mood to unlock deep AI insights!</Text>
+                            <Text style={styles.emptyStateSubtext}>The more you journal, the smarter your insights become</Text>
+                        </View>
                     )}
                 </View>
 
@@ -741,6 +760,119 @@ const styles = StyleSheet.create({
         height: 120,
         backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 60,
+    },
+    // AI INSIGHTS STYLES
+    aiInsightsContainer: {
+        backgroundColor: '#fff',
+        borderRadius: theme.borderRadius.lg,
+        padding: 24,
+        marginBottom: 32,
+        borderWidth: 2,
+        borderColor: 'rgba(39, 107, 46, 0.08)',
+        ...theme.shadows.soft,
+    },
+    aiInsightsHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+        marginBottom: 24,
+    },
+    aiIconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: theme.colors.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...theme.shadows.primary,
+    },
+    aiHeaderTextContainer: {
+        flex: 1,
+    },
+    aiInsightsTitle: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
+        marginBottom: 4,
+    },
+    aiInsightsSubtitle: {
+        fontSize: 13,
+        color: theme.colors.onSurfaceVariant,
+        lineHeight: 18,
+    },
+    aiLoadingContainer: {
+        alignItems: 'center',
+        paddingVertical: 32,
+        gap: 12,
+    },
+    loadingSpinner: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        borderWidth: 3,
+        borderColor: theme.colors.primary,
+        borderTopColor: 'transparent',
+        borderBottomColor: 'transparent',
+        borderLeftColor: 'transparent',
+    },
+    aiLoadingText: {
+        fontSize: 14,
+        color: theme.colors.onSurfaceVariant,
+        fontStyle: 'italic',
+    },
+    aiInsightsList: {
+        gap: 16,
+    },
+    aiInsightCard: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 16,
+        backgroundColor: 'rgba(39, 107, 46, 0.03)',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.08)',
+    },
+    insightNumberContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: theme.colors.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...theme.shadows.soft,
+    },
+    insightNumber: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#fff',
+        fontFamily: theme.fonts.headline,
+    },
+    insightContent: {
+        flex: 1,
+    },
+    aiEmptyState: {
+        alignItems: 'center',
+        paddingVertical: 40,
+        gap: 16,
+    },
+    emptyStateIcon: {
+        opacity: 0.6,
+    },
+    emptyStateText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: theme.colors.onSurface,
+        textAlign: 'center',
+        lineHeight: 24,
+    },
+    emptyStateSubtext: {
+        fontSize: 13,
+        color: theme.colors.onSurfaceVariant,
+        textAlign: 'center',
+        lineHeight: 18,
+        fontStyle: 'italic',
     }
 });
 
