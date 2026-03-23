@@ -1,6 +1,6 @@
 import axios from 'axios';
 // Use 10.0.2.2 for Android Emulator to access host machine's localhost
-const BASE_URL = 'http://192.168.1.198:8080/api';
+const BASE_URL = 'http://192.168.1.188:8080/api';
 
 const api = axios.create({
     baseURL: BASE_URL,
