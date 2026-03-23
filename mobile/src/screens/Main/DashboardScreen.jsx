@@ -6,566 +6,437 @@ import {
     TouchableOpacity,
     ScrollView,
     StyleSheet,
-    StatusBar
+    StatusBar,
+    Dimensions
 } from 'react-native';
-
-import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../../theme';
+import BottomNavBar from '../../components/common/BottomNavBar';
+
+const { width } = Dimensions.get('window');
 
 const DashboardScreen = ({ navigation }) => {
-
     return (
-
         <View style={styles.container}>
-
             <StatusBar barStyle="dark-content" />
 
-            {/* HEADER */}
-
-            <View style={styles.header}>
-
-                <View style={styles.profileRow}>
-
-                    <Image
-                        source={{
-                            uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150'
-                        }}
-                        style={styles.avatar}
-                    />
-
-                    <View>
-                        <Text style={styles.headerTag}>CHÀO BUỔI SÁNG</Text>
-                        <Text style={styles.userName}>Elena Anh</Text>
+            {/* TOP BAR */}
+            <BlurView intensity={80} style={styles.topBar}>
+                <View style={styles.topBarLeft}>
+                    <View style={styles.avatarContainer}>
+                        <Image
+                            source={{
+                                uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDsbf3FPBnCQO8QlMn0DdR5QVRs2ryfIKkcinkVMI2hiUtrBgaSPnjpWrLaOtRtm6VnVf5QbtHhPCv4drG5JRbp2eewb_muRNWTB4ZrdMA6zVyeQe4OE2f4hOxMhgYwevns0FNiV-Kxf3eMSCbLrRsOGphYV_tqmXwG9ZAYbJRv7_-lIW-9-gA4oMlJOaiTIF7gdwJUTjYwIq4-QNUltGvjIAlThA9CuJ5m6iNdc4GoXoTtjDlYIK-wvagPvH2-dKtN13DWSAHfnkM'
+                            }}
+                            style={styles.avatar}
+                        />
                     </View>
-
+                    <Text style={styles.appTitle}>Healing Garden</Text>
                 </View>
-
-                <TouchableOpacity style={styles.iconCircle}>
-                    <MaterialIcons name="notifications-none" size={22} color={theme.colors.onSurface} />
+                <TouchableOpacity style={styles.notificationBtn}>
+                    <MaterialIcons name="notifications-none" size={24} color={theme.colors.onSurface} />
                 </TouchableOpacity>
-
-            </View>
-
+            </BlurView>
 
             <ScrollView
-                contentContainerStyle={styles.scroll}
                 showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
             >
-
-
-                {/* HERO CARD */}
-
-                <View style={styles.heroCard}>
-
-                    <MaterialIcons
-                        name="spa"
-                        size={120}
-                        color="rgba(255,255,255,0.15)"
-                        style={styles.heroIcon}
-                    />
-
-                    <Text style={styles.heroGreeting}>
-                        Chào buổi sáng
-                    </Text>
-
-                    <Text style={styles.heroTitle}>
-                        Khu vườn của bạn {"\n"}
-                        đang <Text style={styles.heroHighlight}>nở rộ</Text>
-                    </Text>
-
-                    <View style={styles.heroPill}>
-                        <View style={styles.heroDot} />
-                        <Text style={styles.heroPillText}>
-                            12 mầm xanh đang phát triển
-                        </Text>
+                {/* HERO SECTION */}
+                <LinearGradient
+                    colors={[theme.colors.primary, theme.colors.primaryContainer]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.heroCard}
+                >
+                    <View style={styles.heroContent}>
+                        <Text style={styles.heroGreeting}>Good Morning, Elena</Text>
+                        <Text style={styles.heroTitle}>Your garden is blooming beautifully</Text>
+                        
+                        <View style={styles.plantBadge}>
+                            <MaterialIcons name="spa" size={14} color="#fff" />
+                            <Text style={styles.plantBadgeText}>12 plants in full bloom</Text>
+                        </View>
                     </View>
+                    
+                    {/* Background Decorative Element */}
+                    <View style={styles.flowerBg}>
+                        <MaterialCommunityIcons name="flower-tulip" size={140} color="rgba(255,255,255,0.15)" />
+                    </View>
+                </LinearGradient>
 
+                {/* DAILY SANCTUARY GRID */}
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionLabel}>DAILY SANCTUARY</Text>
                 </View>
 
-
-                {/* DAILY CHECKIN */}
-
-                <TouchableOpacity
-                    style={styles.dailyCard}
+                {/* Daily Check-in (Full Width) */}
+                <TouchableOpacity 
+                    style={styles.checkInCard}
                     onPress={() => navigation.navigate('OnboardingStep1')}
                 >
-
-                    <View style={styles.dailyLeft}>
-
-                        <MaterialIcons
-                            name="calendar-today"
-                            size={26}
-                            color={theme.colors.primary}
-                        />
-
-                        <View>
-                            <Text style={styles.dailyTitle}>
-                                Check-in hôm nay
-                            </Text>
-
-                            <Text style={styles.dailySub}>
-                                Ghi lại cảm xúc buổi sáng
-                            </Text>
+                    <View style={styles.checkInLeft}>
+                        <View style={styles.checkInIconBox}>
+                            <MaterialIcons name="calendar-today" size={24} color={theme.colors.primary} />
                         </View>
-
+                        <View>
+                            <Text style={styles.cardTitle}>Daily Check-in</Text>
+                            <Text style={styles.cardSub}>Log your morning mood</Text>
+                        </View>
                     </View>
-
-                    <MaterialIcons
-                        name="chevron-right"
-                        size={22}
-                        color={theme.colors.onSurfaceVariant}
-                    />
-
+                    <MaterialIcons name="chevron-right" size={24} color={theme.colors.onSurfaceVariant} />
                 </TouchableOpacity>
 
-
-                {/* ACTION CARDS */}
-
-                <View style={styles.activityGrid}>
-
-                    <TouchableOpacity style={styles.activityCard}>
-
-                        <View style={styles.iconBoxMeditation}>
-                            <MaterialIcons name="self-improvement" size={24} />
+                {/* Grid Row */}
+                <View style={styles.gridRow}>
+                    <TouchableOpacity style={[styles.gridCard, { backgroundColor: 'rgba(154, 225, 255, 0.3)' }]}>
+                        <View style={[styles.gridIconBox, { backgroundColor: theme.colors.secondaryContainer }]}>
+                            <MaterialIcons name="self-improvement" size={24} color={theme.colors.onSecondaryContainer} />
                         </View>
-
-                        <Text style={styles.activityLabel}>
-                            Thiền định
-                        </Text>
-
+                        <Text style={styles.gridLabel}>Start Meditation</Text>
                     </TouchableOpacity>
 
-
-                    <TouchableOpacity
-                        style={styles.activityCard}
+                    <TouchableOpacity 
+                        style={[styles.gridCard, { backgroundColor: 'rgba(202, 169, 16, 0.2)' }]}
                         onPress={() => navigation.navigate('Journal')}
                     >
-
-                        <View style={styles.iconBoxJournal}>
-                            <MaterialIcons name="edit-note" size={24} />
+                        <View style={[styles.gridIconBox, { backgroundColor: theme.colors.tertiaryContainer }]}>
+                            <MaterialIcons name="edit-note" size={24} color={theme.colors.onTertiaryContainer} />
                         </View>
-
-                        <Text style={styles.activityLabel}>
-                            Nhật ký
-                        </Text>
-
+                        <Text style={styles.gridLabel}>Write in Journal</Text>
                     </TouchableOpacity>
-
                 </View>
-
 
                 {/* MOOD TREND */}
-
-                <View style={styles.summarySection}>
-
-                    <View style={styles.summaryHeader}>
-
-                        <Text style={styles.sectionTitle}>
-                            Xu hướng cảm xúc
-                        </Text>
-
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('Insights')}
-                        >
-                            <Text style={styles.viewMore}>
-                                Xem chi tiết
-                            </Text>
-                        </TouchableOpacity>
-
+                <View style={styles.moodSection}>
+                    <View style={styles.moodHeader}>
+                        <View>
+                            <Text style={styles.moodTitle}>Mood Trend</Text>
+                            <Text style={styles.moodSub}>Past 7 days</Text>
+                        </View>
+                        <View style={styles.trendBadge}>
+                            <MaterialIcons name="trending-up" size={14} color={theme.colors.primary} />
+                            <Text style={styles.trendBadgeText}>Steadily Rising</Text>
+                        </View>
                     </View>
 
-
-                    <View style={styles.tonalChart}>
-
-                        {[0.4, 0.6, 0.5, 0.8, 0.7, 0.9, 0.85].map((v, i) => (
+                    <View style={styles.chartContainer}>
+                        {[0.5, 0.65, 0.45, 0.75, 1, 0.6, 0.9].map((val, i) => (
                             <View key={i} style={styles.chartCol}>
-
-                                <View style={[
-                                    styles.chartBar,
-                                    { height: `${v * 100}%` }
-                                ]} />
-
-                                <Text style={styles.chartDay}>
-                                    {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'][i]}
+                                <View style={[styles.bar, { height: val * 80 }]}>
+                                    <MaterialIcons 
+                                        name={val >= 0.8 ? "sentiment-very-satisfied" : val >= 0.6 ? "sentiment-satisfied" : "sentiment-neutral"} 
+                                        size={16} 
+                                        color={i === 6 ? theme.colors.primary : "rgba(39, 107, 46, 0.4)"} 
+                                        style={styles.barIcon}
+                                    />
+                                </View>
+                                <Text style={[styles.dayLabel, i === 6 && styles.activeDay]}>
+                                    {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'TODAY'][i]}
                                 </Text>
-
                             </View>
                         ))}
-
                     </View>
-
                 </View>
 
-
-                {/* INSIGHT CARD */}
-
-                <View style={styles.insightCard}>
-
-                    <MaterialIcons
-                        name="format-quote"
-                        size={36}
-                        color={theme.colors.tertiary}
-                    />
-
-                    <Text style={styles.insightText}>
-                        "Tâm hồn không thể nở hoa trong sự vội vã.
-                        Hãy dành một chút thời gian hôm nay để thở thật sâu."
-                    </Text>
-
-                    <View style={styles.insightDivider} />
-
-                    <Text style={styles.insightAuthor}>
-                        Lời nhắc từ khu vườn
-                    </Text>
-
+                {/* QUOTE SECTION */}
+                <View style={styles.quoteCard}>
+                    <MaterialIcons name="format-quote" size={40} color={theme.colors.tertiary} style={styles.quoteIcon} />
+                    <View style={styles.quoteContent}>
+                        <Text style={styles.quoteText}>
+                            "The soul cannot thrive in a garden of stones. Take a moment today to breathe in the green."
+                        </Text>
+                        <View style={styles.quoteDivider} />
+                        <Text style={styles.quoteLabel}>INSIGHT FOR YOUR GROWTH</Text>
+                    </View>
                 </View>
-
             </ScrollView>
 
-
-            {/* BOTTOM NAV */}
-
-            <View style={styles.bottomNav}>
-
-                <TouchableOpacity style={styles.navActive}>
-                    <MaterialIcons name="spa" size={24} color={theme.colors.primary} />
-                    <Text style={styles.navActiveLabel}>Vườn</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() => navigation.navigate('Journal')}
-                >
-                    <MaterialIcons name="menu-book" size={26} color={theme.colors.onSurfaceVariant} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() => navigation.navigate('Insights')}
-                >
-                    <MaterialIcons name="bar-chart" size={26} color={theme.colors.onSurfaceVariant} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() => navigation.navigate('Settings')}
-                >
-                    <MaterialIcons name="settings" size={26} color={theme.colors.onSurfaceVariant} />
-                </TouchableOpacity>
-
-            </View>
-
-
+            {/* BOTTOM NAVIGATION */}
+            <BottomNavBar navigation={navigation} activeTab="Garden" />
         </View>
-
     );
 };
 
-
-
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
-        backgroundColor: theme.colors.surface
+        backgroundColor: theme.colors.background,
     },
-
-    header: {
+    topBar: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingTop: 60,
-        paddingHorizontal: 20,
-        marginBottom: 10
-    },
-
-    profileRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12
-    },
-
-    avatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 18
-    },
-
-    headerTag: {
-        fontSize: 10,
-        letterSpacing: 1.5,
-        color: theme.colors.primary,
-        opacity: 0.6
-    },
-
-    userName: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: theme.colors.onSurface
-    },
-
-    iconCircle: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: theme.colors.surfaceBright,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-
-    scroll: {
-        paddingHorizontal: 20,
-        paddingBottom: 120
-    },
-
-
-
-    heroCard: {
-        backgroundColor: theme.colors.primary,
-        borderRadius: 32,
-        padding: 28,
-        marginBottom: 28,
-        overflow: 'hidden'
-    },
-
-    heroGreeting: {
-        color: 'rgba(255,255,255,0.8)',
-        fontSize: 14
-    },
-
-    heroTitle: {
-        fontSize: 30,
-        lineHeight: 38,
-        color: '#fff',
-        fontWeight: '700',
-        marginTop: 4
-    },
-
-    heroHighlight: {
-        fontStyle: 'italic',
-        fontWeight: '400'
-    },
-
-    heroIcon: {
+        paddingBottom: 16,
+        paddingHorizontal: 24,
         position: 'absolute',
-        right: -20,
-        bottom: -20
-    },
-
-    heroPill: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 16,
-        paddingHorizontal: 14,
-        paddingVertical: 6,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.2)'
-    },
-
-    heroDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: '#fff',
-        marginRight: 8
-    },
-
-    heroPillText: {
-        color: '#fff',
-        fontSize: 12
-    },
-
-
-
-    dailyCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 20,
-        borderRadius: 24,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        marginBottom: 24
-    },
-
-    dailyLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 16
-    },
-
-    dailyTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: theme.colors.onSurface
-    },
-
-    dailySub: {
-        fontSize: 12,
-        color: theme.colors.onSurfaceVariant
-    },
-
-
-
-    activityGrid: {
-        flexDirection: 'row',
-        gap: 16,
-        marginBottom: 40
-    },
-
-    activityCard: {
-        flex: 1,
-        backgroundColor: theme.colors.surfaceVariant,
-        padding: 24,
-        borderRadius: 24,
-        gap: 12
-    },
-
-    iconBoxMeditation: {
-        width: 44,
-        height: 44,
-        borderRadius: 14,
-        backgroundColor: 'rgba(12,103,128,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-
-    iconBoxJournal: {
-        width: 44,
-        height: 44,
-        borderRadius: 14,
-        backgroundColor: 'rgba(202,169,16,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-
-    activityLabel: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: theme.colors.onSurface
-    },
-
-
-
-    summarySection: {
-        marginBottom: 40
-    },
-
-    summaryHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20
-    },
-
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: theme.colors.onSurface
-    },
-
-    viewMore: {
-        fontSize: 13,
-        color: theme.colors.secondary
-    },
-
-    tonalChart: {
-        height: 160,
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        justifyContent: 'space-between',
-        backgroundColor: theme.colors.surfaceContainerLow,
-        padding: 20,
-        borderRadius: 28
-    },
-
-    chartCol: {
-        alignItems: 'center',
-        gap: 10,
-        height: '100%',
-        justifyContent: 'flex-end'
-    },
-
-    chartBar: {
-        width: 14,
-        backgroundColor: theme.colors.primary,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20
-    },
-
-    chartDay: {
-        fontSize: 10,
-        opacity: 0.5,
-        color: theme.colors.onSurfaceVariant
-    },
-
-
-
-    insightCard: {
-        backgroundColor: theme.colors.surfaceBright,
-        padding: 32,
-        borderRadius: 28,
-        gap: 16
-    },
-
-    insightText: {
-        fontSize: 18,
-        lineHeight: 28,
-        fontStyle: 'italic',
-        color: theme.colors.onSurface,
-        opacity: 0.85
-    },
-
-    insightDivider: {
-        width: 40,
-        height: 1,
-        backgroundColor: theme.colors.tertiary,
-        opacity: 0.3
-    },
-
-    insightAuthor: {
-        fontSize: 12,
-        color: theme.colors.onSurfaceVariant
-    },
-
-
-
-    bottomNav: {
-        position: 'absolute',
-        bottom: 0,
+        top: 0,
         left: 0,
         right: 0,
-        height: 90,
-        backgroundColor: '#fff',
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        paddingBottom: 20,
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32
+        zIndex: 100,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(6,33,10,0.05)',
     },
-
-    navItem: {
+    topBarLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    avatarContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        overflow: 'hidden',
+        backgroundColor: theme.colors.surfaceContainerHigh,
+    },
+    avatar: {
+        width: '100%',
+        height: '100%',
+    },
+    appTitle: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#064e3b',
+        fontFamily: theme.fonts.headline,
+    },
+    notificationBtn: {
+        width: 44,
+        height: 44,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    scrollContent: {
+        paddingTop: 120,
+        paddingHorizontal: 24,
+        paddingBottom: 140,
+    },
+    heroCard: {
+        borderRadius: theme.borderRadius.lg,
+        padding: 32,
+        marginBottom: 32,
+        overflow: 'hidden',
+        position: 'relative',
+        ...theme.shadows.primary,
+    },
+    heroContent: {
+        zIndex: 10,
+    },
+    heroGreeting: {
+        color: 'rgba(255,255,255,0.9)',
+        fontSize: 16,
+        fontFamily: theme.fonts.headline,
+        marginBottom: 4,
+    },
+    heroTitle: {
+        fontSize: 32,
+        fontWeight: '800',
+        color: '#fff',
+        lineHeight: 38,
+        fontFamily: theme.fonts.headline,
+        marginBottom: 20,
+    },
+    plantBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 999,
+        alignSelf: 'flex-start',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+    },
+    plantBadgeText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '600',
+        marginLeft: 8,
+    },
+    flowerBg: {
+        position: 'absolute',
+        right: -30,
+        bottom: -30,
+        opacity: 0.2,
+    },
+    sectionHeader: {
+        marginBottom: 16,
+        paddingLeft: 4,
+    },
+    sectionLabel: {
+        fontSize: 12,
+        fontWeight: '800',
+        letterSpacing: 2,
+        color: theme.colors.onSurfaceVariant,
+        opacity: 0.7,
+    },
+    checkInCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 24,
+        borderRadius: theme.borderRadius.lg,
+        backgroundColor: theme.colors.surfaceContainerLow,
+        marginBottom: 16,
+    },
+    checkInLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+    },
+    checkInIconBox: {
         width: 48,
         height: 48,
+        borderRadius: 24,
+        backgroundColor: theme.colors.primaryContainer,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     },
-
-    navActive: {
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
+    },
+    cardSub: {
+        fontSize: 13,
+        color: theme.colors.onSurfaceVariant,
+    },
+    gridRow: {
+        flexDirection: 'row',
+        gap: 16,
+        marginBottom: 32,
+    },
+    gridCard: {
+        flex: 1,
+        padding: 20,
+        borderRadius: theme.borderRadius.lg,
+        alignItems: 'flex-start',
+        gap: 16,
+    },
+    gridIconBox: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    gridLabel: {
+        fontSize: 16,
+        fontWeight: '700',
+        lineHeight: 20,
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
+    },
+    moodSection: {
+        backgroundColor: theme.colors.surfaceContainerLowest,
+        borderRadius: theme.borderRadius.lg,
+        padding: 24,
+        marginBottom: 24,
+        ...theme.shadows.soft,
+    },
+    moodHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        marginBottom: 32,
+    },
+    moodTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
+    },
+    moodSub: {
+        fontSize: 13,
+        color: theme.colors.onSurfaceVariant,
+    },
+    trendBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(39,107,46,0.15)',
-        paddingHorizontal: 18,
-        paddingVertical: 8,
-        borderRadius: 24,
-        gap: 8
+        backgroundColor: theme.colors.surfaceContainerLow,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 999,
+        gap: 4,
     },
-
-    navActiveLabel: {
+    trendBadgeText: {
+        fontSize: 11,
+        fontWeight: '800',
         color: theme.colors.primary,
-        fontWeight: '700'
+    },
+    chartContainer: {
+        height: 120,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        paddingHorizontal: 4,
+    },
+    chartCol: {
+        alignItems: 'center',
+        gap: 12,
+        flex: 1,
+    },
+    bar: {
+        width: '100%',
+        maxWidth: 32,
+        backgroundColor: 'rgba(39, 107, 46, 0.1)',
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 40,
+    },
+    barIcon: {
+        marginBottom: 8,
+    },
+    dayLabel: {
+        fontSize: 9,
+        fontWeight: '800',
+        color: 'rgba(64, 73, 62, 0.4)',
+    },
+    activeDay: {
+        color: theme.colors.primary,
+    },
+    quoteCard: {
+        backgroundColor: theme.colors.surfaceBright,
+        borderRadius: theme.borderRadius.lg,
+        padding: 32,
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.05)',
+        position: 'relative',
+    },
+    quoteIcon: {
+        position: 'absolute',
+        top: 24,
+        left: 24,
+        opacity: 0.8,
+    },
+    quoteContent: {
+        marginLeft: 40,
+        gap: 16,
+    },
+    quoteText: {
+        fontSize: 18,
+        fontWeight: '500',
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
+        fontStyle: 'italic',
+        lineHeight: 28,
+    },
+    quoteDivider: {
+        width: 48,
+        height: 2,
+        backgroundColor: '#e7c433', // tertiary-fixed-dim
+    },
+    quoteLabel: {
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 2,
+        color: '#554500', // on-tertiary-fixed-variant
     }
-
 });
 
 export default DashboardScreen;

@@ -12,8 +12,9 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { theme } from "../../theme";
+import BottomNavBar from "../../components/common/BottomNavBar";
 
-const JournalScreen = () => {
+const JournalScreen = ({ navigation }) => {
 
     const entries = [
         {
@@ -107,6 +108,9 @@ const JournalScreen = () => {
                     <MaterialIcons name="add" size={30} color="white" />
                 </LinearGradient>
             </TouchableOpacity>
+
+            {/* BOTTOM NAVIGATION */}
+            <BottomNavBar navigation={navigation} activeTab="Journal" />
 
         </View>
     )
