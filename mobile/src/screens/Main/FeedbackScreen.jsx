@@ -1,407 +1,369 @@
 import React, { useState } from 'react';
 import {
-View,
-Text,
-TouchableOpacity,
-ScrollView,
-StyleSheet,
-StatusBar,
-TextInput
+    View,
+    Text,
+    TouchableOpacity,
+    ScrollView,
+    StyleSheet,
+    StatusBar,
+    TextInput,
+    Alert,
+    KeyboardAvoidingView, 
+    Platform
 } from 'react-native';
-
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../theme';
+import BottomNavBar from '../../components/common/BottomNavBar';
+import api from '../../services/api';
 
 const FeedbackScreen = ({ navigation }) => {
-
-const [activeCategory,setActiveCategory]=useState(0)
-
-const categories=[
-{label:'Feature',icon:'featured-play-list'},
-{label:'Bug',icon:'bug-report'},
-{label:'Content',icon:'star'}
-]
-
-return(
-
-<View style={styles.container}>
-
-<StatusBar barStyle="dark-content"/>
-
-{/* HEADER */}
-
-<View style={styles.header}>
-
-<TouchableOpacity
-style={styles.backBtn}
-onPress={()=>navigation.goBack()}
->
-
-<MaterialIcons name="arrow-back" size={22} color="#06210a"/>
-
-</TouchableOpacity>
-
-<Text style={styles.headerTitle}>
-Give Feedback
-</Text>
-
-<View style={{width:40}}/>
-
-</View>
-
-<ScrollView
-showsVerticalScrollIndicator={false}
-contentContainerStyle={styles.content}
->
-
-{/* TITLE */}
-
-<View style={styles.hero}>
-
-<Text style={styles.heroTitle}>
-We value your feedback
-</Text>
-
-<Text style={styles.heroSubtitle}>
-Help us nurture this digital sanctuary.
-Your thoughts help our garden grow stronger.
-</Text>
-
-</View>
-
-{/* CATEGORY */}
-
-<View style={styles.section}>
-
-<Text style={styles.sectionLabel}>
-SELECT CATEGORY
-</Text>
-
-<View style={styles.categoryRow}>
-
-{categories.map((c,i)=>(
-
-<TouchableOpacity
-key={i}
-onPress={()=>setActiveCategory(i)}
-style={[
-styles.categoryChip,
-activeCategory===i && styles.categoryChipActive
-]}
->
-
-<MaterialIcons
-name={c.icon}
-size={20}
-color={activeCategory===i?'#fff':'#276b2e'}
-/>
-
-<Text
-style={[
-styles.categoryText,
-activeCategory===i && {color:'#fff'}
-]}
->
-{c.label}
-</Text>
-
-</TouchableOpacity>
-
-))}
-
-</View>
-
-</View>
-
-{/* INPUT */}
-
-<View style={styles.section}>
-
-<Text style={styles.sectionLabel}>
-SUBJECT
-</Text>
-
-<TextInput
-placeholder="e.g., New feature request"
-style={styles.input}
-/>
-
-<Text style={[styles.sectionLabel,{marginTop:20}]}>
-MESSAGE
-</Text>
-
-<TextInput
-multiline
-style={styles.textArea}
-placeholder="Detailed description..."
-/>
-
-</View>
-
-{/* INSIGHT CARD */}
-
-<View style={styles.insightCard}>
-
-<View style={{flex:1}}>
-
-<Text style={styles.insightTitle}>
-Feeling Inspired?
-</Text>
-
-<Text style={styles.insightText}>
-Every small suggestion plants a seed for a more peaceful experience.
-</Text>
-
-</View>
-
-<View style={styles.insightIcon}>
-
-<MaterialIcons
-name="eco"
-size={28}
-color="#0c6780"
-/>
-
-</View>
-
-</View>
-
-{/* BUTTON */}
-
-<LinearGradient
-colors={['#276b2e','#60a560']}
-style={styles.submitBtn}
->
-
-<Text style={styles.submitText}>
-Send Feedback
-</Text>
-
-<MaterialIcons name="send" size={20} color="#fff"/>
-
-</LinearGradient>
-
-</ScrollView>
-
-{/* BOTTOM NAV */}
-
-<View style={styles.bottomNav}>
-
-<TouchableOpacity style={styles.navItem}>
-<MaterialIcons name="yard" size={24} color="#888"/>
-</TouchableOpacity>
-
-<TouchableOpacity style={styles.navItem}>
-<MaterialIcons name="menu-book" size={24} color="#888"/>
-</TouchableOpacity>
-
-<TouchableOpacity style={styles.navItem}>
-<MaterialIcons name="bar-chart" size={24} color="#888"/>
-</TouchableOpacity>
-
-<TouchableOpacity style={styles.navActive}>
-<MaterialIcons name="person" size={20} color="#276b2e"/>
-<Text style={styles.navActiveText}>Me</Text>
-</TouchableOpacity>
-
-</View>
-
-</View>
-
-)
-}
-
-const styles=StyleSheet.create({
-
-container:{
-flex:1,
-backgroundColor:'#ebffe6'
-},
-
-header:{
-flexDirection:'row',
-alignItems:'center',
-justifyContent:'space-between',
-paddingHorizontal:24,
-paddingTop:60,
-paddingBottom:16,
-backgroundColor:'rgba(255,255,255,0.9)',
-borderBottomLeftRadius:40,
-borderBottomRightRadius:40
-},
-
-backBtn:{
-width:40,
-height:40,
-borderRadius:20,
-justifyContent:'center',
-alignItems:'center'
-},
-
-headerTitle:{
-fontSize:18,
-fontWeight:'700',
-color:'#276b2e'
-},
-
-content:{
-paddingHorizontal:24,
-paddingTop:20,
-paddingBottom:120
-},
-
-hero:{
-marginBottom:40,
-alignItems:'center'
-},
-
-heroTitle:{
-fontSize:32,
-fontWeight:'800',
-textAlign:'center',
-marginBottom:10
-},
-
-heroSubtitle:{
-fontSize:16,
-textAlign:'center',
-color:'#40493e',
-lineHeight:24
-},
-
-section:{
-marginBottom:30
-},
-
-sectionLabel:{
-fontSize:11,
-fontWeight:'700',
-letterSpacing:1.5,
-color:'#276b2e',
-marginBottom:12
-},
-
-categoryRow:{
-flexDirection:'row',
-flexWrap:'wrap'
-},
-
-categoryChip:{
-flexDirection:'row',
-alignItems:'center',
-paddingHorizontal:24,
-paddingVertical:12,
-borderRadius:999,
-backgroundColor:'#d0f1cc',
-marginRight:10,
-marginBottom:10
-},
-
-categoryChipActive:{
-backgroundColor:'#276b2e'
-},
-
-categoryText:{
-marginLeft:8,
-fontWeight:'600',
-color:'#276b2e'
-},
-
-input:{
-backgroundColor:'#d0f1cc',
-borderRadius:12,
-paddingHorizontal:20,
-paddingVertical:16
-},
-
-textArea:{
-backgroundColor:'#d0f1cc',
-borderRadius:12,
-paddingHorizontal:20,
-paddingVertical:16,
-height:150,
-textAlignVertical:'top'
-},
-
-insightCard:{
-flexDirection:'row',
-alignItems:'center',
-backgroundColor:'rgba(12,103,128,0.08)',
-padding:24,
-borderRadius:16,
-marginTop:10
-},
-
-insightTitle:{
-fontWeight:'700',
-fontSize:16,
-marginBottom:4
-},
-
-insightText:{
-fontSize:13,
-color:'#40493e'
-},
-
-insightIcon:{
-width:52,
-height:52,
-borderRadius:26,
-backgroundColor:'rgba(255,255,255,0.5)',
-justifyContent:'center',
-alignItems:'center'
-},
-
-submitBtn:{
-flexDirection:'row',
-justifyContent:'center',
-alignItems:'center',
-gap:10,
-paddingVertical:18,
-borderRadius:16,
-marginTop:30
-},
-
-submitText:{
-color:'#fff',
-fontSize:16,
-fontWeight:'700'
-},
-
-bottomNav:{
-position:'absolute',
-bottom:0,
-left:0,
-right:0,
-height:90,
-flexDirection:'row',
-justifyContent:'space-around',
-alignItems:'center',
-backgroundColor:'rgba(255,255,255,0.95)',
-borderTopLeftRadius:48,
-borderTopRightRadius:48
-},
-
-navItem:{
-alignItems:'center'
-},
-
-navActive:{
-flexDirection:'row',
-alignItems:'center',
-backgroundColor:'rgba(39,107,46,0.1)',
-paddingHorizontal:18,
-paddingVertical:8,
-borderRadius:20
-},
-
-navActiveText:{
-marginLeft:6,
-color:'#276b2e',
-fontWeight:'700'
-}
-
-})
-
-export default FeedbackScreen
+    const [type, setType] = useState('feature');
+    const [subject, setSubject] = useState('');
+    const [message, setMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const categories = [
+        { id: 'feature', label: 'Feature', icon: 'featured-play-list' },
+        { id: 'bug', label: 'Bug', icon: 'pest-control' },
+        { id: 'content_rating', label: 'Content Rating', icon: 'star' }
+    ];
+
+    const handleSubmit = async () => {
+        if (!subject.trim() || !message.trim()) {
+            Alert.alert('Thông báo', 'Vui lòng điền đầy đủ tiêu đề và nội dung');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await api.post('/feedback/submit', {
+                type,
+                subject,
+                message
+            });
+
+            if (response.data.success) {
+                Alert.alert('Thành công', 'Cảm ơn ý kiến của bạn! Chúng tôi đã nhận được góp ý.');
+                setSubject('');
+                setMessage('');
+                setType('feature');
+            } else {
+                Alert.alert('Lỗi', response.data.message || 'Không thể gửi feedback');
+            }
+        } catch (error) {
+            console.error('Submit feedback error:', error);
+            Alert.alert('Lỗi', error.response?.data?.message || 'Có lỗi xảy ra khi gửi feedback. Vui lòng thử lại.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+            <View style={styles.container}>
+                <StatusBar barStyle="dark-content" />
+
+                {/* HEADER */}
+                <View style={styles.header}>
+                    <TouchableOpacity
+                        style={styles.backBtn}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <MaterialIcons name="arrow-back" size={24} color="#064e3b" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Give Feedback</Text>
+                    <View style={{ width: 44 }} />
+                </View>
+
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.scrollContent}
+                >
+                    {/* TITLE SECTION */}
+                    <View style={styles.heroSection}>
+                        <View style={styles.moodBloomDeco} />
+                        <Text style={styles.heroTitle}>We value your feedback</Text>
+                        <Text style={styles.heroSubtitle}>
+                            Help us nurture this digital sanctuary. Your thoughts help our garden grow stronger.
+                        </Text>
+                    </View>
+
+                    {/* CATEGORY SELECTION */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionLabel}>SELECT CATEGORY</Text>
+                        <View style={styles.categoryContainer}>
+                            {categories.map((cat) => (
+                                <TouchableOpacity
+                                    key={cat.id}
+                                    style={[
+                                        styles.categoryChip,
+                                        type === cat.id && styles.activeCategoryChip
+                                    ]}
+                                    onPress={() => setType(cat.id)}
+                                >
+                                    <MaterialIcons
+                                        name={cat.icon}
+                                        size={20}
+                                        color={type === cat.id ? '#fff' : theme.colors.primary}
+                                    />
+                                    <Text style={[
+                                        styles.categoryChipText,
+                                        type === cat.id && styles.activeCategoryChipText
+                                    ]}>
+                                        {cat.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* INPUT FIELDS */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionLabel}>SUBJECT</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="e.g., New feature request"
+                            placeholderTextColor={theme.colors.outlineVariant}
+                            value={subject}
+                            onChangeText={setSubject}
+                        />
+
+                        <Text style={[styles.sectionLabel, { marginTop: 20 }]}>MESSAGE</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Detailed description..."
+                            placeholderTextColor={theme.colors.outlineVariant}
+                            multiline
+                            numberOfLines={6}
+                            textAlignVertical="top"
+                            value={message}
+                            onChangeText={setMessage}
+                        />
+                    </View>
+
+                    {/* INSPIRATION CARD */}
+                    <View style={styles.inspirationCard}>
+                        <View style={styles.inspirationTextContainer}>
+                            <Text style={styles.inspirationTitle}>Feeling Inspired?</Text>
+                            <Text style={styles.inspirationDesc}>
+                                Every small suggestion plants a seed for a more peaceful experience.
+                            </Text>
+                        </View>
+                        <View style={styles.inspirationIconContainer}>
+                            <MaterialIcons name="energy-savings-leaf" size={28} color={theme.colors.secondary} />
+                        </View>
+                        <View style={styles.inspirationDecor} />
+                    </View>
+
+                    {/* ACTION BUTTON */}
+                    <TouchableOpacity
+                        style={styles.submitBtnWrapper}
+                        onPress={handleSubmit}
+                        disabled={isLoading}
+                    >
+                        <LinearGradient
+                            colors={['#276b2e', '#60a560']}
+                            style={styles.submitBtn}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                        >
+                            <Text style={styles.submitBtnText}>
+                                {isLoading ? 'Sending...' : 'Send Feedback'}
+                            </Text>
+                            <MaterialIcons name="send" size={20} color="#fff" />
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </ScrollView>
+
+                <BottomNavBar navigation={navigation} activeTab="Me" />
+            </View>
+        </KeyboardAvoidingView>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: theme.colors.background,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingTop: Platform.OS === 'ios' ? 60 : 40,
+        paddingBottom: 20,
+        paddingHorizontal: 20,
+        backgroundColor: 'rgba(235, 255, 230, 0.8)',
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
+        ...theme.shadows.soft,
+    },
+    backBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'rgba(39, 107, 46, 0.05)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: '#064e3b',
+        fontFamily: theme.fonts.headline,
+    },
+    scrollContent: {
+        paddingHorizontal: 24,
+        paddingTop: 32,
+        paddingBottom: 120,
+    },
+    heroSection: {
+        alignItems: 'center',
+        marginBottom: 40,
+        position: 'relative',
+    },
+    moodBloomDeco: {
+        position: 'absolute',
+        top: -20,
+        right: -10,
+        width: 100,
+        height: 100,
+        backgroundColor: 'rgba(96, 165, 96, 0.1)',
+        borderRadius: 50,
+        zIndex: -1,
+        transform: [{ scaleX: 1.2 }],
+    },
+    heroTitle: {
+        fontSize: 32,
+        fontWeight: '800',
+        color: theme.colors.onSurface,
+        textAlign: 'center',
+        fontFamily: theme.fonts.headline,
+        letterSpacing: -0.5,
+        marginBottom: 12,
+    },
+    heroSubtitle: {
+        fontSize: 16,
+        color: theme.colors.onSurfaceVariant,
+        textAlign: 'center',
+        lineHeight: 24,
+        maxWidth: 300,
+    },
+    section: {
+        marginBottom: 32,
+    },
+    sectionLabel: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: theme.colors.primary,
+        letterSpacing: 1.5,
+        marginBottom: 16,
+        marginLeft: 4,
+    },
+    categoryContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    categoryChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 99,
+        backgroundColor: theme.colors.surfaceContainerHigh,
+        gap: 8,
+    },
+    activeCategoryChip: {
+        backgroundColor: theme.colors.primary,
+        ...theme.shadows.medium,
+    },
+    categoryChipText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: theme.colors.onSurfaceVariant,
+    },
+    activeCategoryChipText: {
+        color: '#fff',
+    },
+    input: {
+        backgroundColor: theme.colors.surfaceContainerHigh,
+        borderRadius: 16,
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        fontSize: 16,
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.body,
+    },
+    textArea: {
+        height: 156,
+        textAlignVertical: 'top',
+    },
+    inspirationCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(154, 225, 255, 0.2)',
+        padding: 24,
+        borderRadius: 20,
+        marginBottom: 32,
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    inspirationTextContainer: {
+        flex: 1,
+    },
+    inspirationTitle: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: theme.colors.onSecondaryContainer,
+        marginBottom: 4,
+    },
+    inspirationDesc: {
+        fontSize: 13,
+        color: theme.colors.onSecondaryContainer,
+        opacity: 0.8,
+        lineHeight: 18,
+    },
+    inspirationIconContainer: {
+        width: 56,
+        height: 56,
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        borderRadius: 28,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: 16,
+    },
+    inspirationDecor: {
+        position: 'absolute',
+        bottom: -20,
+        right: -20,
+        width: 60,
+        height: 60,
+        backgroundColor: 'rgba(96, 165, 96, 0.1)',
+        borderRadius: 30,
+        transform: [{ rotate: '45deg' }],
+    },
+    submitBtnWrapper: {
+        ...theme.shadows.medium,
+    },
+    submitBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 18,
+        borderRadius: 16,
+        gap: 12,
+    },
+    submitBtnText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '800',
+        fontFamily: theme.fonts.headline,
+    }
+});
+
+export default FeedbackScreen;
