@@ -8,15 +8,20 @@ import {
     StyleSheet,
     StatusBar,
     Image,
-    Dimensions
+    Dimensions,
+    Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import * as ImagePicker from 'expo-image-picker';
+import { Audio } from 'expo-av';
 import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
 import logo from '../../../assets/images/logo.png';
 import { aiApi } from '../../services/aiApi';
 import api from '../../services/api';
+import journalService from '../../services/journalService';
+import { uploadToCloudinary } from '../../utils/cloudinary';
 
 const { width } = Dimensions.get('window');
 
@@ -32,6 +37,26 @@ const JournalScreen = ({ navigation }) => {
     const [user, setUser] = useState(null);
     const [searchResults, setSearchResults] = useState(null);
     const [isSearching, setIsSearching] = useState(false);
+    const [entries, setEntries] = useState([]);
+    const [trashedEntries, setTrashedEntries] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [editingEntryId, setEditingEntryId] = useState(null);
+
+    // New states for Advanced Features
+    const [imagePreviews, setImagePreviews] = useState([]);
+    const [imageUrls, setImageUrls] = useState([]);
+    const [isRecording, setIsRecording] = useState(false);
+    const [recording, setRecording] = useState(null);
+    const [audioUri, setAudioUri] = useState(null);
+
+    // States for In-place Editing
+    const [expandingEntryId, setExpandingEntryId] = useState(null);
+    const [expandingTitle, setExpandingTitle] = useState('');
+    const [expandingContent, setExpandingContent] = useState('');
+    const [expandingMood, setExpandingMood] = useState(null);
+    const [expandingImagePreviews, setExpandingImagePreviews] = useState([]);
+    const [expandingImageUrls, setExpandingImageUrls] = useState([]);
+    const [expandingAudioUri, setExpandingAudioUri] = useState(null);
 
     React.useEffect(() => {
         const loadProfile = async () => {
@@ -89,59 +114,197 @@ const JournalScreen = ({ navigation }) => {
         return () => clearTimeout(blurTimer);
     }, [searchQuery, activeTab, user]);
 
-    const entries = [
-        {
-            id: 1,
-            date: "October 24, 2023",
-            title: "The Morning Dew",
-            tags: ["Gratitude", "Nature"],
-            content: "Today the garden felt particularly vibrant. I spent thirty minutes just watching the sun hit the hydrangea petals. It reminded me that growth is often silent but certain...",
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDllPwbkrifogq-y4jjgPMVxmkpY3iy_aizhGgvjPmUGpzxwMXeYOSqPewYedwq8NtMw9VXULhBTSdiayueg4QnZBGojxU45hmrlx5wppLLpzaq4CmfQxsPqvjRnqNm1_t1C-oLayDSMVUIXJ77SKpvueBo4uSKS0pE2EOSi7cTDTH-IjBUpxg0WySLCDrDlD8ZoGWFbsyymlo5gGubcYKL9e2eI961z93hNjQaSEsbF8Qt0knme2-8faqyAAxwZUbf3wGSkFr5dTs",
-            mood: "🌞"
-        },
-        {
-            id: 2,
-            date: "October 21, 2023",
-            title: "Finding Stillness in Storms",
-            tags: ["Mindfulness"],
-            content: "When the rain started, I felt a surge of anxiety. But then I realized the garden needs the rain just as much as the sun. I practiced deep breathing for 10 minutes...",
-            moodChar: "Peaceful",
-            isAsymmetric: true
-        },
-        {
-            id: 3,
-            date: "October 19, 2023",
-            title: "Reflections on 'The Hidden Life of Trees'",
-            content: "\"Trees are social beings. They share food with their own species and sometimes even nourish their competitors.\" This book has completely changed how I walk through the park...",
-            tags: ["Library"],
-            isLibrary: true
+    const fetchEntries = async () => {
+        console.log("JournalScreen: fetchEntries called");
+        setIsLoading(true);
+        try {
+            const data = await journalService.getAll();
+            console.log("JournalScreen: entries fetched", data?.length);
+            setEntries(data || []);
+        } catch (error) {
+            console.error("JournalScreen: fetchEntries failed", error);
+            Alert.alert("Error", "Không thể tải danh sách nhật ký: " + (error.response?.data?.message || error.message));
+        } finally {
+            setIsLoading(false);
         }
-    ];
+    };
 
-    const trashedEntries = [
-        {
-            id: 'T1',
-            title: "Morning Reflection on Growth",
-            content: "\"I felt like a seedling pushing through the soil today. The weight of expectations was heavy, but the sunlight felt...\"",
-            deleted: "Deleted Oct 12",
-            remain: "24 days remaining"
-        },
-        {
-            id: 'T2',
-            title: "Unspoken Storm Clouds",
-            content: "\"Sometimes the silence is louder than the rain. I'm trying to find where the tension lives in my body and just let it...\"",
-            deleted: "Deleted Oct 04",
-            remain: "12 days remaining"
-        },
-        {
-            id: 'T3',
-            title: "Draft: The River Path",
-            content: "\"Walking by the creek helped me realize that life doesn't always have to be a straight line. The curves are where...\"",
-            deleted: "Deleted Sep 22",
-            remain: "2 days remaining",
-            isUrgent: true
+    const fetchTrashedEntries = async () => {
+        console.log("JournalScreen: fetchTrashedEntries called");
+        setIsLoading(true);
+        try {
+            const data = await journalService.getDeleted();
+            console.log("JournalScreen: trashed entries fetched", data?.length);
+            setTrashedEntries(data || []);
+        } catch (error) {
+            console.error("JournalScreen: fetchTrashedEntries failed", error);
+            Alert.alert("Error", "Không thể tải thùng rác: " + (error.response?.data?.message || error.message));
+        } finally {
+            setIsLoading(false);
         }
-    ];
+    };
+
+    React.useEffect(() => {
+        if (activeTab === 'My Entries') {
+            fetchEntries();
+        } else if (activeTab === 'Trash') {
+            fetchTrashedEntries();
+        }
+    }, [activeTab]);
+
+    const pickImage = async (isExpanding = false) => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.7,
+        });
+
+        if (!result.canceled) {
+            const uri = result.assets[0].uri;
+            if (isExpanding) {
+                setExpandingImagePreviews(prev => [...prev, uri]);
+            } else {
+                setImagePreviews(prev => [...prev, uri]);
+            }
+        }
+    };
+
+    const startRecording = async () => {
+        try {
+            await Audio.requestPermissionsAsync();
+            await Audio.setAudioModeAsync({
+                allowsRecordingIOS: true,
+                playsInSilentModeIOS: true,
+            });
+            const { recording } = await Audio.Recording.createAsync(
+                Audio.RecordingOptionsPresets.HIGH_QUALITY
+            );
+            setRecording(recording);
+            setIsRecording(true);
+        } catch (err) {
+            console.error('Failed to start recording', err);
+        }
+    };
+
+    const stopRecording = async (isExpanding = false) => {
+        setIsRecording(false);
+        await recording.stopAndUnloadAsync();
+        const uri = recording.getURI();
+        if (isExpanding) {
+            setExpandingAudioUri(uri);
+        } else {
+            setAudioUri(uri);
+        }
+        setRecording(null);
+    };
+
+    const handleSave = async (isExpanding = false) => {
+        const currentTitle = isExpanding ? expandingTitle : title;
+        const currentContent = isExpanding ? expandingContent : content;
+        const currentMoodIdx = isExpanding ? expandingMood : selectedMood;
+        const currentId = isExpanding ? expandingEntryId : editingEntryId;
+        const currentPreviews = isExpanding ? expandingImagePreviews : imagePreviews;
+        const currentAudioUri = isExpanding ? expandingAudioUri : audioUri;
+
+        console.log("JournalScreen: handleSave called", { title: currentTitle, isExpanding });
+        if (!currentTitle.trim() && !currentContent.trim()) {
+            Alert.alert("Thông báo", "Vui lòng nhập tiêu đề hoặc nội dung");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            // Upload images to Cloudinary
+            const uploadedUrls = await Promise.all(
+                currentPreviews.map(uri => uri.startsWith('http') ? uri : uploadToCloudinary(uri))
+            );
+
+            // Upload voice note if exists
+            let uploadedAudioUrl = null;
+            if (currentAudioUri) {
+                uploadedAudioUrl = await uploadToCloudinary(currentAudioUri);
+            }
+
+            const entryData = {
+                title: currentTitle,
+                text: currentContent,
+                mood: currentMoodIdx !== null ? MOODS[currentMoodIdx] : '😐',
+                energy_level: 5,
+                trigger_tags: [],
+                images: uploadedUrls.filter(u => u !== null),
+                voice_note_url: uploadedAudioUrl,
+            };
+
+            if (currentId) {
+                console.log("JournalScreen: Updating entry", currentId);
+                await journalService.update(currentId, entryData);
+            } else {
+                console.log("JournalScreen: Creating new entry");
+                await journalService.create(entryData);
+            }
+
+            console.log("JournalScreen: Save success");
+
+            if (isExpanding) {
+                setExpandingEntryId(null);
+            } else {
+                // Reset form
+                setTitle('');
+                setContent('');
+                setSelectedMood(null);
+                setEditingEntryId(null);
+                setImagePreviews([]);
+                setAudioUri(null);
+                setExpandingAudioUri(null);
+                setActiveTab('My Entries');
+            }
+            fetchEntries();
+        } catch (error) {
+            console.error("JournalScreen: handleSave failed", error);
+            Alert.alert("Error", "Không thể lưu nhật ký: " + (error.response?.data?.message || error.message));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        try {
+            await journalService.softDelete(id);
+            fetchEntries();
+        } catch (error) {
+            console.error("Failed to delete entry", error);
+        }
+    };
+
+    const handleRestore = async (id) => {
+        try {
+            await journalService.restore(id);
+            fetchTrashedEntries();
+        } catch (error) {
+            console.error("Failed to restore entry", error);
+        }
+    };
+
+    const handlePermanentDelete = async (id) => {
+        try {
+            await journalService.permanentDelete(id);
+            fetchTrashedEntries();
+        } catch (error) {
+            console.error("Failed to permanent delete entry", error);
+        }
+    };
+
+    const handleEdit = (entry) => {
+        setExpandingEntryId(entry._id || entry.id);
+        setExpandingTitle(entry.title);
+        setExpandingContent(entry.text || entry.content);
+        const moodIdx = MOODS.indexOf(entry.mood);
+        setExpandingMood(moodIdx !== -1 ? moodIdx : null);
+        setExpandingImagePreviews(entry.images || []);
+        setExpandingAudioUri(entry.voice_note_url || null);
+        // No need to setActiveTab('Write') because we are doing in-place editing
+    };
 
     const renderWrite = () => (
         <View style={styles.writeContainer}>
@@ -155,17 +318,58 @@ const JournalScreen = ({ navigation }) => {
                     value={title}
                     onChangeText={setTitle}
                 />
-                
+
                 <TextInput
                     style={styles.journalTextArea}
-                    placeholder="Share your thoughts..."
+                    placeholder="Start your journey here, share your soul..."
                     placeholderTextColor="rgba(64, 73, 62, 0.6)"
                     multiline
-                    numberOfLines={8}
                     textAlignVertical="top"
                     value={content}
                     onChangeText={setContent}
                 />
+
+                {audioUri && (
+                    <View style={styles.voiceNoteIndicator}>
+                        <MaterialIcons name="mic" size={20} color={theme.colors.primary} />
+                        <Text style={styles.voiceNoteText}>Voice note recorded</Text>
+                        <TouchableOpacity onPress={() => setAudioUri(null)}>
+                            <MaterialIcons name="close" size={18} color={theme.colors.outline} />
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                {imagePreviews.length > 0 && (
+                    <View style={styles.imagePreviewGrid}>
+                        {imagePreviews.map((uri, idx) => (
+                            <View key={idx} style={styles.imagePreviewItem}>
+                                <Image source={{ uri }} style={styles.previewImage} />
+                                <TouchableOpacity
+                                    style={styles.removeImageBtn}
+                                    onPress={() => setImagePreviews(prev => prev.filter((_, i) => i !== idx))}
+                                >
+                                    <MaterialIcons name="close" size={16} color="#fff" />
+                                </TouchableOpacity>
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                <View style={styles.editorToolbar}>
+                    <View style={styles.toolbarLeft}>
+                        <TouchableOpacity style={styles.toolbarBtn} onPress={() => pickImage(false)}>
+                            <MaterialIcons name="image" size={24} color={theme.colors.primary} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.toolbarBtn}
+                            onPressIn={startRecording}
+                            onPressOut={() => stopRecording(false)}
+                        >
+                            <MaterialIcons name="mic" size={24} color={isRecording ? "#ba1a1a" : theme.colors.primary} />
+                        </TouchableOpacity>
+                    </View>
+
+                </View>
             </View>
 
             <View style={styles.feelingSection}>
@@ -200,7 +404,15 @@ const JournalScreen = ({ navigation }) => {
                 </View>
             </View>
 
-            <View style={styles.brandCard}>
+            <TouchableOpacity
+                style={[styles.inlineSaveBtn, (!title.trim() && !content.trim()) && { opacity: 0.5 }]}
+                onPress={() => handleSave(false)}
+                disabled={!title.trim() && !content.trim() || isLoading}
+            >
+                <Text style={styles.inlineSaveBtnText}>{isLoading ? '...' : editingEntryId ? 'Update Entry' : 'Save Entry'}</Text>
+            </TouchableOpacity>
+
+            {/* <View style={styles.brandCard}>
                 <View style={styles.brandContent}>
                     <Text style={styles.brandTitle}>Your Digital Sanctuary</Text>
                     <Text style={styles.brandDesc}>Every word you plant here grows into a more mindful version of yourself. Take your time, there's no rush in the garden.</Text>
@@ -210,7 +422,7 @@ const JournalScreen = ({ navigation }) => {
                 </View>
                 <View style={styles.brandDecor1} />
                 <View style={styles.brandDecor2} />
-            </View>
+            </View> */}
         </View>
     );
 
@@ -255,64 +467,131 @@ const JournalScreen = ({ navigation }) => {
                 )
             ) : (
                 entries.map((entry) => (
-                    <View key={entry.id} style={[styles.entryCard, entry.isAsymmetric && styles.asymmetricCard]}>
-                    <View style={styles.entryHeader}>
-                        <View>
-                            <Text style={styles.entryDate}>{entry.date.toUpperCase()}</Text>
-                            <Text style={styles.entryTitle}>{entry.title}</Text>
-                        </View>
-                        {entry.mood && (
-                            <View style={styles.moodCircle}>
-                                <Text style={{ fontSize: 20 }}>{entry.mood}</Text>
+                    <View key={entry._id || entry.id}>
+                        {expandingEntryId === (entry._id || entry.id) ? (
+                            <View style={[styles.entryCard, styles.expandedEditorCard]}>
+                                <TextInput
+                                    style={styles.inlineTitleInput}
+                                    value={expandingTitle}
+                                    onChangeText={setExpandingTitle}
+                                    placeholder="Title"
+                                />
+                                <TextInput
+                                    style={styles.inlineTextArea}
+                                    value={expandingContent}
+                                    onChangeText={setExpandingContent}
+                                    multiline
+                                    placeholder="Write something..."
+                                />
+
+                                {expandingAudioUri && (
+                                    <View style={styles.voiceNoteIndicator}>
+                                        <MaterialIcons name="mic" size={20} color={theme.colors.primary} />
+                                        <Text style={styles.voiceNoteText}>Voice note recorded</Text>
+                                        <TouchableOpacity onPress={() => setExpandingAudioUri(null)}>
+                                            <MaterialIcons name="close" size={18} color={theme.colors.outline} />
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
+                                {expandingImagePreviews.length > 0 && (
+                                    <View style={styles.imagePreviewGrid}>
+                                        {expandingImagePreviews.map((uri, idx) => (
+                                            <View key={idx} style={styles.imagePreviewItem}>
+                                                <Image source={{ uri }} style={styles.previewImage} />
+                                                <TouchableOpacity
+                                                    style={styles.removeImageBtn}
+                                                    onPress={() => setExpandingImagePreviews(prev => prev.filter((_, i) => i !== idx))}
+                                                >
+                                                    <MaterialIcons name="close" size={16} color="#fff" />
+                                                </TouchableOpacity>
+                                            </View>
+                                        ))}
+                                    </View>
+                                )}
+
+                                <View style={styles.editorToolbar}>
+                                    <View style={styles.toolbarLeft}>
+                                        <TouchableOpacity style={styles.toolbarBtn} onPress={() => pickImage(true)}>
+                                            <MaterialIcons name="image" size={24} color={theme.colors.primary} />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.toolbarBtn}
+                                            onPressIn={startRecording}
+                                            onPressOut={() => stopRecording(true)}
+                                        >
+                                            <MaterialIcons name="mic" size={24} color={isRecording ? "#ba1a1a" : theme.colors.primary} />
+                                        </TouchableOpacity>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                                        <TouchableOpacity
+                                            style={[styles.inlineCancelBtn]}
+                                            onPress={() => setExpandingEntryId(null)}
+                                        >
+                                            <Text style={styles.inlineCancelBtnText}>Cancel</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.inlineSaveBtn]}
+                                            onPress={() => handleSave(true)}
+                                            disabled={isLoading}
+                                        >
+                                            <Text style={styles.inlineSaveBtnText}>{isLoading ? '...' : 'Update'}</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             </View>
-                        )}
-                        {entry.moodChar && (
-                            <View style={styles.peacefulBadge}>
-                                <Text style={styles.peacefulBadgeText}>{entry.moodChar}</Text>
-                            </View>
-                        )}
-                        {entry.isLibrary && (
-                            <MaterialIcons name="more-horiz" size={24} color={theme.colors.onSurfaceVariant} />
+                        ) : (
+                            <TouchableOpacity
+                                style={[styles.entryCard, entry.isAsymmetric && styles.asymmetricCard]}
+                                onPress={() => handleEdit(entry)}
+                            >
+                                <View style={styles.entryHeader}>
+                                    <View>
+                                        <Text style={styles.entryDate}>
+                                            {entry.createdAt ? new Date(entry.createdAt).toLocaleDateString().toUpperCase() : 'RECENT'}
+                                        </Text>
+                                        <Text style={styles.entryTitle}>{entry.title}</Text>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                                        {entry.voice_note_url && (
+                                            <MaterialIcons name="mic" size={22} color={theme.colors.primary} style={{ marginRight: 4 }} />
+                                        )}
+                                        <TouchableOpacity onPress={() => handleEdit(entry)}>
+                                            <MaterialIcons name="edit" size={24} color={theme.colors.primary} />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => handleDelete(entry._id || entry.id)}>
+                                            <MaterialIcons name="delete-outline" size={24} color="#ba1a1a" />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                                <View style={styles.tagRow}>
+                                    {entry.mood && (
+                                        <View style={styles.moodCircle}>
+                                            <Text style={{ fontSize: 20 }}>{entry.mood}</Text>
+                                        </View>
+                                    )}
+                                    {entry.trigger_tags?.map(tag => (
+                                        <View key={tag} style={[styles.tag, styles.mindfulnessTag]}>
+                                            <Text style={styles.tagText}>{tag}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+
+                                <Text style={styles.entryExcerpt} numberOfLines={3}>
+                                    {entry.text || entry.content}
+                                </Text>
+
+                                {entry.images && entry.images.length > 0 && (
+                                    <View style={styles.entryImageWrapper}>
+                                        <Image source={{ uri: entry.images[0] }} style={styles.entryImage} />
+                                    </View>
+                                )}
+                            </TouchableOpacity>
                         )}
                     </View>
+                )))}
 
-                    <View style={styles.tagRow}>
-                        {entry.tags?.map(tag => (
-                            <View key={tag} style={[styles.tag, tag === 'Gratitude' ? styles.gratitudeTag : tag === 'Nature' ? styles.natureTag : tag === 'Mindfulness' ? styles.mindfulnessTag : styles.libraryTag]}>
-                                <Text style={[styles.tagText, tag === 'Library' && { color: theme.colors.onTertiaryFixed }]}>{tag}</Text>
-                            </View>
-                        ))}
-                    </View>
-
-                    <Text style={[styles.entryExcerpt, entry.isLibrary && styles.libraryExcerpt]} numberOfLines={entry.isAsymmetric ? 3 : 2}>
-                        {entry.content}
-                    </Text>
-
-                    {entry.image && (
-                        <View style={styles.entryImageWrapper}>
-                            <Image source={{ uri: entry.image }} style={styles.entryImage} />
-                            <BlurView intensity={20} style={StyleSheet.absoluteFill} />
-                        </View>
-                    )}
-
-                    {entry.isAsymmetric && (
-                        <View style={styles.asymmetricVisual}>
-                            <MaterialIcons name="air" size={48} color={theme.colors.secondary} />
-                        </View>
-                    )}
-
-                    {entry.isLibrary && (
-                        <View style={styles.libraryFooter}>
-                            <View style={styles.libraryLine} />
-                            <MaterialIcons name="auto-stories" size={18} color={theme.colors.onSurfaceVariant} />
-                        </View>
-                    )}
-                </View>
-            )))}
-
-            <TouchableOpacity style={styles.fab}>
-                <MaterialIcons name="add" size={32} color="#fff" />
-            </TouchableOpacity>
         </View>
     );
 
@@ -329,21 +608,23 @@ const JournalScreen = ({ navigation }) => {
             </View>
 
             {trashedEntries.map((item) => (
-                <View key={item.id} style={[styles.trashCard, item.isUrgent && styles.urgentTrashCard]}>
+                <View key={item._id || item.id} style={[styles.trashCard, item.isUrgent && styles.urgentTrashCard]}>
                     <View style={styles.trashCardTop}>
                         <View style={[styles.trashBadge, item.isUrgent && styles.urgentBadge]}>
-                            <Text style={styles.trashBadgeText}>{item.remain}</Text>
+                            <Text style={styles.trashBadgeText}>TRASHED</Text>
                         </View>
-                        <Text style={styles.trashDateText}>{item.deleted}</Text>
+                        <Text style={styles.trashDateText}>
+                            {item.deletedAt ? new Date(item.deletedAt).toLocaleDateString() : 'Unknown date'}
+                        </Text>
                     </View>
                     <Text style={styles.trashTitle}>{item.title}</Text>
-                    <Text style={styles.trashContent} numberOfLines={2}>{item.content}</Text>
+                    <Text style={styles.trashContent} numberOfLines={2}>{item.text || item.content}</Text>
                     <View style={styles.trashActions}>
-                        <TouchableOpacity style={styles.restoreBtn}>
+                        <TouchableOpacity style={styles.restoreBtn} onPress={() => handleRestore(item._id || item.id)}>
                             <MaterialIcons name="settings-backup-restore" size={18} color={theme.colors.primary} />
                             <Text style={styles.restoreBtnText}>Restore</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => handlePermanentDelete(item._id || item.id)}>
                             <MaterialIcons name="delete-forever" size={22} color="rgba(186, 26, 26, 0.6)" />
                         </TouchableOpacity>
                     </View>
@@ -410,22 +691,7 @@ const JournalScreen = ({ navigation }) => {
                 {activeTab === 'Trash' && renderTrash()}
             </ScrollView>
 
-            {/* CONTEXTUAL ACTIONS FOR WRITE TAB */}
-            {activeTab === 'Write' && (
-                <View style={styles.contextualFooter}>
-                    <View style={styles.footerTools}>
-                        <TouchableOpacity style={styles.toolBtn}>
-                            <MaterialIcons name="image" size={24} color={theme.colors.primary} />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.toolBtn}>
-                            <MaterialIcons name="mic" size={24} color={theme.colors.primary} />
-                        </TouchableOpacity>
-                    </View>
-                    <TouchableOpacity style={styles.saveBtn}>
-                        <Text style={styles.saveBtnText}>Save Entry</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
+            {/* No longer needed as we moved actions inside editorCard */}
 
             <BottomNavBar navigation={navigation} activeTab="Journal" />
         </View>
@@ -562,6 +828,108 @@ const styles = StyleSheet.create({
         lineHeight: 28,
         color: theme.colors.onSurfaceVariant,
         padding: 0,
+        minHeight: 150,
+    },
+    editorToolbar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 20,
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(0,0,0,0.05)',
+    },
+    toolbarLeft: {
+        flexDirection: 'row',
+        gap: 16,
+    },
+    toolbarBtn: {
+        padding: 8,
+    },
+    inlineSaveBtn: {
+        backgroundColor: theme.colors.primary,
+        paddingHorizontal: 24,
+        paddingVertical: 14,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...theme.shadows.medium,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
+    },
+    inlineSaveBtnText: {
+        color: '#fff',
+        fontWeight: '800',
+        fontSize: 16,
+        letterSpacing: 0.5,
+        textTransform: 'uppercase',
+    },
+    inlineCancelBtn: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: theme.borderRadius.md,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
+    },
+    inlineCancelBtnText: {
+        color: theme.colors.onSurfaceVariant,
+        fontWeight: '600',
+        fontSize: 14,
+    },
+    voiceNoteIndicator: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(39, 107, 46, 0.05)',
+        padding: 12,
+        borderRadius: 12,
+        marginTop: 16,
+        gap: 8,
+    },
+    voiceNoteText: {
+        flex: 1,
+        fontSize: 14,
+        color: theme.colors.onSurfaceVariant,
+        fontWeight: '500',
+    },
+    imagePreviewGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginTop: 16,
+    },
+    imagePreviewItem: {
+        width: 80,
+        height: 80,
+        borderRadius: 8,
+        overflow: 'hidden',
+    },
+    previewImage: {
+        width: '100%',
+        height: '100%',
+    },
+    removeImageBtn: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        borderRadius: 10,
+        padding: 2,
+    },
+    expandedEditorCard: {
+        borderWidth: 2,
+        borderColor: theme.colors.primaryContainer,
+    },
+    inlineTitleInput: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+        marginBottom: 12,
+    },
+    inlineTextArea: {
+        fontSize: 16,
+        lineHeight: 24,
+        color: theme.colors.onSurfaceVariant,
+        minHeight: 100,
     },
     suggestionsContainer: {
         marginBottom: 16,
@@ -592,7 +960,7 @@ const styles = StyleSheet.create({
     feelingSection: {
         backgroundColor: theme.colors.surfaceContainerLow,
         borderRadius: theme.borderRadius.lg,
-        padding: 24,
+        padding: 16,
     },
     sectionTitleRow: {
         flexDirection: 'row',
@@ -600,7 +968,7 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     sectionTitle: {
-        fontSize: 20,
+        fontSize: 16,
         fontWeight: '700',
         color: theme.colors.onPrimaryContainer,
         fontFamily: theme.fonts.headline,
@@ -609,9 +977,9 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     moodItem: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
@@ -623,12 +991,12 @@ const styles = StyleSheet.create({
         borderColor: theme.colors.primary,
     },
     moodEmoji: {
-        fontSize: 32,
+        fontSize: 24,
     },
     emotionsSection: {
         backgroundColor: theme.colors.surfaceContainerLow,
         borderRadius: theme.borderRadius.lg,
-        padding: 24,
+        padding: 16,
     },
     emotionsGrid: {
         flexDirection: 'row',
@@ -637,8 +1005,8 @@ const styles = StyleSheet.create({
     },
     emotionTag: {
         backgroundColor: '#fff',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
         borderRadius: 99,
         ...theme.shadows.soft,
     },
@@ -646,7 +1014,7 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.primaryContainer,
     },
     emotionTagText: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: '600',
         color: theme.colors.outline,
     },
