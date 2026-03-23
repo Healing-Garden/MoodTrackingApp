@@ -21,6 +21,8 @@ import JournalScreen from './src/screens/Main/JournalScreen';
 import InsightsScreen from './src/screens/Main/InsightsScreen';
 import TrashScreen from './src/screens/Main/TrashScreen';
 import FeedbackScreen from './src/screens/Main/FeedbackScreen';
+import DashboardAdminScreens from './src/screens/Admin/DashboardAdminScreens';
+import ManagementFeedback from './src/screens/Admin/managementFeedback';
 
 // Settings Screens
 import EditProfileScreen from './src/screens/Settings/EditProfileScreen';
@@ -59,6 +61,8 @@ export default function App() {
         <Stack.Screen name="Insights" component={InsightsScreen} />
         <Stack.Screen name="Trash" component={TrashScreen} />
         <Stack.Screen name="Feedback" component={FeedbackScreen} />
+        <Stack.Screen name="AdminDashboard" component={DashboardAdminScreens} />
+        <Stack.Screen name="ManagementFeedback" component={ManagementFeedback} />
 
         {/* Settings Flow */}
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />

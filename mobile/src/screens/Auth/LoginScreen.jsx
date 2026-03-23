@@ -37,11 +37,15 @@ const LoginScreen = ({ navigation }) => {
                 password,
             });
 
-            const { accessToken } = response.data;
+            const { accessToken, user } = response.data;
             setAuthToken(accessToken);
 
             // Successfully logged in
-            navigation.replace("Dashboard");
+            if (user && user.role === 'admin') {
+                navigation.replace("AdminDashboard");
+            } else {
+                navigation.replace("Dashboard");
+            }
         } catch (error) {
             console.error("Login failed:", error);
             const errorMsg = error.response?.data?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
