@@ -1,5 +1,11 @@
 {
-  "plugins": [
-    "expo-video"
-  ]
+  "expo": {
+    "name": "Healing Garden",
+    "slug": "Healing-Garden-MoodTrackingApp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "plugins": [
+      "expo-video"
+    ]
+  }
 }

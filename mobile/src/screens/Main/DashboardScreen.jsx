@@ -13,10 +13,11 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Svg, Path, Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
-import userService from '../../services/userService';
 import logo from '../../../assets/images/logo.png';
+import userService from '../../services/userService';
 import api from '../../services/api';
 import { aiApi } from '../../services/aiApi';
 
@@ -35,14 +36,38 @@ const DashboardScreen = ({ navigation }) => {
         return `${yyyy}-${mm}-${dd}`;
     };
 
+    const [dashboardData, setDashboardData] = useState(null);
+    const [moodFlow, setMoodFlow] = useState([]);
+    const [dailyQuote, setDailyQuote] = useState(null);
+    const [loadingData, setLoadingData] = useState(true);
+
     useEffect(() => {
-        const loadProfile = async () => {
+        const loadDashboardData = async () => {
             try {
-                const res = await api.get('/profile');
-                setUser(res.data?.user || null);
-            } catch (err) { }
+                const [profile, stats, flow, quotes] = await Promise.all([
+                    userService.getProfile(),
+                    userService.getDashboardData(),
+                    userService.getMoodFlow('week'),
+                    userService.getHealingContent('quote')
+                ]);
+
+                setUser(profile || null);
+                setDashboardData(stats);
+                setMoodFlow(flow.items || []);
+
+                if (quotes && quotes.length > 0) {
+                    const today = new Date();
+                    const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+                    const index = seed % quotes.length;
+                    setDailyQuote(quotes[index]);
+                }
+            } catch (err) {
+                console.error('Failed to load dashboard data:', err);
+            } finally {
+                setLoadingData(false);
+            }
         };
-        loadProfile();
+        loadDashboardData();
     }, []);
 
     useEffect(() => {
@@ -51,27 +76,25 @@ const DashboardScreen = ({ navigation }) => {
             setLoadingSummary(true);
             try {
                 const date = getLocalDateString();
-                const result = await api.get(`/ai/summary/daily/${user._id}?date=${encodeURIComponent(date)}`);
+                // Try GET first
+                try {
+                    const res = await api.get(`/ai/summary/daily/${user._id}?date=${encodeURIComponent(date)}`);
+                    if (res?.data?.success && res.data.data?.summary) {
+                        setDailySummary(res.data.data.summary);
+                        setLoadingSummary(false);
+                        return;
+                    }
+                } catch (e) {
+                    // Not found or error, proceed to POST
+                }
+
+                // If GET failed or no summary, call POST to generate/get
+                const result = await aiApi.getDailySummary(user._id, date, false);
                 if (result?.data?.success && result.data.data?.summary) {
                     setDailySummary(result.data.data.summary);
-                } else {
-                    const generateRes = await aiApi.getDailySummary(user._id, date, false);
-                    if (generateRes?.data?.success && generateRes.data?.data?.summary) {
-                        setDailySummary(generateRes.data.data.summary);
-                    }
                 }
             } catch (error) {
-                if (error.response?.status === 404) {
-                    try {
-                        const date = getLocalDateString();
-                        const generateRes = await aiApi.getDailySummary(user._id, date, false);
-                        if (generateRes?.data?.success && generateRes.data?.data?.summary) {
-                            setDailySummary(generateRes.data.data.summary);
-                        }
-                    } catch (genErr) {
-                        console.log('Generate summary failed', genErr);
-                    }
-                }
+                console.log('Fetch summary failed', error);
             } finally {
                 setLoadingSummary(false);
             }
@@ -87,28 +110,102 @@ const DashboardScreen = ({ navigation }) => {
     };
 
     const greeting = getGreeting();
-    
-    // Mock or fetch these data points to prevent reference errors
-    const [dashboardData, setDashboardData] = useState({
-        journeyDays: 1,
-        weeklyStats: { avgMood: 4 }
-    });
-    const [dailyQuote, setDailyQuote] = useState({
-        content: "The soul cannot thrive in a garden of stones. Take a moment today to breathe in the green.",
-        author: "Healing Garden"
-    });
 
     const renderMoodTrend = () => {
         const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-        const values = [0.4, 0.6, 0.8, 0.5, 0.7, 0.9, 0.65];
+        const today = new Date();
+        
+        // Map last 7 days from moodFlow
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const dayEntry = moodFlow.find(item => item.date === dateStr);
+            last7Days.push({
+                day: days[d.getDay()],
+                mood: dayEntry ? dayEntry.mood : 0,
+                isToday: i === 0,
+                fullDate: dateStr
+            });
+        }
+
+        const chartHeight = 100;
+        const chartWidth = width - 80;
+        const pointGap = chartWidth / 6;
+
+        // Generate Path D
+        let pathD = '';
+        last7Days.forEach((point, i) => {
+            const x = i * pointGap;
+            const y = chartHeight - (point.mood / 5) * chartHeight;
+            if (i === 0) {
+                pathD += `M ${x} ${y}`;
+            } else {
+                // Simplified cubic bezier for a smoother line
+                const prevX = (i - 1) * pointGap;
+                const prevY = chartHeight - (last7Days[i - 1].mood / 5) * chartHeight;
+                const midX = (prevX + x) / 2;
+                pathD += ` C ${midX} ${prevY}, ${midX} ${y}, ${x} ${y}`;
+            }
+        });
+
+        // Area Path
+        const areaD = `${pathD} L ${6 * pointGap} ${chartHeight} L 0 ${chartHeight} Z`;
+
         return (
-            <View style={styles.chartContainer}>
-                {days.map((day, i) => (
-                    <View key={i} style={styles.chartCol}>
-                        <View style={[styles.bar, { height: values[i] * 100 }]} />
-                        <Text style={[styles.dayLabel, i === 6 && styles.activeDay]}>{day}</Text>
-                    </View>
-                ))}
+            <View style={styles.chartWrapper}>
+                <View style={styles.chartBackground}>
+                    {[0, 1, 2, 3, 4, 5].map(tick => (
+                        <View key={tick} style={[styles.tickLine, { bottom: (tick / 5) * chartHeight }]} />
+                    ))}
+                </View>
+                
+                <Svg height={chartHeight + 20} width={chartWidth + 20} style={styles.svgContainer}>
+                    <Defs>
+                        <SvgGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                            <Stop offset="0" stopColor={theme.colors.primary} stopOpacity="0.2" />
+                            <Stop offset="1" stopColor={theme.colors.primary} stopOpacity="0" />
+                        </SvgGradient>
+                    </Defs>
+                    
+                    {/* Area under line */}
+                    <Path d={areaD} fill="url(#grad)" />
+                    
+                    {/* The Line */}
+                    <Path
+                        d={pathD}
+                        fill="none"
+                        stroke={theme.colors.primary}
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                    />
+                    
+                    {/* Points */}
+                    {last7Days.map((point, i) => {
+                        const x = i * pointGap;
+                        const y = chartHeight - (point.mood / 5) * chartHeight;
+                        return (
+                            <Circle
+                                key={i}
+                                cx={x}
+                                cy={y}
+                                r={point.isToday ? 6 : 4}
+                                fill={point.isToday ? theme.colors.primary : "#fff"}
+                                stroke={theme.colors.primary}
+                                strokeWidth="2"
+                            />
+                        );
+                    })}
+                </Svg>
+
+                <View style={[styles.chartLabels, { width: chartWidth }]}>
+                    {last7Days.map((point, i) => (
+                        <Text key={i} style={[styles.dayLabel, point.isToday && styles.activeDay]}>
+                            {point.day}
+                        </Text>
+                    ))}
+                </View>
             </View>
         );
     };
@@ -146,13 +243,13 @@ const DashboardScreen = ({ navigation }) => {
                     style={styles.heroCard}
                 >
                     <View style={styles.heroContent}>
-                        <Text style={styles.heroGreeting}>{greeting}, {user?.fullName || 'Elena'}</Text>
+                        <Text style={styles.heroGreeting}>{greeting}, {user?.fullName}</Text>
                         <Text style={styles.heroTitle}>Your garden is blooming beautifully</Text>
                         
                         <View style={styles.plantBadge}>
                             <MaterialIcons name="spa" size={14} color="#fff" />
                             <Text style={styles.plantBadgeText}>
-                                Day {dashboardData?.journeyDays || 1} of your journey
+                                Day {dashboardData?.journeyDays} of your journey
                             </Text>
                         </View>
                     </View>
@@ -168,8 +265,21 @@ const DashboardScreen = ({ navigation }) => {
                     <Text style={styles.sectionLabel}>DAILY SANCTUARY</Text>
                 </View>
 
+                {/* QUOTE SECTION */}
+                <View style={styles.quoteCard}>
+                    <MaterialIcons name="format-quote" size={40} color={theme.colors.tertiary} style={styles.quoteIcon} />
+                    <View style={styles.quoteContent}>
+                        <Text style={styles.quoteText}>
+                            {dailyQuote?.content || dailyQuote?.description || dailyQuote?.title || "The soul cannot thrive in a garden of stones. Take a moment today to breathe in the green."}
+                        </Text>
+                        {dailyQuote?.author && <Text style={[styles.quoteLabel, { marginTop: 8, fontStyle: 'italic' }]}>— {dailyQuote.author}</Text>}
+                        <View style={styles.quoteDivider} />
+                        <Text style={styles.quoteLabel}>INSIGHT FOR YOUR GROWTH</Text>
+                    </View>
+                </View>
+
                 {/* Daily Check-in (Full Width) */}
-                <TouchableOpacity 
+                {/* <TouchableOpacity 
                     style={styles.checkInCard}
                     onPress={() => navigation.navigate('OnboardingStep4', { isDailyCheckIn: true })}
                 >
@@ -183,15 +293,18 @@ const DashboardScreen = ({ navigation }) => {
                         </View>
                     </View>
                     <MaterialIcons name="chevron-right" size={24} color={theme.colors.onSurfaceVariant} />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 {/* Grid Row */}
                 <View style={styles.gridRow}>
-                    <TouchableOpacity style={[styles.gridCard, { backgroundColor: 'rgba(154, 225, 255, 0.3)' }]}>
+                    <TouchableOpacity 
+                        style={[styles.gridCard, { backgroundColor: 'rgba(154, 225, 255, 0.3)' }]}
+                        onPress={() => navigation.navigate('Chatbot')}
+                    >
                         <View style={[styles.gridIconBox, { backgroundColor: theme.colors.secondaryContainer }]}>
-                            <MaterialIcons name="self-improvement" size={24} color={theme.colors.onSecondaryContainer} />
+                            <MaterialIcons name="psychology" size={24} color={theme.colors.onSecondaryContainer} />
                         </View>
-                        <Text style={styles.gridLabel}>Start Meditation</Text>
+                        <Text style={styles.gridLabel}>AI Soul Partner</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
@@ -215,29 +328,15 @@ const DashboardScreen = ({ navigation }) => {
                         <View style={styles.trendBadge}>
                             <MaterialIcons name="trending-up" size={14} color={theme.colors.primary} />
                             <Text style={styles.trendBadgeText}>
-                                {dashboardData?.weeklyStats?.avgMood >= 4 ? 'Blooming' : 'Growing'}
+                                {dashboardData?.weeklyStats?.avgMood >= 4 ? 'Blooming' : 'Growing'} ({dashboardData?.weeklyStats?.avgMood || 0})
                             </Text>
                         </View>
                     </View>
-
                     {renderMoodTrend()}
                 </View>
 
-                {/* QUOTE SECTION */}
-                <View style={styles.quoteCard}>
-                    <MaterialIcons name="format-quote" size={40} color={theme.colors.tertiary} style={styles.quoteIcon} />
-                    <View style={styles.quoteContent}>
-                        <Text style={styles.quoteText}>
-                            {dailyQuote?.content || dailyQuote?.description || dailyQuote?.title || "The soul cannot thrive in a garden of stones. Take a moment today to breathe in the green."}
-                        </Text>
-                        {dailyQuote?.author && <Text style={[styles.quoteLabel, { marginTop: 8, fontStyle: 'italic' }]}>— {dailyQuote.author}</Text>}
-                        <View style={styles.quoteDivider} />
-                        <Text style={styles.quoteLabel}>INSIGHT FOR YOUR GROWTH</Text>
-                    </View>
-                </View>
-
                 {/* DAILY AI SUMMARY */}
-                <View style={[styles.sectionHeader, { marginTop: 32 }]}>
+                <View style={[styles.sectionHeader, { marginTop: 8 }]}>
                     <Text style={styles.sectionLabel}>DAILY AI SUMMARY</Text>
                 </View>
                 <View style={[styles.quoteCard, { backgroundColor: 'rgba(96, 165, 96, 0.05)', borderColor: 'rgba(96, 165, 96, 0.2)' }]}>
@@ -374,7 +473,8 @@ const styles = StyleSheet.create({
         opacity: 0.2,
     },
     sectionHeader: {
-        marginBottom: 16,
+        marginTop: 16,
+        marginBottom: 8,
         paddingLeft: 4,
     },
     sectionLabel: {
@@ -479,6 +579,33 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         color: theme.colors.primary,
     },
+    chartWrapper: {
+        height: 160,
+        marginTop: 20,
+        position: 'relative',
+    },
+    chartBackground: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 40,
+        justifyContent: 'space-between',
+    },
+    tickLine: {
+        height: 1,
+        backgroundColor: 'rgba(64, 73, 62, 0.05)',
+        width: '100%',
+        position: 'absolute',
+    },
+    svgContainer: {
+        marginTop: 10,
+    },
+    chartLabels: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+    },
     chartContainer: {
         height: 120,
         flexDirection: 'row',
@@ -519,6 +646,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(39, 107, 46, 0.05)',
         position: 'relative',
+        marginBottom: 24,
     },
     quoteIcon: {
         position: 'absolute',
