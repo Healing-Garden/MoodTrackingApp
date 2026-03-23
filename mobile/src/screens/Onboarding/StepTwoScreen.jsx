@@ -18,29 +18,29 @@ const StepTwoScreen = ({ navigation, route }) => {
 
     // Q4 Options
     const stressLevelOptions = [
-        'Rất thấp',
-        'Thấp',
-        'Trung bình',
-        'Cao',
-        'Rất cao',
+        'Very low',
+        'Low',
+        'Moderate',
+        'High',
+        'Very high',
     ];
 
     // Q5 Options
     const recentStateOptions = [
-        { id: 'Peaceful', emoji: '😌', label: 'Bình yên' },
-        { id: 'Anxious', emoji: '😰', label: 'Lo âu' },
-        { id: 'Tired', emoji: '😓', label: 'Mệt mỏi' },
-        { id: 'Sad', emoji: '😔', label: 'Buồn bã' },
-        { id: 'Stressed', emoji: '😠', label: 'Căng thẳng' },
+        { id: 'Peaceful', emoji: '😌', label: 'Peaceful' },
+        { id: 'Anxious', emoji: '😰', label: 'Anxious' },
+        { id: 'Tired', emoji: '😓', label: 'Tired' },
+        { id: 'Sad', emoji: '😔', label: 'Sad' },
+        { id: 'Stressed', emoji: '😠', label: 'Stressed' },
     ];
 
     // Q6 Options
     const emotionalClarityOptions = [
-        'Rất thấu hiểu',
-        'Khá thấu hiểu',
-        'Bình thường',
-        'Khó thấu hiểu',
-        'Rất khó thấu hiểu',
+        'Very clearly',
+        'Quite clearly',
+        'Normal',
+        'Difficult',
+        'Very difficult',
     ];
 
     const [selectedStress, setSelectedStress] = useState('');
@@ -76,7 +76,7 @@ const StepTwoScreen = ({ navigation, route }) => {
                     <MaterialIcons name="arrow-back" size={24} color={theme.colors.onSurface} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-                    <Text style={styles.skipText}>Bỏ qua</Text>
+                    <Text style={styles.skipText}>Skip</Text>
                 </TouchableOpacity>
             </View>
 
@@ -86,7 +86,7 @@ const StepTwoScreen = ({ navigation, route }) => {
             >
                 {/* Progress Stepper */}
                 <View style={styles.progressContainer}>
-                    <Text style={styles.progressLabel}>CỘT MỐC 02: NHẬT KÝ (JOURNAL)</Text>
+                    <Text style={styles.progressLabel}>MILESTONE 02: JOURNAL</Text>
                     <View style={styles.progressBar}>
                         <View style={styles.progressFill} />
                     </View>
@@ -95,11 +95,11 @@ const StepTwoScreen = ({ navigation, route }) => {
                 {/* Section 1: Stress Level */}
                 <View style={styles.section}>
                     <Text style={styles.displayTitle}>
-                        Chia sẻ trạng thái {"\n"}
-                        hiện tại của <Text style={styles.italicTitle}>bạn</Text>
+                        Share your {"\n"}
+                        current <Text style={styles.italicTitle}>state</Text>
                     </Text>
 
-                    <Text style={styles.sectionTitle}>Mức độ căng thẳng tuần qua?</Text>
+                    <Text style={styles.sectionTitle}>How stressed have you been lately?</Text>
                     <View style={styles.stressContainer}>
                         {stressLevelOptions.map((opt) => {
                             const isSelected = selectedStress === opt;
@@ -120,7 +120,7 @@ const StepTwoScreen = ({ navigation, route }) => {
 
                 {/* Section 2: Typical Mood */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Trạng thái tâm trí thường gặp gần đây?</Text>
+                    <Text style={styles.sectionTitle}>Common emotional state recently?</Text>
                     <View style={styles.moodGrid}>
                         {recentStateOptions.map((item) => {
                             const isSelected = selectedRecentState === item.id;
@@ -143,7 +143,7 @@ const StepTwoScreen = ({ navigation, route }) => {
 
                 {/* Section 3: Emotional Clarity */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Bạn thấu hiểu cảm xúc của mình đến mức nào?</Text>
+                    <Text style={styles.sectionTitle}>How well do you understand your emotions?</Text>
                     <View style={styles.listContainer}>
                         {emotionalClarityOptions.map((item) => {
                             const isSelected = selectedClarity === item;
@@ -176,7 +176,7 @@ const StepTwoScreen = ({ navigation, route }) => {
                     disabled={!isFormValid}
                     activeOpacity={0.9}
                 >
-                    <Text style={styles.primaryButtonText}>Tiếp tục</Text>
+                    <Text style={styles.primaryButtonText}>Continue</Text>
                     <MaterialIcons name="arrow-forward" size={20} color={theme.colors.white} />
                 </TouchableOpacity>
             </View>

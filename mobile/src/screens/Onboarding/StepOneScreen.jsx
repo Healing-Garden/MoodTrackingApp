@@ -16,30 +16,30 @@ const { width, height } = Dimensions.get('window');
 const StepOneScreen = ({ navigation }) => {
     // Q1 Options
     const improveGoalsOptions = [
-        { id: 'Reduce stress', icon: 'eco', label: 'Giảm căng thẳng' },
-        { id: 'Improve mood', icon: 'mood', label: 'Cải thiện tâm trạng' },
-        { id: 'Sleep better', icon: 'bedtime', label: 'Ngủ ngon hơn' },
-        { id: 'Better self-understanding', icon: 'spa', label: 'Thấu hiểu bản thân' },
-        { id: 'Increase focus', icon: 'center-focus-strong', label: 'Tăng sự tập trung' },
-        { id: 'Build positive habits', icon: 'auto-stories', label: 'Xây dựng thói quen' },
+        { id: 'Reduce stress', icon: 'eco', label: 'Reduce stress' },
+        { id: 'Improve mood', icon: 'mood', label: 'Improve mood' },
+        { id: 'Sleep better', icon: 'bedtime', label: 'Sleep better' },
+        { id: 'Better self-understanding', icon: 'spa', label: 'Self-understanding' },
+        { id: 'Increase focus', icon: 'center-focus-strong', label: 'Increase focus' },
+        { id: 'Build positive habits', icon: 'auto-stories', label: 'Build habits' },
     ];
 
     // Q2 Options
     const frequentFeelingOptions = [
-        'Bình yên & Thư thái',
-        'Tích cực & Động lực',
-        'Tự tin hơn',
-        'Cân bằng & Ổn định',
-        'Sáng suốt',
+        'Peaceful & Relaxed',
+        'Positive & Motivated',
+        'More confident',
+        'Balanced & Stable',
+        'Clarity',
     ];
 
     // Q3 Options
     const personalGoalOptions = [
-        'Quản lý cảm xúc tốt hơn',
-        'Hiểu rõ suy nghĩ hơn',
-        'Cải thiện sức khỏe tinh thần',
-        'Phát triển bản thân',
-        'Tìm thấy sự cân bằng',
+        'Manage emotions better',
+        'Clearer thoughts',
+        'Improve mental health',
+        'Personal growth',
+        'Find balance',
     ];
 
     const [selectedImproveGoals, setSelectedImproveGoals] = useState([]);
@@ -86,7 +86,7 @@ const StepOneScreen = ({ navigation }) => {
                     <MaterialIcons name="arrow-back" size={24} color={theme.colors.onSurface} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-                    <Text style={styles.skipText}>Bỏ qua</Text>
+                    <Text style={styles.skipText}>Skip</Text>
                 </TouchableOpacity>
             </View>
 
@@ -96,7 +96,7 @@ const StepOneScreen = ({ navigation }) => {
             >
                 {/* Progress Stepper */}
                 <View style={styles.progressContainer}>
-                    <Text style={styles.progressLabel}>CỘT MỐC 01: KIỂM TRA (CHECK IN)</Text>
+                    <Text style={styles.progressLabel}>MILESTONE 01: CHECK IN</Text>
                     <View style={styles.progressBar}>
                         <View style={styles.progressFill} />
                     </View>
@@ -105,10 +105,10 @@ const StepOneScreen = ({ navigation }) => {
                 {/* Hero Section */}
                 <View style={styles.heroSection}>
                     <Text style={styles.displayTitle}>
-                        Bắt đầu ngày mới {"\n"}
-                        bằng việc <Text style={styles.italicTitle}>lắng nghe</Text> bản thân
+                        Start your day {"\n"}
+                        by <Text style={styles.italicTitle}>listening</Text> to yourself
                     </Text>
-                    <Text style={styles.subtitle}>Chọn mục tiêu bạn muốn tập trung cải thiện nhất (Tối đa 2).</Text>
+                    <Text style={styles.subtitle}>Choose the goals you want to focus on the most (Max 2).</Text>
                 </View>
 
                 {/* Goals Grid */}
@@ -139,7 +139,7 @@ const StepOneScreen = ({ navigation }) => {
 
                 {/* Section: Feelings */}
                 <View style={styles.feelingSection}>
-                    <Text style={styles.sectionTitle}>Bạn muốn cảm thấy thế nào thường xuyên hơn?</Text>
+                    <Text style={styles.sectionTitle}>How do you want to feel more often?</Text>
                     <View style={styles.chipContainer}>
                         {frequentFeelingOptions.map((item) => {
                             const isSelected = selectedFeeling === item;
@@ -161,7 +161,7 @@ const StepOneScreen = ({ navigation }) => {
 
                 {/* Section: Personal Goal Context */}
                 <View style={styles.feelingSection}>
-                    <Text style={styles.sectionTitle}>Mục tiêu của bạn tại khu vườn này là gì?</Text>
+                    <Text style={styles.sectionTitle}>What is your goal in this garden?</Text>
                     <View style={styles.chipContainer}>
                         {personalGoalOptions.map((item) => {
                             const isSelected = selectedGoalDesc === item;
@@ -192,7 +192,7 @@ const StepOneScreen = ({ navigation }) => {
                     disabled={!isFormValid}
                     activeOpacity={0.9}
                 >
-                    <Text style={styles.primaryButtonText}>Tiếp tục</Text>
+                    <Text style={styles.primaryButtonText}>Continue</Text>
                     <MaterialIcons name="arrow-forward" size={20} color={theme.colors.white} />
                 </TouchableOpacity>
             </View>

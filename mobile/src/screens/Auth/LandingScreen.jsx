@@ -42,7 +42,7 @@ const LandingScreen = ({ navigation }) => {
                     {/* Start */}
                     <TouchableOpacity
                         activeOpacity={0.9}
-                        onPress={() => navigation.navigate("OnboardingWelcome")}
+                        onPress={() => navigation.navigate("OnboardingStep1")}
                     >
                         <BlurView intensity={50} tint="dark" style={styles.primaryButton}>
                             <Text style={styles.primaryText}>Begin a new journey</Text>

@@ -18,29 +18,29 @@ const StepThreeScreen = ({ navigation, route }) => {
 
     // Q7 Options
     const reflectionFrequencyOptions = [
-        'Mọi ngày',
-        'Vài lần một tuần',
-        'Thỉnh thoảng',
-        'Hiếm khi',
-        'Gần như không bao giờ',
+        'Every day',
+        'A few times a week',
+        'Sometimes',
+        'Rarely',
+        'Almost never',
     ];
 
     // Q8 Options
     const negativeEmotionOptions = [
-        { id: 'Talk to someone', icon: 'forum', label: 'Tâm sự với ai đó' },
-        { id: 'Write down my thoughts', icon: 'edit-note', label: 'Viết vào nhật ký' },
-        { id: 'Keep it inside', icon: 'lock-outline', label: 'Giữ cho riêng mình' },
-        { id: 'Do something else to distract myself', icon: 'self-improvement', label: 'Làm việc khác để xao nhãng' },
-        { id: "I'm not sure", icon: 'help-outline', label: 'Mình chưa rõ' },
+        { id: 'Talk to someone', icon: 'forum', label: 'Talk to someone' },
+        { id: 'Write down my thoughts', icon: 'edit-note', label: 'Write in my journal' },
+        { id: 'Keep it inside', icon: 'lock-outline', label: 'Keep it to myself' },
+        { id: 'Do something else to distract myself', icon: 'self-improvement', label: 'Distract myself with other things' },
+        { id: "I'm not sure", icon: 'help-outline', label: "I'm not sure yet" },
     ];
 
     // Q9 Options
     const experienceLearningOptions = [
-        'Rất thường xuyên',
-        'Khá thường xuyên',
-        'Thỉnh thoảng',
-        'Hiếm khi',
-        'Gần như không bao giờ',
+        'Very often',
+        'Quite often',
+        'Sometimes',
+        'Rarely',
+        'Almost never',
     ];
 
     const [selectedFreq, setSelectedFreq] = useState('');
@@ -76,7 +76,7 @@ const StepThreeScreen = ({ navigation, route }) => {
                     <MaterialIcons name="arrow-back" size={24} color={theme.colors.onSurface} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-                    <Text style={styles.skipText}>Bỏ qua</Text>
+                    <Text style={styles.skipText}>Skip</Text>
                 </TouchableOpacity>
             </View>
 
@@ -86,7 +86,7 @@ const StepThreeScreen = ({ navigation, route }) => {
             >
                 {/* Progress Stepper */}
                 <View style={styles.progressContainer}>
-                    <Text style={styles.progressLabel}>CỘT MỐC 03: CHIÊM NGHIỆM (REFLECT)</Text>
+                    <Text style={styles.progressLabel}>MILESTONE 03: REFLECTION</Text>
                     <View style={styles.progressBar}>
                         <View style={styles.progressFill} />
                     </View>
@@ -95,11 +95,11 @@ const StepThreeScreen = ({ navigation, route }) => {
                 {/* Section 1: Reflection Frequency */}
                 <View style={styles.section}>
                     <Text style={styles.displayTitle}>
-                        Thấu hiểu các {"\n"}
-                        <Text style={styles.italicTitle}>khuôn mẫu</Text> tâm lý
+                        Understand your {"\n"}
+                        psychological <Text style={styles.italicTitle}>patterns</Text>
                     </Text>
 
-                    <Text style={styles.sectionTitle}>Tần suất bạn dành thời gian nhìn lại ngày?</Text>
+                    <Text style={styles.sectionTitle}>How often do you reflect on your day?</Text>
                     <View style={styles.chipContainer}>
                         {reflectionFrequencyOptions.map((item) => {
                             const isSelected = selectedFreq === item;
@@ -123,11 +123,11 @@ const StepThreeScreen = ({ navigation, route }) => {
                 <View style={styles.insightCard}>
                     <View style={styles.insightContent}>
                         <View style={styles.tagBadge}>
-                            <Text style={styles.tagText}>CHIÊM NGHIỆM</Text>
+                            <Text style={styles.tagText}>REFLECTION</Text>
                         </View>
-                        <Text style={styles.insightTitle}>Hành trình của bạn</Text>
+                        <Text style={styles.insightTitle}>Your Journey</Text>
                         <Text style={styles.insightDescription}>
-                            Dành 5 phút mỗi tối để viết ra cảm xúc giúp bạn giải tỏa áp lực và thấu hiểu các khuôn mẫu tâm lý của mình hơn.
+                            Spending 5 minutes every night writing down your emotions helps release pressure and understand your patterns better.
                         </Text>
                     </View>
                     <View style={styles.pebbleDecor}>
@@ -137,7 +137,7 @@ const StepThreeScreen = ({ navigation, route }) => {
 
                 {/* Section 2: Negative Emotions */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Cách bạn thường đối diện với cảm xúc tiêu cực?</Text>
+                    <Text style={styles.sectionTitle}>How do you usually face negative emotions?</Text>
                     <View style={styles.listContainer}>
                         {negativeEmotionOptions.map((item) => {
                             const isSelected = selectedHandling === item.id;
@@ -169,7 +169,7 @@ const StepThreeScreen = ({ navigation, route }) => {
 
                 {/* Section 3: Learning */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Bạn có rút ra bài học từ trải nghiệm cá nhân?</Text>
+                    <Text style={styles.sectionTitle}>Do you learn from personal experiences?</Text>
                     <View style={styles.grid}>
                         {experienceLearningOptions.map((item) => {
                             const isSelected = selectedLearning === item;
@@ -200,7 +200,7 @@ const StepThreeScreen = ({ navigation, route }) => {
                     disabled={!isFormValid}
                     activeOpacity={0.9}
                 >
-                    <Text style={styles.primaryButtonText}>Sẵn sàng bắt đầu</Text>
+                    <Text style={styles.primaryButtonText}>Ready to start</Text>
                     <MaterialIcons name="arrow-forward" size={20} color={theme.colors.white} />
                 </TouchableOpacity>
             </View>
