@@ -79,6 +79,40 @@ const DashboardScreen = ({ navigation }) => {
         fetchSummary();
     }, [user?._id]);
 
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good morning';
+        if (hour < 18) return 'Good afternoon';
+        return 'Good evening';
+    };
+
+    const greeting = getGreeting();
+    
+    // Mock or fetch these data points to prevent reference errors
+    const [dashboardData, setDashboardData] = useState({
+        journeyDays: 1,
+        weeklyStats: { avgMood: 4 }
+    });
+    const [dailyQuote, setDailyQuote] = useState({
+        content: "The soul cannot thrive in a garden of stones. Take a moment today to breathe in the green.",
+        author: "Healing Garden"
+    });
+
+    const renderMoodTrend = () => {
+        const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+        const values = [0.4, 0.6, 0.8, 0.5, 0.7, 0.9, 0.65];
+        return (
+            <View style={styles.chartContainer}>
+                {days.map((day, i) => (
+                    <View key={i} style={styles.chartCol}>
+                        <View style={[styles.bar, { height: values[i] * 100 }]} />
+                        <Text style={[styles.dayLabel, i === 6 && styles.activeDay]}>{day}</Text>
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
@@ -112,7 +146,7 @@ const DashboardScreen = ({ navigation }) => {
                     style={styles.heroCard}
                 >
                     <View style={styles.heroContent}>
-                        <Text style={styles.heroGreeting}>{greeting}, {userProfile?.fullName || 'Elena'}</Text>
+                        <Text style={styles.heroGreeting}>{greeting}, {user?.fullName || 'Elena'}</Text>
                         <Text style={styles.heroTitle}>Your garden is blooming beautifully</Text>
                         
                         <View style={styles.plantBadge}>
@@ -514,18 +548,6 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         letterSpacing: 2,
         color: '#554500', // on-tertiary-fixed-variant
-    },
-    moodTrendPlaceholder: {
-        backgroundColor: theme.colors.surfaceVariant,
-        borderRadius: theme.borderRadius.md,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    moodText: {
-        color: theme.colors.onSurfaceVariant,
-        fontSize: 14,
-        textAlign: 'center',
     }
 });
 
