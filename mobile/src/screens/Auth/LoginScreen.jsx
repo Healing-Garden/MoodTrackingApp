@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -8,15 +8,49 @@ import {
     StatusBar,
     ScrollView,
     Dimensions,
-    Image
+    Image,
+    ActivityIndicator,
+    Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import { theme } from "../../theme";
+import api, { setAuthToken } from "../../services/api";
 
 const { width } = Dimensions.get("window");
 
 const LoginScreen = ({ navigation }) => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert("Lỗi", "Vui lòng nhập email và mật khẩu.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await api.post("/auth/login", {
+                email,
+                password,
+            });
+
+            const { accessToken } = response.data;
+            setAuthToken(accessToken);
+
+            // Successfully logged in
+            navigation.replace("Dashboard");
+        } catch (error) {
+            console.error("Login failed:", error);
+            const errorMsg = error.response?.data?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
+            Alert.alert("Lỗi", errorMsg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
@@ -58,6 +92,10 @@ const LoginScreen = ({ navigation }) => {
                             <TextInput
                                 placeholder="example@garden.com"
                                 style={styles.input}
+                                value={email}
+                                onChangeText={setEmail}
+                                autoCapitalize="none"
+                                keyboardType="email-address"
                             />
                         </View>
                     </View>
@@ -84,19 +122,26 @@ const LoginScreen = ({ navigation }) => {
                                 placeholder="••••••••"
                                 secureTextEntry
                                 style={styles.input}
+                                value={password}
+                                onChangeText={setPassword}
                             />
                         </View>
                     </View>
 
                     {/* BUTTON */}
                     <TouchableOpacity
-                        onPress={() => navigation.navigate("Dashboard")}
+                        onPress={handleLogin}
+                        disabled={loading}
                     >
                         <LinearGradient
                             colors={["#276b2e", "#60a560"]}
-                            style={styles.button}
+                            style={[styles.button, loading && { opacity: 0.7 }]}
                         >
-                            <Text style={styles.buttonText}>Đăng nhập</Text>
+                            {loading ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <Text style={styles.buttonText}>Đăng nhập</Text>
+                            )}
                         </LinearGradient>
                     </TouchableOpacity>
 

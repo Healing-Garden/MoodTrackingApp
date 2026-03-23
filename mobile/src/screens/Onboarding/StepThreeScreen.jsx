@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -13,28 +13,54 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 
-const StepThreeScreen = ({ navigation }) => {
-    const reflectionFrequencies = [
+const StepThreeScreen = ({ navigation, route }) => {
+    const { onboardingData } = route.params || { onboardingData: {} };
+
+    // Q7 Options
+    const reflectionFrequencyOptions = [
+        'Mọi ngày',
+        'Vài lần một tuần',
+        'Thỉnh thoảng',
         'Hiếm khi',
-        'Mỗi tuần 1 lần',
-        { label: 'Mỗi tối', selected: true },
-        'Nhiều lần trong ngày',
+        'Gần như không bao giờ',
     ];
 
-    const emotionResponses = [
-        { icon: 'forum', label: 'Tâm sự với ai đó' },
-        { icon: 'edit-note', label: 'Viết vào nhật ký', selected: true },
-        { icon: 'lock-outline', label: 'Giữ cho riêng mình' },
-        { icon: 'self-improvement', label: 'Thiền hoặc hít thở' },
-        { icon: 'help-outline', label: 'Mình chưa rõ' },
+    // Q8 Options
+    const negativeEmotionOptions = [
+        { id: 'Talk to someone', icon: 'forum', label: 'Tâm sự với ai đó' },
+        { id: 'Write down my thoughts', icon: 'edit-note', label: 'Viết vào nhật ký' },
+        { id: 'Keep it inside', icon: 'lock-outline', label: 'Giữ cho riêng mình' },
+        { id: 'Do something else to distract myself', icon: 'self-improvement', label: 'Làm việc khác để xao nhãng' },
+        { id: "I'm not sure", icon: 'help-outline', label: 'Mình chưa rõ' },
     ];
 
-    const learningOptions = [
-        'Luôn luôn',
-        { label: 'Thường xuyên', selected: true },
-        'Đôi khi',
+    // Q9 Options
+    const experienceLearningOptions = [
+        'Rất thường xuyên',
+        'Khá thường xuyên',
+        'Thỉnh thoảng',
         'Hiếm khi',
+        'Gần như không bao giờ',
     ];
+
+    const [selectedFreq, setSelectedFreq] = useState('');
+    const [selectedHandling, setSelectedHandling] = useState('');
+    const [selectedLearning, setSelectedLearning] = useState('');
+
+    const handleContinue = () => {
+        if (selectedFreq && selectedHandling && selectedLearning) {
+            navigation.navigate('OnboardingStep4', {
+                onboardingData: {
+                    ...onboardingData,
+                    reflectionFrequency: selectedFreq,
+                    negativeEmotionHandling: selectedHandling,
+                    experienceLearning: selectedLearning,
+                }
+            });
+        }
+    };
+
+    const isFormValid = selectedFreq !== '' && selectedHandling !== '' && selectedLearning !== '';
 
     return (
         <View style={styles.container}>
@@ -60,7 +86,7 @@ const StepThreeScreen = ({ navigation }) => {
             >
                 {/* Progress Stepper */}
                 <View style={styles.progressContainer}>
-                    <Text style={styles.progressLabel}>HÀNH TRÌNH TIẾP DIỄN • 03/04</Text>
+                    <Text style={styles.progressLabel}>CỘT MỐC 03: CHIÊM NGHIỆM (REFLECT)</Text>
                     <View style={styles.progressBar}>
                         <View style={styles.progressFill} />
                     </View>
@@ -69,22 +95,23 @@ const StepThreeScreen = ({ navigation }) => {
                 {/* Section 1: Reflection Frequency */}
                 <View style={styles.section}>
                     <Text style={styles.displayTitle}>
-                        Bạn thường {"\n"}
-                        <Text style={styles.italicTitle}>nhìn lại</Text> bản thân?
+                        Thấu hiểu các {"\n"}
+                        <Text style={styles.italicTitle}>khuôn mẫu</Text> tâm lý
                     </Text>
 
+                    <Text style={styles.sectionTitle}>Tần suất bạn dành thời gian nhìn lại ngày?</Text>
                     <View style={styles.chipContainer}>
-                        {reflectionFrequencies.map((item, i) => {
-                            const label = typeof item === 'string' ? item : item.label;
-                            const selected = typeof item === 'object' && item.selected;
+                        {reflectionFrequencyOptions.map((item) => {
+                            const isSelected = selectedFreq === item;
                             return (
                                 <TouchableOpacity
-                                    key={i}
-                                    style={[styles.chip, selected && styles.chipSelected]}
+                                    key={item}
+                                    onPress={() => setSelectedFreq(item)}
+                                    style={[styles.chip, isSelected && styles.chipSelected]}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                                        {label}
+                                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                                        {item}
                                     </Text>
                                 </TouchableOpacity>
                             );
@@ -110,47 +137,51 @@ const StepThreeScreen = ({ navigation }) => {
 
                 {/* Section 2: Negative Emotions */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Cách bạn đối diện với cảm xúc tiêu cực?</Text>
+                    <Text style={styles.sectionTitle}>Cách bạn thường đối diện với cảm xúc tiêu cực?</Text>
                     <View style={styles.listContainer}>
-                        {emotionResponses.map((item, i) => (
-                            <TouchableOpacity
-                                key={i}
-                                style={[styles.listItem, item.selected && styles.listItemSelected]}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.iconPebble, item.selected && styles.iconPebbleSelected]}>
-                                    <MaterialIcons
-                                        name={item.icon}
-                                        size={22}
-                                        color={theme.colors.primary}
-                                    />
-                                </View>
-                                <Text style={[styles.listItemText, item.selected && styles.listItemTextSelected]}>
-                                    {item.label}
-                                </Text>
-                                {item.selected && (
-                                    <MaterialIcons name="check-circle" size={24} color={theme.colors.primary} />
-                                )}
-                            </TouchableOpacity>
-                        ))}
+                        {negativeEmotionOptions.map((item) => {
+                            const isSelected = selectedHandling === item.id;
+                            return (
+                                <TouchableOpacity
+                                    key={item.id}
+                                    onPress={() => setSelectedHandling(item.id)}
+                                    style={[styles.listItem, isSelected && styles.listItemSelected]}
+                                    activeOpacity={0.8}
+                                >
+                                    <View style={[styles.iconPebble, isSelected && styles.iconPebbleSelected]}>
+                                        <MaterialIcons
+                                            name={item.icon}
+                                            size={22}
+                                            color={isSelected ? theme.colors.white : theme.colors.primary}
+                                        />
+                                    </View>
+                                    <Text style={[styles.listItemText, isSelected && styles.listItemTextSelected]}>
+                                        {item.label}
+                                    </Text>
+                                    {isSelected && (
+                                        <MaterialIcons name="check-circle" size={24} color={theme.colors.primary} />
+                                    )}
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
                 </View>
 
                 {/* Section 3: Learning */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Bạn có rút ra bài học từ trải nghiệm?</Text>
+                    <Text style={styles.sectionTitle}>Bạn có rút ra bài học từ trải nghiệm cá nhân?</Text>
                     <View style={styles.grid}>
-                        {learningOptions.map((item, i) => {
-                            const label = typeof item === 'string' ? item : item.label;
-                            const selected = typeof item === 'object' && item.selected;
+                        {experienceLearningOptions.map((item) => {
+                            const isSelected = selectedLearning === item;
                             return (
                                 <TouchableOpacity
-                                    key={i}
-                                    style={[styles.learningBox, selected && styles.learningBoxSelected]}
+                                    key={item}
+                                    onPress={() => setSelectedLearning(item)}
+                                    style={[styles.learningBox, isSelected && styles.learningBoxSelected]}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={[styles.learningText, selected && styles.learningTextSelected]}>
-                                        {label}
+                                    <Text style={[styles.learningText, isSelected && styles.learningTextSelected]}>
+                                        {item}
                                     </Text>
                                 </TouchableOpacity>
                             );
@@ -158,17 +189,18 @@ const StepThreeScreen = ({ navigation }) => {
                     </View>
                 </View>
 
-                <View style={{ height: 120 }} />
+                <View style={{ height: 160 }} />
             </ScrollView>
 
             {/* Bottom Floating Action */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={styles.primaryButton}
-                    onPress={() => navigation.navigate('OnboardingStep4')}
+                    style={[styles.primaryButton, !isFormValid && { opacity: 0.5 }]}
+                    onPress={handleContinue}
+                    disabled={!isFormValid}
                     activeOpacity={0.9}
                 >
-                    <Text style={styles.primaryButtonText}>Hoàn tất hành trình</Text>
+                    <Text style={styles.primaryButtonText}>Sẵn sàng bắt đầu</Text>
                     <MaterialIcons name="arrow-forward" size={20} color={theme.colors.white} />
                 </TouchableOpacity>
             </View>
@@ -248,7 +280,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     progressFill: {
-        width: '100%',
+        width: '75%',
         height: '100%',
         backgroundColor: theme.colors.primary,
         borderRadius: 3,
