@@ -514,6 +514,18 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         letterSpacing: 2,
         color: '#554500', // on-tertiary-fixed-variant
+    },
+    moodTrendPlaceholder: {
+        backgroundColor: theme.colors.surfaceVariant,
+        borderRadius: theme.borderRadius.md,
+        padding: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    moodText: {
+        color: theme.colors.onSurfaceVariant,
+        fontSize: 14,
+        textAlign: 'center',
     }
 });
 
