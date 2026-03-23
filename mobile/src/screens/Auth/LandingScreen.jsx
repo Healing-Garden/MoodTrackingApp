@@ -4,24 +4,27 @@ import {
     Text,
     TouchableOpacity,
     StyleSheet,
-    ImageBackground,
     StatusBar,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
+import { Video, ResizeMode } from "expo-av";
 
 const LandingScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-            <ImageBackground
-                source={{
-                    uri: "https://lh3.googleusercontent.com/aida/ADBb0uhYO9EWGyVXHGrCKtWFPMU24NNkVhSYn9f6ryGAKjbEgg4hvCREGom1cQuEJJIbSdjwM8uTBRHfJRQLovR-kN1YVAZqqWQXezvTfhaRAEJAovG5R3LU6JBJ_Dm72afXQnRxBwxpyamUXFYs5OXHQVNJ4fN_p2RM75GVZhCbuil9JojMBoIuKZyyWT_m2R31Fi2OMtlWa_4d4UVqZRmEqvnI0i8_JSzsFyIGopzsWRYp95sEr99wD2_kgjHiTaz0zdTTl4BAQpE1",
-                }}
-                style={styles.background}
-                resizeMode="cover"
-            >
+            <Video
+                source={require("../../../public/1.mp4")}
+                style={StyleSheet.absoluteFillObject}
+                resizeMode={ResizeMode.COVER}
+                shouldPlay
+                isLooping
+                isMuted
+            />
+
+            <View style={styles.background}>
                 {/* overlay */}
                 <View style={styles.overlay} />
 
@@ -59,7 +62,7 @@ const LandingScreen = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </ImageBackground>
+            </View>
         </View>
     );
 };
