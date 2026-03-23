@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -6,239 +6,263 @@ import {
     TouchableOpacity,
     StyleSheet,
     StatusBar,
-    Dimensions
-} from "react-native";
+    Dimensions,
+    Image
+} from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import Svg, { Path, Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
+import { BlurView } from 'expo-blur';
+import { theme } from '../../theme';
+import BottomNavBar from '../../components/common/BottomNavBar';
+import logo from '../../../assets/images/logo.png';
 
-import { MaterialIcons } from "@expo/vector-icons";
-import Svg, { Path, Circle } from "react-native-svg";
-import { theme } from "../../theme";
-import BottomNavBar from "../../components/common/BottomNavBar";
-
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
 const InsightsScreen = ({ navigation }) => {
-
-    const [tab, setTab] = useState("month")
+    const [tab, setTab] = useState('Month');
 
     return (
         <View style={styles.container}>
+            <StatusBar barStyle="dark-content" />
 
-            <StatusBar barStyle="dark-content" transparent backgroundColor="transparent" />
-
-            {/* HEADER */}
-
-            <View style={styles.header}>
-
-                <View style={styles.headerLeft}>
-
-                    <TouchableOpacity>
-                        <MaterialIcons name="menu" size={26} color={theme.colors.primary} />
-                    </TouchableOpacity>
-
-                    <Text style={styles.headerTitle}>Insights</Text>
-
+            {/* TOP BAR */}
+            <BlurView intensity={80} style={styles.topBar}>
+                <View style={styles.topBarLeft}>
+                    <Text style={styles.appTitle}>Insights</Text>
                 </View>
-
-                <View style={styles.avatar} />
-
-            </View>
+                <View style={styles.avatarContainer}>
+                    <Image
+                        source={logo}
+                        style={styles.avatar}
+                        resizeMode="contain"
+                    />
+                </View>
+            </BlurView>
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.content}
+                contentContainerStyle={styles.scrollContent}
             >
-
-                {/* TABS */}
-
+                {/* INTERACTIVE TABS */}
                 <View style={styles.tabsContainer}>
-
-                    {["week", "month", "year"].map(t => (
-
-                        <TouchableOpacity
-                            key={t}
-                            style={[
-                                styles.tab,
-                                tab === t && styles.tabActive
-                            ]}
-                            onPress={() => setTab(t)}
-                        >
-
-                            <Text style={[
-                                styles.tabText,
-                                tab === t && styles.tabTextActive
-                            ]}>
-                                {t.toUpperCase()}
-                            </Text>
-
-                        </TouchableOpacity>
-
-                    ))}
-
+                    <View style={styles.tabsInner}>
+                        {['Week', 'Month', 'Year'].map((t) => (
+                            <TouchableOpacity
+                                key={t}
+                                style={[styles.tab, tab === t && styles.activeTab]}
+                                onPress={() => setTab(t)}
+                            >
+                                <Text style={[styles.tabText, tab === t && styles.activeTabText]}>
+                                    {t}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 </View>
 
-
-                {/* STATS GRID */}
-
-                <View style={styles.statsGrid}>
-
-                    <View style={styles.statCardLarge}>
-
+                {/* SUMMARY STATS BENTO GRID */}
+                <View style={styles.bentoGrid}>
+                    <View style={[styles.statCard, styles.fullWidthStat]}>
+                        <View style={styles.moodBloomBg} />
                         <Text style={styles.statLabel}>AVG MOOD SCORE</Text>
-
                         <Text style={styles.statValue}>4.8</Text>
-
                         <View style={styles.trendRow}>
                             <MaterialIcons name="trending-up" size={16} color={theme.colors.primary} />
                             <Text style={styles.trendText}>+12% vs last month</Text>
                         </View>
-
                     </View>
 
-                    <View style={styles.statsRight}>
-
-                        <View style={styles.statCardSmall}>
-
+                    <View style={styles.statRow}>
+                        <View style={styles.statCardHalf}>
                             <Text style={styles.statLabel}>CONSISTENCY</Text>
-
-                            <Text style={styles.statSmallValue}>85%</Text>
-
+                            <View style={styles.circularProgress}>
+                                <Svg width="80" height="80" viewBox="0 0 80 80">
+                                    <Circle
+                                        cx="40"
+                                        cy="40"
+                                        r="35"
+                                        stroke={theme.colors.surfaceContainer}
+                                        strokeWidth="8"
+                                        fill="transparent"
+                                    />
+                                    <Circle
+                                        cx="40"
+                                        cy="40"
+                                        r="35"
+                                        stroke={theme.colors.secondary}
+                                        strokeWidth="8"
+                                        fill="transparent"
+                                        strokeDasharray="219.8"
+                                        strokeDashoffset={219.8 * (1 - 0.85)}
+                                        strokeLinecap="round"
+                                    />
+                                </Svg>
+                                <Text style={styles.progressText}>85%</Text>
+                            </View>
                         </View>
 
-                        <View style={[styles.statCardSmall, { marginTop: 20 }]}>
-
+                        <View style={styles.statCardHalf}>
                             <Text style={styles.statLabel}>TOTAL ENTRIES</Text>
-
-                            <Text style={[styles.statSmallValue, { color: theme.colors.tertiary }]}>
-                                24
-                            </Text>
-
+                            <Text style={[styles.statValue, { color: theme.colors.tertiary }]}>24</Text>
+                            <Text style={styles.statSubText}>"Deepening your practice"</Text>
                         </View>
-
                     </View>
-
                 </View>
-
 
                 {/* MOOD FLOW CHART */}
-
-                <View style={styles.chartCard}>
-
+                <View style={styles.chartSection}>
                     <View style={styles.chartHeader}>
-
-                        <Text style={styles.chartTitle}>Mood Flow</Text>
-                        <Text style={styles.chartSubtitle}>Your emotional landscape</Text>
-
+                        <View>
+                            <Text style={styles.sectionTitle}>Mood Flow</Text>
+                            <Text style={styles.sectionSubTitle}>Visualizing your emotional landscape</Text>
+                        </View>
+                        <View style={styles.chartLegend}>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendDot, { backgroundColor: theme.colors.primary }]} />
+                                <Text style={styles.legendText}>Mood</Text>
+                            </View>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendDot, { backgroundColor: theme.colors.secondary }]} />
+                                <Text style={styles.legendText}>Energy</Text>
+                            </View>
+                        </View>
                     </View>
 
-                    <Svg width="100%" height="160">
+                    <View style={styles.chartContainer}>
+                        {/* Grid Lines */}
+                        <View style={styles.chartGrid}>
+                            {[0, 1, 2, 3].map((i) => (
+                                <View key={i} style={styles.gridLine} />
+                            ))}
+                        </View>
 
-                        <Path
-                            d="M0 140 Q80 100 160 120 T320 70 T480 120 T640 80"
-                            stroke={theme.colors.primary}
-                            strokeWidth="4"
-                            fill="none"
-                        />
+                        <Svg width="100%" height="200" style={styles.svgChart}>
+                            {/* Energy Line */}
+                            <Path
+                                d="M0,150 Q50,80 100,120 T200,60 T300,140 T400,100"
+                                stroke={theme.colors.secondary}
+                                strokeWidth="3"
+                                strokeDasharray="4 4"
+                                fill="none"
+                                opacity="0.4"
+                            />
+                            {/* Mood Line */}
+                            <Path
+                                d="M0,180 Q50,140 100,60 T200,90 T300,30 T400,70"
+                                stroke={theme.colors.primary}
+                                strokeWidth="4"
+                                fill="none"
+                            />
+                            {/* Dots */}
+                            <Circle cx="100" cy="60" r="5" fill={theme.colors.primary} />
+                            <Circle cx="300" cy="30" r="5" fill={theme.colors.primary} />
+                        </Svg>
 
-                        <Path
-                            d="M0 120 Q80 80 160 100 T320 50 T480 100 T640 60"
-                            stroke={theme.colors.secondary}
-                            strokeWidth="3"
-                            strokeDasharray="5 5"
-                            fill="none"
-                        />
-
-                        <Circle cx="160" cy="120" r="6" fill={theme.colors.primary} />
-                        <Circle cx="480" cy="120" r="6" fill={theme.colors.primary} />
-
-                    </Svg>
-
-                    <View style={styles.chartXAxis}>
-
-                        <Text style={styles.axisLabel}>Week 1</Text>
-                        <Text style={styles.axisLabel}>Week 2</Text>
-                        <Text style={styles.axisLabel}>Week 3</Text>
-                        <Text style={styles.axisLabel}>Week 4</Text>
-
+                        <View style={styles.xAxis}>
+                            <Text style={styles.xAxisLabel}>Week 1</Text>
+                            <Text style={styles.xAxisLabel}>Week 2</Text>
+                            <Text style={styles.xAxisLabel}>Week 3</Text>
+                            <Text style={styles.xAxisLabel}>Week 4</Text>
+                        </View>
                     </View>
-
                 </View>
 
+                {/* COMPARATIVE ANALYSIS */}
+                <View style={styles.analysisCard}>
+                    <Text style={styles.cardTitle}>Comparative Analysis</Text>
+                    <View style={styles.tableHeader}>
+                        <Text style={styles.tableHeadText}>METRIC</Text>
+                        <Text style={styles.tableHeadText}>PREV.</Text>
+                        <Text style={styles.tableHeadText}>CURR.</Text>
+                        <Text style={styles.tableHeadText}>CHG.</Text>
+                    </View>
 
-                {/* HEATMAP */}
+                    <View style={styles.tableRow}>
+                        <Text style={styles.metricName}>Avg Mood</Text>
+                        <Text style={styles.prevVal}>4.2</Text>
+                        <Text style={styles.currVal}>4.8</Text>
+                        <View style={styles.changeCell}>
+                            <MaterialIcons name="arrow-upward" size={14} color={theme.colors.primary} />
+                            <Text style={styles.changeText}>14%</Text>
+                        </View>
+                    </View>
 
+                    <View style={styles.tableRow}>
+                        <Text style={styles.metricName}>Consistency</Text>
+                        <Text style={styles.prevVal}>78%</Text>
+                        <Text style={styles.currVal}>85%</Text>
+                        <View style={styles.changeCell}>
+                            <MaterialIcons name="arrow-upward" size={14} color={theme.colors.primary} />
+                            <Text style={styles.changeText}>9%</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.tableRow}>
+                        <Text style={styles.metricName}>Entries</Text>
+                        <Text style={styles.prevVal}>18</Text>
+                        <Text style={styles.currVal}>24</Text>
+                        <View style={styles.changeCell}>
+                            <MaterialIcons name="add" size={14} color={theme.colors.primary} />
+                            <Text style={styles.changeText}>6</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* TRIGGER HEATMAP */}
                 <View style={styles.heatmapCard}>
-
-                    <Text style={styles.heatTitle}>Trigger Heatmap</Text>
+                    <View style={styles.heatTitleRow}>
+                        <MaterialIcons name="auto-awesome" size={20} color={theme.colors.primary} />
+                        <Text style={styles.cardTitle}>Trigger Heatmap</Text>
+                    </View>
 
                     <View style={styles.heatGrid}>
-
-                        {Array.from({ length: 28 }).map((_, i) => (
-                            <View
-                                key={i}
-                                style={[
-                                    styles.heatCell,
-                                    { opacity: Math.random() * 0.9 + 0.1 }
-                                ]}
-                            />
+                        {[0.1, 0.3, 0.05, 0.6, 0.2, 0.8, 0.1, 0.05, 0.4, 0.1, 0.7, 0.1, 0.05, 0.3].map((op, i) => (
+                            <View key={i} style={[styles.heatCell, { opacity: op }]} />
                         ))}
-
                     </View>
 
-                    <Text style={styles.heatInsight}>
-                        "You feel most grounded after outdoor walks, but late-night screen time reduces mood."
-                    </Text>
+                    <View style={styles.heatInsightBox}>
+                        <Text style={styles.insightText}>
+                            "You tend to feel most grounded on Tuesday mornings after <Text style={styles.boldPrimary}>outdoor walks</Text>. However, late-night screen time correlates with 20% lower mood scores the following day."
+                        </Text>
+                    </View>
 
                     <View style={styles.tagRow}>
-
-                        <View style={styles.tag}><Text>Nature</Text></View>
-                        <View style={styles.tag}><Text>Sleep</Text></View>
-                        <View style={styles.tag}><Text>Hydration</Text></View>
-
+                        <View style={[styles.tag, { backgroundColor: theme.colors.secondaryContainer }]}>
+                            <Text style={styles.tagText}>Nature</Text>
+                        </View>
+                        <View style={[styles.tag, { backgroundColor: theme.colors.secondaryContainer }]}>
+                            <Text style={styles.tagText}>Sleep</Text>
+                        </View>
+                        <View style={[styles.tag, { backgroundColor: '#ffe174' }]}>
+                            <Text style={[styles.tagText, { color: '#554500' }]}>Hydration</Text>
+                        </View>
                     </View>
-
                 </View>
 
-
-                {/* CTA */}
-
+                {/* CTA SECTION */}
                 <View style={styles.ctaCard}>
-
-                    <View style={styles.ctaText}>
-
-                        <Text style={styles.ctaTitle}>
-                            Cultivate Deeper Insight
-                        </Text>
-
+                    <View style={styles.ctaContent}>
+                        <Text style={styles.ctaTitle}>Cultivate Deeper Insight</Text>
                         <Text style={styles.ctaDesc}>
-                            Our AI gardener noticed positive journaling patterns. Ready to explore deeper?
+                            Our AI gardener has noticed a positive pattern in your journaling. Ready to dive deeper into your reflection practice?
                         </Text>
-
                         <TouchableOpacity style={styles.ctaButton}>
-                            <Text style={styles.ctaButtonText}>
-                                Start Daily Focus
-                            </Text>
+                            <Text style={styles.ctaButtonText}>Start Daily Focus</Text>
                         </TouchableOpacity>
-
                     </View>
-
                     <View style={styles.ctaVisual}>
-
-                        <MaterialIcons
-                            name="self-improvement"
-                            size={64}
-                            color="rgba(255,255,255,0.5)"
-                        />
-
+                        <View style={styles.bloomCircle}>
+                            <MaterialIcons name="self-improvement" size={48} color="rgba(255,255,255,0.4)" />
+                        </View>
                     </View>
-
+                    {/* Decorative element */}
+                    <View style={styles.ctaDecor} />
                 </View>
-
             </ScrollView>
-
 
             {/* BOTTOM NAVIGATION */}
             <BottomNavBar navigation={navigation} activeTab="Insights" />
-
         </View>
     );
 };
@@ -246,211 +270,420 @@ const InsightsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.surface
+        backgroundColor: theme.colors.background,
     },
-    content: {
+    topBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingTop: 60,
+        paddingBottom: 16,
         paddingHorizontal: 24,
-        paddingTop: 80,
-        paddingBottom: 120
-    },
-    header: {
-        position: "absolute",
+        position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        height: 70,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 24
+        zIndex: 100,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(6,33,10,0.05)',
     },
-    headerLeft: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12
+    topBarLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
     },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: "700",
-        color: theme.colors.primary
+    backBtn: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 20,
     },
-    avatar: {
+    appTitle: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#064e3b',
+        fontFamily: theme.fonts.headline,
+    },
+    avatarContainer: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: theme.colors.primaryContainer
+        overflow: 'hidden',
+        borderWidth: 2,
+        borderColor: theme.colors.primaryContainer,
+    },
+    avatar: {
+        width: '100%',
+        height: '100%',
+    },
+    scrollContent: {
+        paddingTop: 120,
+        paddingHorizontal: 24,
+        paddingBottom: 140,
     },
     tabsContainer: {
-        flexDirection: "row",
-        alignSelf: "center",
+        alignItems: 'center',
+        marginBottom: 32,
+    },
+    tabsInner: {
+        flexDirection: 'row',
         backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: 12,
         padding: 6,
-        marginBottom: 32
+        borderRadius: 12,
     },
     tab: {
-        paddingHorizontal: 24,
+        paddingHorizontal: 20,
         paddingVertical: 8,
-        borderRadius: 10
+        borderRadius: 8,
     },
-    tabActive: {
-        backgroundColor: "#fff",
-        shadowColor: "#000",
-        shadowOpacity: 0.05,
-        shadowRadius: 4
+    activeTab: {
+        backgroundColor: '#fff',
+        ...theme.shadows.soft,
     },
     tabText: {
-        fontSize: 12,
-        fontWeight: "600",
-        color: "#888"
+        fontSize: 14,
+        fontWeight: '600',
+        color: theme.colors.onSurfaceVariant,
+        fontFamily: theme.fonts.headline,
     },
-    tabTextActive: {
-        color: theme.colors.primary
+    activeTabText: {
+        color: theme.colors.primary,
+        fontWeight: '700',
     },
-    statsGrid: {
-        flexDirection: "row",
-        marginBottom: 32
+    bentoGrid: {
+        gap: 16,
+        marginBottom: 32,
     },
-    statCardLarge: {
-        flex: 1.2,
-        backgroundColor: "#fff",
-        borderRadius: 16,
+    statCard: {
+        backgroundColor: '#fff',
+        borderRadius: theme.borderRadius.lg,
         padding: 24,
-        marginRight: 16
+        alignItems: 'center',
+        ...theme.shadows.soft,
+        overflow: 'hidden',
     },
-    statsRight: {
-        flex: 1
+    fullWidthStat: {
+        height: 180,
+        justifyContent: 'center',
     },
-    statCardSmall: {
-        backgroundColor: "#fff",
-        borderRadius: 16,
-        padding: 20
+    moodBloomBg: {
+        position: 'absolute',
+        top: -20,
+        right: -20,
+        width: 100,
+        height: 100,
+        backgroundColor: 'rgba(39, 107, 46, 0.05)',
+        borderRadius: 50,
+        transform: [{ scaleX: 1.5 }],
     },
     statLabel: {
         fontSize: 10,
-        letterSpacing: 1,
-        color: "#888",
-        marginBottom: 10
+        fontWeight: '800',
+        letterSpacing: 2,
+        color: theme.colors.onSurfaceVariant,
+        marginBottom: 8,
     },
     statValue: {
         fontSize: 48,
-        fontWeight: "800",
-        color: theme.colors.primary
-    },
-    statSmallValue: {
-        fontSize: 30,
-        fontWeight: "700",
-        color: theme.colors.secondary
+        fontWeight: '800',
+        color: theme.colors.primary,
+        fontFamily: theme.fonts.headline,
     },
     trendRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 8,
     },
     trendText: {
-        fontSize: 11,
+        fontSize: 12,
+        fontWeight: '700',
         color: theme.colors.primary,
-        fontWeight: "700"
     },
-    chartCard: {
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: 16,
+    statRow: {
+        flexDirection: 'row',
+        gap: 16,
+    },
+    statCardHalf: {
+        flex: 1,
+        backgroundColor: '#fff',
+        borderRadius: theme.borderRadius.lg,
         padding: 24,
-        marginBottom: 32
+        alignItems: 'center',
+        ...theme.shadows.soft,
+    },
+    circularProgress: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 12,
+    },
+    progressText: {
+        position: 'absolute',
+        fontSize: 18,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
+    },
+    statSubText: {
+        fontSize: 11,
+        color: theme.colors.onSurfaceVariant,
+        fontStyle: 'italic',
+        marginTop: 8,
+        textAlign: 'center',
+    },
+    chartSection: {
+        backgroundColor: theme.colors.surfaceContainerLow,
+        borderRadius: theme.borderRadius.lg,
+        padding: 24,
+        marginBottom: 32,
     },
     chartHeader: {
-        marginBottom: 16
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 32,
     },
-    chartTitle: {
+    sectionTitle: {
         fontSize: 20,
-        fontWeight: "700"
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
     },
-    chartSubtitle: {
+    sectionSubTitle: {
         fontSize: 13,
-        color: "#888"
+        color: theme.colors.onSurfaceVariant,
     },
-    chartXAxis: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginTop: 10
+    chartLegend: {
+        flexDirection: 'row',
+        gap: 12,
     },
-    axisLabel: {
+    legendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    legendDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+    },
+    legendText: {
         fontSize: 11,
-        color: "#888"
+        fontWeight: '600',
+        color: theme.colors.onSurfaceVariant,
+    },
+    chartContainer: {
+        height: 200,
+        position: 'relative',
+    },
+    chartGrid: {
+        position: 'absolute',
+        inset: 0,
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+    },
+    gridLine: {
+        height: 1,
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        width: '100%',
+    },
+    svgChart: {
+        zIndex: 10,
+    },
+    xAxis: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 12,
+        paddingHorizontal: 4,
+    },
+    xAxisLabel: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: theme.colors.onSurfaceVariant,
+        textTransform: 'uppercase',
+    },
+    analysisCard: {
+        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderRadius: theme.borderRadius.lg,
+        padding: 24,
+        marginBottom: 32,
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+        marginBottom: 20,
+    },
+    tableHeader: {
+        flexDirection: 'row',
+        marginBottom: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0,0,0,0.05)',
+        paddingBottom: 8,
+    },
+    tableHeadText: {
+        flex: 1,
+        fontSize: 10,
+        fontWeight: '800',
+        color: theme.colors.onSurfaceVariant,
+        letterSpacing: 1,
+    },
+    tableRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0,0,0,0.05)',
+    },
+    metricName: {
+        flex: 1,
+        fontSize: 14,
+        fontWeight: '600',
+        color: theme.colors.onSurface,
+    },
+    prevVal: {
+        flex: 1,
+        fontSize: 14,
+        color: theme.colors.onSurfaceVariant,
+    },
+    currVal: {
+        flex: 1,
+        fontSize: 14,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+    },
+    changeCell: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 2,
+    },
+    changeText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: theme.colors.primary,
     },
     heatmapCard: {
-        backgroundColor: "#fff",
-        borderRadius: 16,
+        backgroundColor: '#fff',
+        borderRadius: theme.borderRadius.lg,
         padding: 24,
-        marginBottom: 32
+        marginBottom: 32,
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.05)',
     },
-    heatTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        marginBottom: 16
+    heatTitleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 16,
     },
     heatGrid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
+        flexDirection: 'row',
+        flexWrap: 'wrap',
         gap: 6,
-        marginBottom: 16
+        marginBottom: 20,
     },
     heatCell: {
-        width: 22,
-        height: 22,
+        width: 24,
+        height: 24,
         backgroundColor: theme.colors.primary,
-        borderRadius: 4
+        borderRadius: 4,
     },
-    heatInsight: {
-        fontSize: 13,
-        fontStyle: "italic",
-        marginBottom: 14
+    heatInsightBox: {
+        backgroundColor: 'rgba(39, 107, 46, 0.05)',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 16,
+    },
+    insightText: {
+        fontSize: 14,
+        fontStyle: 'italic',
+        lineHeight: 22,
+        color: theme.colors.onSurfaceVariant,
+    },
+    boldPrimary: {
+        fontWeight: '700',
+        color: theme.colors.primary,
     },
     tagRow: {
-        flexDirection: "row",
-        gap: 8
+        flexDirection: 'row',
+        gap: 8,
+        flexWrap: 'wrap',
     },
     tag: {
-        backgroundColor: theme.colors.secondaryContainer,
-        paddingHorizontal: 10,
+        paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 12
+        borderRadius: 99,
+    },
+    tagText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: theme.colors.onSecondaryContainer,
     },
     ctaCard: {
-        flexDirection: "row",
         backgroundColor: theme.colors.primary,
-        borderRadius: 16,
-        padding: 24,
-        alignItems: "center",
-        justifyContent: "space-between"
+        borderRadius: theme.borderRadius.lg,
+        padding: 32,
+        flexDirection: 'row',
+        alignItems: 'center',
+        overflow: 'hidden',
+        position: 'relative',
+        ...theme.shadows.primary,
     },
-    ctaText: {
-        flex: 1
+    ctaContent: {
+        flex: 1,
+        zIndex: 10,
     },
     ctaTitle: {
-        fontSize: 22,
-        fontWeight: "700",
-        color: "#fff",
-        marginBottom: 10
+        fontSize: 24,
+        fontWeight: '800',
+        color: '#fff',
+        marginBottom: 12,
+        fontFamily: theme.fonts.headline,
     },
     ctaDesc: {
-        color: "rgba(255,255,255,0.8)",
-        marginBottom: 16
+        fontSize: 14,
+        color: 'rgba(255,255,255,0.8)',
+        lineHeight: 20,
+        marginBottom: 24,
     },
     ctaButton: {
-        backgroundColor: "#fff",
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 10,
-        alignSelf: "flex-start"
+        backgroundColor: '#ffe174', // tertiary-fixed
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 12,
+        alignSelf: 'flex-start',
     },
     ctaButtonText: {
-        color: theme.colors.primary,
-        fontWeight: "700"
+        color: '#221b00',
+        fontWeight: '700',
+        fontSize: 15,
     },
     ctaVisual: {
         width: 100,
-        alignItems: "center"
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
+    },
+    bloomCircle: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 2,
+        borderColor: 'rgba(255,255,255,0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    ctaDecor: {
+        position: 'absolute',
+        bottom: -40,
+        left: -40,
+        width: 120,
+        height: 120,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 60,
     }
 });
 
