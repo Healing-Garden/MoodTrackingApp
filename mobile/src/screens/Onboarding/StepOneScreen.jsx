@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -14,22 +14,63 @@ import { MaterialIcons } from '@expo/vector-icons';
 const { width, height } = Dimensions.get('window');
 
 const StepOneScreen = ({ navigation }) => {
-    const goals = [
-        { id: 1, icon: 'eco', label: 'Giảm căng thẳng', selected: true },
-        { id: 2, icon: 'mood', label: 'Cải thiện tâm trạng' },
-        { id: 3, icon: 'bedtime', label: 'Ngủ ngon hơn' },
-        { id: 4, icon: 'spa', label: 'Thấu hiểu bản thân' },
-        { id: 5, icon: 'center-focus-strong', label: 'Tăng sự tập trung' },
-        { id: 6, icon: 'auto-stories', label: 'Xây dựng thói quen' },
+    // Q1 Options
+    const improveGoalsOptions = [
+        { id: 'Reduce stress', icon: 'eco', label: 'Giảm căng thẳng' },
+        { id: 'Improve mood', icon: 'mood', label: 'Cải thiện tâm trạng' },
+        { id: 'Sleep better', icon: 'bedtime', label: 'Ngủ ngon hơn' },
+        { id: 'Better self-understanding', icon: 'spa', label: 'Thấu hiểu bản thân' },
+        { id: 'Increase focus', icon: 'center-focus-strong', label: 'Tăng sự tập trung' },
+        { id: 'Build positive habits', icon: 'auto-stories', label: 'Xây dựng thói quen' },
     ];
 
-    const feelings = [
+    // Q2 Options
+    const frequentFeelingOptions = [
         'Bình yên & Thư thái',
-        { label: 'Tích cực & Động lực', selected: true },
+        'Tích cực & Động lực',
         'Tự tin hơn',
         'Cân bằng & Ổn định',
         'Sáng suốt',
     ];
+
+    // Q3 Options
+    const personalGoalOptions = [
+        'Quản lý cảm xúc tốt hơn',
+        'Hiểu rõ suy nghĩ hơn',
+        'Cải thiện sức khỏe tinh thần',
+        'Phát triển bản thân',
+        'Tìm thấy sự cân bằng',
+    ];
+
+    const [selectedImproveGoals, setSelectedImproveGoals] = useState([]);
+    const [selectedFeeling, setSelectedFeeling] = useState('');
+    const [selectedGoalDesc, setSelectedGoalDesc] = useState('');
+
+    const toggleImproveGoal = (id) => {
+        setSelectedImproveGoals((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter((item) => item !== id);
+            }
+            if (prev.length < 2) {
+                return [...prev, id];
+            }
+            return [prev[1], id]; // Keep max 2, replace oldest
+        });
+    };
+
+    const handleContinue = () => {
+        if (selectedImproveGoals.length > 0 && selectedFeeling && selectedGoalDesc) {
+            navigation.navigate('OnboardingStep2', {
+                onboardingData: {
+                    improveGoals: selectedImproveGoals,
+                    frequentFeeling: selectedFeeling,
+                    personalGoalDescription: selectedGoalDesc,
+                }
+            });
+        }
+    };
+
+    const isFormValid = selectedImproveGoals.length > 0 && selectedFeeling !== '' && selectedGoalDesc !== '';
 
     return (
         <View style={styles.container}>
@@ -55,7 +96,7 @@ const StepOneScreen = ({ navigation }) => {
             >
                 {/* Progress Stepper */}
                 <View style={styles.progressContainer}>
-                    <Text style={styles.progressLabel}>HÀNH TRÌNH BẮT ĐẦU • 01/03</Text>
+                    <Text style={styles.progressLabel}>CỘT MỐC 01: KIỂM TRA (CHECK IN)</Text>
                     <View style={styles.progressBar}>
                         <View style={styles.progressFill} />
                     </View>
@@ -64,64 +105,91 @@ const StepOneScreen = ({ navigation }) => {
                 {/* Hero Section */}
                 <View style={styles.heroSection}>
                     <Text style={styles.displayTitle}>
-                        Điều gì bạn muốn {"\n"}
-                        <Text style={styles.italicTitle}>cải thiện</Text> nhất?
+                        Bắt đầu ngày mới {"\n"}
+                        bằng việc <Text style={styles.italicTitle}>lắng nghe</Text> bản thân
                     </Text>
-                    <Text style={styles.subtitle}>Chọn tối đa 2 mục tiêu để chúng mình hỗ trợ bạn tốt nhất.</Text>
+                    <Text style={styles.subtitle}>Chọn mục tiêu bạn muốn tập trung cải thiện nhất (Tối đa 2).</Text>
                 </View>
 
                 {/* Goals Grid */}
                 <View style={styles.goalsGrid}>
-                    {goals.map((item) => (
-                        <TouchableOpacity
-                            key={item.id}
-                            style={[styles.goalCard, item.selected && styles.goalCardSelected]}
-                            activeOpacity={0.8}
-                        >
-                            <View style={[styles.iconCircle, item.selected && styles.iconCircleSelected]}>
-                                <MaterialIcons
-                                    name={item.icon}
-                                    size={24}
-                                    color={item.selected ? theme.colors.white : theme.colors.primary}
-                                />
-                            </View>
-                            <Text style={[styles.goalLabel, item.selected && styles.goalLabelSelected]}>
-                                {item.label}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                    {improveGoalsOptions.map((item) => {
+                        const isSelected = selectedImproveGoals.includes(item.id);
+                        return (
+                            <TouchableOpacity
+                                key={item.id}
+                                style={[styles.goalCard, isSelected && styles.goalCardSelected]}
+                                onPress={() => toggleImproveGoal(item.id)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.iconCircle, isSelected && styles.iconCircleSelected]}>
+                                    <MaterialIcons
+                                        name={item.icon}
+                                        size={24}
+                                        color={isSelected ? theme.colors.white : theme.colors.primary}
+                                    />
+                                </View>
+                                <Text style={[styles.goalLabel, isSelected && styles.goalLabelSelected]}>
+                                    {item.label}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
 
                 {/* Section: Feelings */}
                 <View style={styles.feelingSection}>
                     <Text style={styles.sectionTitle}>Bạn muốn cảm thấy thế nào thường xuyên hơn?</Text>
                     <View style={styles.chipContainer}>
-                        {feelings.map((item, i) => {
-                            const label = typeof item === 'string' ? item : item.label;
-                            const selected = typeof item === 'object' && item.selected;
+                        {frequentFeelingOptions.map((item) => {
+                            const isSelected = selectedFeeling === item;
                             return (
                                 <TouchableOpacity
-                                    key={i}
-                                    style={[styles.chip, selected && styles.chipSelected]}
+                                    key={item}
+                                    onPress={() => setSelectedFeeling(item)}
+                                    style={[styles.chip, isSelected && styles.chipSelected]}
                                 >
-                                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                                        {label}
+                                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                                        {item}
                                     </Text>
-                                    {selected && <MaterialIcons name="check" size={18} color={theme.colors.secondary} />}
+                                    {isSelected && <MaterialIcons name="check" size={18} color={theme.colors.secondary} />}
                                 </TouchableOpacity>
                             );
                         })}
                     </View>
                 </View>
 
-                <View style={{ height: 100 }} />
+                {/* Section: Personal Goal Context */}
+                <View style={styles.feelingSection}>
+                    <Text style={styles.sectionTitle}>Mục tiêu của bạn tại khu vườn này là gì?</Text>
+                    <View style={styles.chipContainer}>
+                        {personalGoalOptions.map((item) => {
+                            const isSelected = selectedGoalDesc === item;
+                            return (
+                                <TouchableOpacity
+                                    key={item}
+                                    onPress={() => setSelectedGoalDesc(item)}
+                                    style={[styles.chip, isSelected && styles.chipSelected]}
+                                >
+                                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                                        {item}
+                                    </Text>
+                                    {isSelected && <MaterialIcons name="check" size={18} color={theme.colors.secondary} />}
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                </View>
+
+                <View style={{ height: 160 }} />
             </ScrollView>
 
             {/* Bottom Floating Action */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={styles.primaryButton}
-                    onPress={() => navigation.navigate('OnboardingStep2')}
+                    style={[styles.primaryButton, !isFormValid && { opacity: 0.5 }]}
+                    onPress={handleContinue}
+                    disabled={!isFormValid}
                     activeOpacity={0.9}
                 >
                     <Text style={styles.primaryButtonText}>Tiếp tục</Text>
@@ -204,7 +272,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     progressFill: {
-        width: '33%',
+        width: '25%',
         height: '100%',
         backgroundColor: theme.colors.primary,
         borderRadius: 3,

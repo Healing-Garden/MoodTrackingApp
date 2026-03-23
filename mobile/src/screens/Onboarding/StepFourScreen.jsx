@@ -8,33 +8,77 @@ import {
     StatusBar,
     TextInput,
     Dimensions,
+    ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import api from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
-const StepFourScreen = ({ navigation }) => {
-    const [selectedMood, setSelectedMood] = useState(2);
-    const [energyLevel, setEnergyLevel] = useState(8);
+const StepFourScreen = ({ navigation, route }) => {
+    const { onboardingData } = route.params || { onboardingData: {} };
+    const [loading, setLoading] = useState(false);
+
+    const [selectedMood, setSelectedMood] = useState(3);
+    const [energyLevel, setEnergyLevel] = useState(5);
+    const [selectedTriggers, setSelectedTriggers] = useState(['Work']);
+    const [note, setNote] = useState('');
 
     const moods = [
-        { id: 1, emoji: '🤩', label: 'Rất tốt' },
-        { id: 2, emoji: '😊', label: 'Ổn' },
+        { id: 5, emoji: '🤩', label: 'Rất tốt' },
+        { id: 4, emoji: '😊', label: 'Ổn' },
         { id: 3, emoji: '😐', label: 'Bình thường' },
-        { id: 4, emoji: '😔', label: 'Hơi thấp' },
-        { id: 5, emoji: '😫', label: 'Tệ' },
+        { id: 2, emoji: '😔', label: 'Hơi thấp' },
+        { id: 1, emoji: '😫', label: 'Tệ' },
     ];
 
-    const triggers = [
-        { label: 'Công việc', selected: true },
-        { label: 'Gia đình', selected: true },
-        { label: 'Sức khỏe', selected: true },
-        { label: 'Tài chính' },
-        { label: 'Xã hội' },
-        { label: 'Thời tiết' },
-        { label: 'Giấc ngủ' },
+    const triggerOptions = [
+        { id: 'Work', label: 'Công việc' },
+        { id: 'Family', label: 'Gia đình' },
+        { id: 'Health', label: 'Sức khỏe' },
+        { id: 'Finance', label: 'Tài chính' },
+        { id: 'Social', label: 'Xã hội' },
+        { id: 'Weather', label: 'Thời tiết' },
+        { id: 'Sleep', label: 'Giấc ngủ' },
     ];
+
+    const toggleTrigger = (id) => {
+        setSelectedTriggers((prev) =>
+            prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+        );
+    };
+
+    const handleFinish = async () => {
+        setLoading(true);
+        try {
+            // 1. Save Onboarding Preferences
+            await api.post('/user/onboarding', {
+                ...onboardingData,
+                isOnboarded: true,
+            });
+
+            // 2. Save Initial Check-in
+            await api.post('/user/checkins', {
+                mood: selectedMood,
+                energyLevel: energyLevel,
+                triggers: selectedTriggers,
+                note: note,
+            });
+
+            // 3. Navigate to Home
+            navigation.replace('Dashboard');
+        } catch (error) {
+            console.error('Onboarding failed:', error);
+            Alert.alert(
+                'Lỗi',
+                'Không thể lưu thông tin. Vui lòng thử lại sau.'
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -50,10 +94,10 @@ const StepFourScreen = ({ navigation }) => {
                     <MaterialIcons name="arrow-back" size={24} color={theme.colors.onSurface} />
                 </TouchableOpacity>
                 <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Kiểm tra hằng ngày</Text>
+                    <Text style={styles.headerTitle}>Cột mốc 04: Nuôi dưỡng</Text>
                 </View>
                 <View style={styles.stepBadge}>
-                    <Text style={styles.stepBadgeText}>04/04</Text>
+                    <Text style={styles.stepBadgeText}>GROW</Text>
                 </View>
             </View>
 
@@ -64,8 +108,8 @@ const StepFourScreen = ({ navigation }) => {
                 {/* Hero Section */}
                 <View style={styles.heroSection}>
                     <Text style={styles.displayTitle}>
-                        Hiện tại bạn {"\n"}
-                        <Text style={styles.italicTitle}>cảm thấy</Text> thế nào?
+                        Hãy bắt đầu {"\n"}
+                        <Text style={styles.italicTitle}>kiểm tra</Text> cảm xúc đầu tiên
                     </Text>
                 </View>
 
@@ -101,15 +145,19 @@ const StepFourScreen = ({ navigation }) => {
                         <View style={styles.sliderHeader}>
                             <Text style={styles.sliderValue}>{energyLevel}/10</Text>
                             <Text style={styles.sliderStatus}>
-                                {energyLevel > 7 ? 'Tràn đầy từ tin' : energyLevel > 4 ? 'Vừa phải' : 'Hơi mệt mỏi'}
+                                {energyLevel > 7 ? 'Tràn đầy tự tin' : energyLevel > 4 ? 'Vừa phải' : 'Hơi mệt mỏi'}
                             </Text>
                         </View>
 
-                        <View style={styles.track}>
-                            <View style={[styles.fill, { width: `${energyLevel * 10}%` }]} />
-                            <View style={[styles.thumb, { left: `${energyLevel * 10}%` }]}>
-                                <View style={styles.thumbInner} />
-                            </View>
+                        {/* Interactive Slider Placeholder using 5 buttons for mobile simplicity/consistency */}
+                        <View style={styles.energyButtons}>
+                            {[2, 4, 6, 8, 10].map((val) => (
+                                <TouchableOpacity
+                                    key={val}
+                                    onPress={() => setEnergyLevel(val)}
+                                    style={[styles.energyDot, energyLevel === val && styles.energyDotActive]}
+                                />
+                            ))}
                         </View>
 
                         <View style={styles.sliderLabels}>
@@ -123,26 +171,32 @@ const StepFourScreen = ({ navigation }) => {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Yếu tố nào ảnh hưởng đến bạn?</Text>
                     <View style={styles.triggerGrid}>
-                        {triggers.map((trigger, i) => (
-                            <TouchableOpacity
-                                key={i}
-                                style={[styles.triggerChip, trigger.selected && styles.triggerChipSelected]}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={[styles.triggerChipText, trigger.selected && styles.triggerChipTextSelected]}>
-                                    {trigger.label}
-                                </Text>
-                                {trigger.selected && <MaterialIcons name="check" size={16} color={theme.colors.secondary} />}
-                            </TouchableOpacity>
-                        ))}
+                        {triggerOptions.map((trigger) => {
+                            const isSelected = selectedTriggers.includes(trigger.id);
+                            return (
+                                <TouchableOpacity
+                                    key={trigger.id}
+                                    onPress={() => toggleTrigger(trigger.id)}
+                                    style={[styles.triggerChip, isSelected && styles.triggerChipSelected]}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={[styles.triggerChipText, isSelected && styles.triggerChipTextSelected]}>
+                                        {trigger.label}
+                                    </Text>
+                                    {isSelected && <MaterialIcons name="check" size={16} color={theme.colors.secondary} />}
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
                 </View>
 
                 {/* Quick Note */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Ghi chú nhanh</Text>
+                    <Text style={styles.sectionTitle}>Ghi chú nhanh (Tùy chọn)</Text>
                     <TextInput
                         style={styles.noteInput}
+                        value={note}
+                        onChangeText={setNote}
                         placeholder="Có điều gì đang ở trong tâm trí bạn?"
                         placeholderTextColor="rgba(39, 107, 46, 0.3)"
                         multiline
@@ -150,18 +204,25 @@ const StepFourScreen = ({ navigation }) => {
                     />
                 </View>
 
-                <View style={{ height: 120 }} />
+                <View style={{ height: 160 }} />
             </ScrollView>
 
             {/* Final Celebration Button */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={styles.primaryButton}
-                    onPress={() => navigation.navigate('Dashboard')}
+                    style={[styles.primaryButton, loading && { opacity: 0.7 }]}
+                    onPress={handleFinish}
+                    disabled={loading}
                     activeOpacity={0.9}
                 >
-                    <MaterialIcons name="celebration" size={24} color={theme.colors.white} />
-                    <Text style={styles.primaryButtonText}>Hoàn tất & Bắt đầu</Text>
+                    {loading ? (
+                        <ActivityIndicator color={theme.colors.white} />
+                    ) : (
+                        <>
+                            <MaterialIcons name="celebration" size={24} color={theme.colors.white} />
+                            <Text style={styles.primaryButtonText}>Hoàn tất & Khám phá</Text>
+                        </>
+                    )}
                 </TouchableOpacity>
             </View>
         </View>
@@ -314,6 +375,26 @@ const styles = StyleSheet.create({
     sliderStatus: {
         ...theme.typography.label,
         color: theme.colors.onSurfaceVariant,
+    },
+    energyButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        marginBottom: 20,
+    },
+    energyDot: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderWidth: 2,
+        borderColor: 'transparent',
+    },
+    energyDotActive: {
+        backgroundColor: theme.colors.secondary,
+        borderColor: theme.colors.secondaryContainer,
+        transform: [{ scale: 1.2 }],
     },
     track: {
         height: 12,
