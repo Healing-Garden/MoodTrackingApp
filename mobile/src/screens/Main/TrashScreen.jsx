@@ -36,6 +36,7 @@ const TrashScreen = ({ navigation }) => {
             remain: "2 days remaining"
         }
     ]
+    
 
     return (
 

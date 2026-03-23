@@ -62,7 +62,7 @@ const EditPinScreen = ({ navigation }) => {
 
                     {/* Toggle PIN */}
                     <View style={styles.card}>
-                        <View style={styles.cardLeft}>
+<View style={styles.cardLeft}>
                             <View style={[styles.cardIconBg, { backgroundColor: 'rgba(154,225,255,0.3)' }]}>
                                 <MaterialCommunityIcons name="verified" size={22} color={theme.colors.secondary} />
                             </View>
@@ -119,7 +119,7 @@ const EditPinScreen = ({ navigation }) => {
                             size={24}
                             color={item.active ? theme.colors.primary : theme.colors.onSurfaceVariant}
                         />
-                        <Text style={[styles.navLabel, item.active && { color: theme.colors.primary }]}>
+<Text style={[styles.navLabel, item.active && { color: theme.colors.primary }]}>
                             {item.label}
                         </Text>
                     </TouchableOpacity>
