@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     chatWrapper: {
         flex: 1,
         paddingTop: 140,
-        paddingBottom: 100, // Tăng lên để tin nhắn cuối không bị che khi input xuất hiện
+        paddingBottom: 100,
     },
     scrollContent: {
         paddingHorizontal: 20,

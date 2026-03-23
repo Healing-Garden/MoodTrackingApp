@@ -13,12 +13,11 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Svg, Path, Defs, LinearGradient, Stop, Rect, Circle } from 'react-native-svg';
-// import { BlurView } from 'expo-blur'; // Remove if not strictly needed or if problematic
-// import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+import AdminBottomNavBar from '../../components/common/AdminBottomNavBar';
 
 const { width } = Dimensions.get('window');
 
-const DashboardAdminScreens = () => {
+const DashboardAdminScreens = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
@@ -191,25 +190,7 @@ const DashboardAdminScreens = () => {
                 </View>
             </ScrollView>
 
-            {/* Bottom Navigation Mockup */}
-            <View style={styles.bottomNav}>
-                <TouchableOpacity style={styles.navItemActive}>
-                    <MaterialIcons name="dashboard" size={24} color="#06210a" />
-                    <Text style={styles.navTextActive}>DASHBOARD</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Feedback")}>
-                    <MaterialIcons name="Feedback" size={24} color="#a8a29e" />
-                    <Text style={styles.navText}>FEEDBACK</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("ManagementFeedback")}>
-                    <MaterialIcons name="group" size={24} color="#a8a29e" />
-                    <Text style={styles.navText}>USER</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <MaterialIcons name="spa" size={24} color="#a8a29e" />
-                    <Text style={styles.navText}>HEALING</Text>
-                </TouchableOpacity>
-            </View>
+            <AdminBottomNavBar navigation={navigation} activeTab="Dashboard" />
         </SafeAreaView>
     );
 };

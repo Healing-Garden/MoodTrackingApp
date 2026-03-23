@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import AdminBottomNavBar from '../../components/common/AdminBottomNavBar';
+
 
 const { width } = Dimensions.get('window');
 
@@ -138,25 +140,7 @@ const ManagementFeedback = ({ navigation }) => {
                 </LinearGradient>
             </TouchableOpacity>
 
-            {/* Bottom Navigation Mockup */}
-            <View style={styles.bottomNav}>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("AdminDashboard")}>
-                    <MaterialIcons name="dashboard" size={24} color="#065f46" />
-                    <Text style={styles.navText}>Dashboard</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <MaterialIcons name="chat" size={24} color="#065f46" />
-                    <Text style={styles.navText}>Feedback</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItemActive}>
-                    <MaterialIcons name="group" size={24} color="#06210a" />
-                    <Text style={styles.navTextActive}>User</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem}>
-                    <MaterialIcons name="spa" size={24} color="#065f46" />
-                    <Text style={styles.navText}>Healing</Text>
-                </TouchableOpacity>
-            </View>
+            <AdminBottomNavBar navigation={navigation} activeTab="Users" />
         </SafeAreaView>
     );
 };
