@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -8,15 +8,74 @@ import {
     StatusBar,
     ScrollView,
     Dimensions,
-    Image
+    Image,
+    ActivityIndicator,
+    Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import { theme } from "../../theme";
+import api, { setAuthToken } from "../../services/api";
 
 const { width, height } = Dimensions.get("window");
 
 const RegisterScreen = ({ navigation }) => {
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [otp, setOtp] = useState("");
+    const [showOtp, setShowOtp] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handleRegister = async () => {
+        if (!fullName || !email || !password) {
+            Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await api.post("/auth/register", {
+                fullName,
+                email,
+                password,
+            });
+
+            setShowOtp(true);
+            Alert.alert("Thành công", "Mã OTP đã được gửi đến email của bạn.");
+        } catch (error) {
+            console.error("Registration initial failed:", error);
+            const errorMsg = error.response?.data?.message || "Đăng ký thất bại. Email có thể đã tồn tại.";
+            Alert.alert("Lỗi", errorMsg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerifyOtp = async () => {
+        if (!otp) {
+            Alert.alert("Lỗi", "Vui lòng nhập mã OTP.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await api.post("/auth/register/verify-otp", {
+                email,
+                otp,
+            });
+
+            Alert.alert("Thành công", "Đăng ký thành công! Vui lòng đăng nhập.");
+            navigation.navigate("Login");
+        } catch (error) {
+            console.error("OTP Verification failed:", error);
+            const errorMsg = error.response?.data?.message || "Mã OTP không hợp lệ hoặc đã hết hạn.";
+            Alert.alert("Lỗi", errorMsg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
@@ -41,33 +100,65 @@ const RegisterScreen = ({ navigation }) => {
                 {/* HERO */}
                 <View style={styles.hero}>
                     <Text style={styles.title}>
-                        Bắt đầu hành trình{"\n"}
-                        <Text style={styles.italic}>chữa lành.</Text>
+                        {showOtp ? "Xác thực OTP" : "Bắt đầu hành trình\n" + "chữa lành."}
                     </Text>
 
                     <Text style={styles.subtitle}>
-                        Tham gia cùng cộng đồng Healing Garden để tìm lại sự bình yên trong tâm hồn.
+                        {showOtp 
+                            ? "Vui lòng kiểm tra email của bạn để lấy mã xác thực."
+                            : "Tham gia cùng cộng đồng Healing Garden để tìm lại sự bình yên trong tâm hồn."}
                     </Text>
                 </View>
 
                 {/* FORM */}
                 <View style={styles.form}>
+                    {!showOtp ? (
+                        <>
+                            <Input label="Họ tên" icon="person-outline" value={fullName} onChangeText={setFullName} />
+                            <Input label="Email" icon="mail-outline" value={email} onChangeText={setEmail} />
+                            <Input label="Mật khẩu" icon="lock-outline" secure value={password} onChangeText={setPassword} />
 
-                    <Input label="Họ tên" icon="person-outline" />
-                    <Input label="Email" icon="mail-outline" />
-                    <Input label="Mật khẩu" icon="lock-outline" secure />
-                    <Input label="Xác nhận mật khẩu" icon="verified-user" secure />
+                            <TouchableOpacity onPress={handleRegister} disabled={loading}>
+                                <LinearGradient
+                                    colors={["#276b2e", "#60a560"]}
+                                    style={[styles.button, loading && { opacity: 0.7 }]}
+                                >
+                                    {loading ? (
+                                        <ActivityIndicator color="#fff" />
+                                    ) : (
+                                        <>
+                                            <Text style={styles.buttonText}>Đăng Ký Ngay</Text>
+                                            <MaterialIcons name="east" size={22} color="#fff" />
+                                        </>
+                                    )}
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <>
+                            <Input label="Mã OTP" icon="vpn-key" value={otp} onChangeText={setOtp} />
+                            
+                            <TouchableOpacity onPress={handleVerifyOtp} disabled={loading}>
+                                <LinearGradient
+                                    colors={["#276b2e", "#60a560"]}
+                                    style={[styles.button, loading && { opacity: 0.7 }]}
+                                >
+                                    {loading ? (
+                                        <ActivityIndicator color="#fff" />
+                                    ) : (
+                                        <>
+                                            <Text style={styles.buttonText}>Xác nhận OTP</Text>
+                                            <MaterialIcons name="check" size={22} color="#fff" />
+                                        </>
+                                    )}
+                                </LinearGradient>
+                            </TouchableOpacity>
 
-                    <TouchableOpacity>
-                        <LinearGradient
-                            colors={["#276b2e", "#60a560"]}
-                            style={styles.button}
-                        >
-                            <Text style={styles.buttonText}>Đăng Ký Ngay</Text>
-                            <MaterialIcons name="east" size={22} color="#fff" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-
+                            <TouchableOpacity onPress={() => setShowOtp(false)} style={{ marginTop: 10 }}>
+                                <Text style={{ textAlign: 'center', color: theme.colors.primary }}>Quay lại</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
                 </View>
 
                 {/* DIVIDER */}
@@ -111,7 +202,7 @@ const RegisterScreen = ({ navigation }) => {
 
 export default RegisterScreen;
 
-const Input = ({ label, icon, secure }) => (
+const Input = ({ label, icon, secure, value, onChangeText }) => (
     <View style={styles.inputGroup}>
         <Text style={styles.label}>{label}</Text>
 
@@ -120,6 +211,9 @@ const Input = ({ label, icon, secure }) => (
                 secureTextEntry={secure}
                 style={styles.input}
                 placeholder={label}
+                value={value}
+                onChangeText={onChangeText}
+                autoCapitalize={label === "Email" ? "none" : "sentences"}
             />
 
             <MaterialIcons

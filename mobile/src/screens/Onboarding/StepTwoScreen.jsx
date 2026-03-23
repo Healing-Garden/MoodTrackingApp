@@ -13,24 +13,54 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 
-const StepTwoScreen = ({ navigation }) => {
-    const [stressLevel, setStressLevel] = useState(7);
+const StepTwoScreen = ({ navigation, route }) => {
+    const { onboardingData } = route.params || { onboardingData: {} };
 
-    const emotionalStates = [
-        { id: 1, emoji: '😔', label: 'U sầu' },
-        { id: 2, emoji: '😰', label: 'Lo âu', selected: true },
-        { id: 3, emoji: '😠', label: 'Tức giận' },
-        { id: 4, emoji: '😓', label: 'Áp lực' },
-        { id: 5, emoji: '😶', label: 'Vô cảm' },
+    // Q4 Options
+    const stressLevelOptions = [
+        'Rất thấp',
+        'Thấp',
+        'Trung bình',
+        'Cao',
+        'Rất cao',
     ];
 
-    const selfUnderstandingOptions = [
-        'Mình hiểu rõ bản thân',
-        { label: 'Đang dần thấu hiểu', selected: true },
-        'Đôi khi thấy mông lung',
-        'Cần thêm thời gian chiêm nghiệm',
-        'Vừa bắt đầu hành trình',
+    // Q5 Options
+    const recentStateOptions = [
+        { id: 'Peaceful', emoji: '😌', label: 'Bình yên' },
+        { id: 'Anxious', emoji: '😰', label: 'Lo âu' },
+        { id: 'Tired', emoji: '😓', label: 'Mệt mỏi' },
+        { id: 'Sad', emoji: '😔', label: 'Buồn bã' },
+        { id: 'Stressed', emoji: '😠', label: 'Căng thẳng' },
     ];
+
+    // Q6 Options
+    const emotionalClarityOptions = [
+        'Rất thấu hiểu',
+        'Khá thấu hiểu',
+        'Bình thường',
+        'Khó thấu hiểu',
+        'Rất khó thấu hiểu',
+    ];
+
+    const [selectedStress, setSelectedStress] = useState('');
+    const [selectedRecentState, setSelectedRecentState] = useState('');
+    const [selectedClarity, setSelectedClarity] = useState('');
+
+    const handleContinue = () => {
+        if (selectedStress && selectedRecentState && selectedClarity) {
+            navigation.navigate('OnboardingStep3', {
+                onboardingData: {
+                    ...onboardingData,
+                    stressLevel: selectedStress,
+                    recentState: selectedRecentState,
+                    emotionalClarity: selectedClarity,
+                }
+            });
+        }
+    };
+
+    const isFormValid = selectedStress !== '' && selectedRecentState !== '' && selectedClarity !== '';
 
     return (
         <View style={styles.container}>
@@ -56,77 +86,78 @@ const StepTwoScreen = ({ navigation }) => {
             >
                 {/* Progress Stepper */}
                 <View style={styles.progressContainer}>
-                    <Text style={styles.progressLabel}>HÀNH TRÌNH TIẾP DIỄN • 02/03</Text>
+                    <Text style={styles.progressLabel}>CỘT MỐC 02: NHẬT KÝ (JOURNAL)</Text>
                     <View style={styles.progressBar}>
                         <View style={styles.progressFill} />
                     </View>
                 </View>
 
-                {/* Section 1: Stress Level (Editorial Slider) */}
+                {/* Section 1: Stress Level */}
                 <View style={styles.section}>
                     <Text style={styles.displayTitle}>
-                        Gần đây bạn {"\n"}
-                        <Text style={styles.italicTitle}>áp lực</Text> thế nào?
+                        Chia sẻ trạng thái {"\n"}
+                        hiện tại của <Text style={styles.italicTitle}>bạn</Text>
                     </Text>
 
-                    <View style={styles.editorialSliderContainer}>
-                        <View style={styles.sliderHeader}>
-                            <Text style={styles.sliderValue}>{stressLevel}/10</Text>
-                            <Text style={styles.sliderStatus}>
-                                {stressLevel > 7 ? 'Rất căng thẳng' : stressLevel > 4 ? 'Căng thẳng vừa' : 'Khá bình ổn'}
-                            </Text>
-                        </View>
-
-                        <View style={styles.track}>
-                            <View style={[styles.fill, { width: `${stressLevel * 10}%` }]} />
-                            <View style={[styles.thumb, { left: `${stressLevel * 10}%` }]}>
-                                <View style={styles.thumbInner} />
-                            </View>
-                        </View>
-
-                        <View style={styles.sliderLabels}>
-                            <Text style={styles.labelSmall}>TỰ TẠI</Text>
-                            <Text style={styles.labelSmall}>QUÁ TẢI</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Section 2: Typical Mood (Asymmetric Pebbles) */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Trạng thái tâm trí thường gặp?</Text>
-                    <View style={styles.moodGrid}>
-                        {emotionalStates.map((item) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={[styles.moodPebble, item.selected && styles.moodPebbleSelected]}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.moodEmoji}>{item.emoji}</Text>
-                                <Text style={[styles.moodLabel, item.selected && styles.moodLabelSelected]}>
-                                    {item.label}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </View>
-
-                {/* Section 3: Self-discovery */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Bạn thấy mình thấu hiểu bản thân đến đâu?</Text>
-                    <View style={styles.listContainer}>
-                        {selfUnderstandingOptions.map((item, i) => {
-                            const label = typeof item === 'string' ? item : item.label;
-                            const selected = typeof item === 'object' && item.selected;
+                    <Text style={styles.sectionTitle}>Mức độ căng thẳng tuần qua?</Text>
+                    <View style={styles.stressContainer}>
+                        {stressLevelOptions.map((opt) => {
+                            const isSelected = selectedStress === opt;
                             return (
                                 <TouchableOpacity
-                                    key={i}
-                                    style={[styles.listItem, selected && styles.listItemSelected]}
+                                    key={opt}
+                                    onPress={() => setSelectedStress(opt)}
+                                    style={[styles.stressBtn, isSelected && styles.stressBtnSelected]}
                                 >
-                                    <Text style={[styles.listItemText, selected && styles.listItemTextSelected]}>
-                                        {label}
+                                    <Text style={[styles.stressText, isSelected && styles.stressTextSelected]}>
+                                        {opt}
                                     </Text>
-                                    <View style={[styles.radio, selected && styles.radioSelected]}>
-                                        {selected && <View style={styles.radioInner} />}
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                </View>
+
+                {/* Section 2: Typical Mood */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Trạng thái tâm trí thường gặp gần đây?</Text>
+                    <View style={styles.moodGrid}>
+                        {recentStateOptions.map((item) => {
+                            const isSelected = selectedRecentState === item.id;
+                            return (
+                                <TouchableOpacity
+                                    key={item.id}
+                                    onPress={() => setSelectedRecentState(item.id)}
+                                    style={[styles.moodPebble, isSelected && styles.moodPebbleSelected]}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.moodEmoji}>{item.emoji}</Text>
+                                    <Text style={[styles.moodLabel, isSelected && styles.moodLabelSelected]}>
+                                        {item.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                </View>
+
+                {/* Section 3: Emotional Clarity */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Bạn thấu hiểu cảm xúc của mình đến mức nào?</Text>
+                    <View style={styles.listContainer}>
+                        {emotionalClarityOptions.map((item) => {
+                            const isSelected = selectedClarity === item;
+                            return (
+                                <TouchableOpacity
+                                    key={item}
+                                    onPress={() => setSelectedClarity(item)}
+                                    style={[styles.listItem, isSelected && styles.listItemSelected]}
+                                >
+                                    <Text style={[styles.listItemText, isSelected && styles.listItemTextSelected]}>
+                                        {item}
+                                    </Text>
+                                    <View style={[styles.radio, isSelected && styles.radioSelected]}>
+                                        {isSelected && <View style={styles.radioInner} />}
                                     </View>
                                 </TouchableOpacity>
                             );
@@ -140,8 +171,9 @@ const StepTwoScreen = ({ navigation }) => {
             {/* Bottom Floating Action */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={styles.primaryButton}
-                    onPress={() => navigation.navigate('OnboardingStep3')}
+                    style={[styles.primaryButton, !isFormValid && { opacity: 0.5 }]}
+                    onPress={handleContinue}
+                    disabled={!isFormValid}
                     activeOpacity={0.9}
                 >
                     <Text style={styles.primaryButtonText}>Tiếp tục</Text>
@@ -224,7 +256,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     progressFill: {
-        width: '66%',
+        width: '50%',
         height: '100%',
         backgroundColor: theme.colors.primary,
         borderRadius: 3,
@@ -299,6 +331,32 @@ const styles = StyleSheet.create({
         color: theme.colors.onSurfaceVariant,
         opacity: 0.6,
         letterSpacing: 1,
+    },
+    stressContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+    },
+    stressBtn: {
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        backgroundColor: theme.colors.surfaceContainerLow,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    stressBtnSelected: {
+        backgroundColor: theme.colors.primaryContainer,
+        borderColor: theme.colors.primary,
+    },
+    stressText: {
+        ...theme.typography.body,
+        fontSize: 14,
+        color: theme.colors.onSurfaceVariant,
+    },
+    stressTextSelected: {
+        color: theme.colors.primary,
+        fontWeight: '700',
     },
     sectionTitle: {
         ...theme.typography.headline,
