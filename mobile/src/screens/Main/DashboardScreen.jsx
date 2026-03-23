@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -17,108 +17,67 @@ import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
 import userService from '../../services/userService';
 import logo from '../../../assets/images/logo.png';
+import api from '../../services/api';
+import { aiApi } from '../../services/aiApi';
 
 const { width } = Dimensions.get('window');
 
 const DashboardScreen = ({ navigation }) => {
-    const [userProfile, setUserProfile] = useState(null);
-    const [dashboardData, setDashboardData] = useState(null);
-    const [moodFlow, setMoodFlow] = useState([]);
-    const [dailyQuote, setDailyQuote] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [greeting, setGreeting] = useState('');
+    const [user, setUser] = useState(null);
+    const [dailySummary, setDailySummary] = useState(null);
+    const [loadingSummary, setLoadingSummary] = useState(true);
 
-    useEffect(() => {
-        const hour = new Date().getHours();
-        if (hour < 12) setGreeting('Good Morning');
-        else if (hour < 18) setGreeting('Good Afternoon');
-        else if (hour < 21) setGreeting('Good Evening');
-        else setGreeting('Good Night');
-    }, []);
-
-    const fetchData = useCallback(async () => {
-        try {
-            setLoading(true);
-            const [profile, stats, flow, quotes] = await Promise.all([
-                userService.getProfile(),
-                userService.getDashboardData(),
-                userService.getMoodFlow ? userService.getMoodFlow('week') : userService.getDashboardData(), // Fallback if not specifically implemented
-                userService.getHealingContent('quote')
-            ]);
-
-            setUserProfile(profile);
-            setDashboardData(stats);
-            
-            // Handle mood flow data
-            if (flow && flow.items) {
-                setMoodFlow(flow.items);
-            } else if (stats && stats.moodDistribution) {
-                // Fallback or handle differently
-            }
-
-            // Handle daily quote
-            if (quotes && quotes.length > 0) {
-                const today = new Date();
-                const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-                const index = seed % quotes.length;
-                setDailyQuote(quotes[index]);
-            }
-        } catch (error) {
-            console.error('Failed to fetch dashboard data:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    const renderMoodTrend = () => {
-        const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-        const today = new Date().getDay(); // 0 is Sunday, 1 is Monday...
-        const adjustedDays = [...days.slice(today), ...days.slice(0, today)]; // Last 7 days including today
-        
-        // Mock data if no real data yet, or process real data
-        const displayData = moodFlow.length > 0 
-            ? moodFlow.slice(-7).map(item => ({
-                val: item.mood / 5, // Normalize to 0-1
-                label: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
-            }))
-            : [0.5, 0.65, 0.45, 0.75, 1, 0.6, 0.9].map((v, i) => ({
-                val: v,
-                label: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'TODAY'][i]
-            }));
-
-        return (
-            <View style={styles.chartContainer}>
-                {displayData.map((data, i) => (
-                    <View key={i} style={styles.chartCol}>
-                        <View style={[styles.bar, { height: data.val * 80 }]}>
-                            <MaterialIcons 
-                                name={data.val >= 0.8 ? "sentiment-very-satisfied" : data.val >= 0.6 ? "sentiment-satisfied" : "sentiment-neutral"} 
-                                size={16} 
-                                color={i === displayData.length - 1 ? theme.colors.primary : "rgba(39, 107, 46, 0.4)"} 
-                                style={styles.barIcon}
-                            />
-                        </View>
-                        <Text style={[styles.dayLabel, i === displayData.length - 1 && styles.activeDay]}>
-                            {data.label === new Date().toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase() ? 'TODAY' : data.label}
-                        </Text>
-                    </View>
-                ))}
-            </View>
-        );
+    const getLocalDateString = () => {
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
     };
 
-    if (loading && !dashboardData) {
-        return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-                <Text style={{ marginTop: 16, color: theme.colors.onSurfaceVariant }}>Tending to your garden...</Text>
-            </View>
-        );
-    }
+    useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const res = await api.get('/profile');
+                setUser(res.data?.user || null);
+            } catch (err) { }
+        };
+        loadProfile();
+    }, []);
+
+    useEffect(() => {
+        const fetchSummary = async () => {
+            if (!user?._id) return;
+            setLoadingSummary(true);
+            try {
+                const date = getLocalDateString();
+                const result = await api.get(`/ai/summary/daily/${user._id}?date=${encodeURIComponent(date)}`);
+                if (result?.data?.success && result.data.data?.summary) {
+                    setDailySummary(result.data.data.summary);
+                } else {
+                    const generateRes = await aiApi.getDailySummary(user._id, date, false);
+                    if (generateRes?.data?.success && generateRes.data?.data?.summary) {
+                        setDailySummary(generateRes.data.data.summary);
+                    }
+                }
+            } catch (error) {
+                if (error.response?.status === 404) {
+                    try {
+                        const date = getLocalDateString();
+                        const generateRes = await aiApi.getDailySummary(user._id, date, false);
+                        if (generateRes?.data?.success && generateRes.data?.data?.summary) {
+                            setDailySummary(generateRes.data.data.summary);
+                        }
+                    } catch (genErr) {
+                        console.log('Generate summary failed', genErr);
+                    }
+                }
+            } finally {
+                setLoadingSummary(false);
+            }
+        };
+        fetchSummary();
+    }, [user?._id]);
 
     return (
         <View style={styles.container}>
@@ -240,6 +199,35 @@ const DashboardScreen = ({ navigation }) => {
                         {dailyQuote?.author && <Text style={[styles.quoteLabel, { marginTop: 8, fontStyle: 'italic' }]}>— {dailyQuote.author}</Text>}
                         <View style={styles.quoteDivider} />
                         <Text style={styles.quoteLabel}>INSIGHT FOR YOUR GROWTH</Text>
+                    </View>
+                </View>
+
+                {/* DAILY AI SUMMARY */}
+                <View style={[styles.sectionHeader, { marginTop: 32 }]}>
+                    <Text style={styles.sectionLabel}>DAILY AI SUMMARY</Text>
+                </View>
+                <View style={[styles.quoteCard, { backgroundColor: 'rgba(96, 165, 96, 0.05)', borderColor: 'rgba(96, 165, 96, 0.2)' }]}>
+                    <MaterialCommunityIcons name="robot-outline" size={32} color={theme.colors.primary} style={styles.quoteIcon} />
+                    <View style={[styles.quoteContent, { marginLeft: 36 }]}>
+                        {loadingSummary ? (
+                            <Text style={[styles.quoteText, { fontStyle: 'normal', fontSize: 14 }]}>
+                                Analyzing your day...
+                            </Text>
+                        ) : dailySummary ? (
+                            <View>
+                                {dailySummary.split('\n').filter(line => line.trim() !== '').map((line, idx) => (
+                                    <Text key={idx} style={[styles.quoteText, { fontStyle: 'normal', fontSize: 14, marginBottom: 8 }]}>
+                                        • {line.replace(/^[-•]\s*/, '')}
+                                    </Text>
+                                ))}
+                            </View>
+                        ) : (
+                            <Text style={[styles.quoteText, { fontStyle: 'normal', fontSize: 14 }]}>
+                                No summary available for today yet. Check in to generate!
+                            </Text>
+                        )}
+                        <View style={[styles.quoteDivider, { backgroundColor: theme.colors.primary }]} />
+                        <Text style={[styles.quoteLabel, { color: theme.colors.primary }]}>YOUR DAY IN KEY POINTS</Text>
                     </View>
                 </View>
             </ScrollView>

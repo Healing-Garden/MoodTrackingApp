@@ -83,14 +83,15 @@ class ChatService {
     try {
       const DailyCheckin = require('../models/dailyCheckIn');
       
-      const recentCheckins = await DailyCheckin.find({ userId })
+      // DailyCheckIn model uses field name `user` (not `userId`)
+      const recentCheckins = await DailyCheckin.find({ user: userId })
         .sort({ createdAt: -1 })
         .limit(5)
         .lean();
 
       const recentMoods = recentCheckins.map(c => ({
         mood: c.mood,
-        energy: c.energyLevel,
+        energy: c.energy,
         timestamp: c.createdAt
       }));
 
@@ -125,13 +126,14 @@ class ChatService {
     }
 
     const aiData = aiResult.data;
+    const isCrisis = aiData.isCrisis ?? aiData.is_crisis ?? false;
 
     await this.saveMessage(sessionId, 'bot', aiData.text, {
       sentiment: aiData.sentiment,
       intent: aiData.intent,
       technique: aiData.technique,
       exercise: aiData.exercise,
-      isCrisis: aiData.isCrisis
+      isCrisis
     });
 
     await this.updateSessionState(sessionId, {
@@ -140,7 +142,8 @@ class ChatService {
       $addToSet: { cbtTechniquesUsed: aiData.technique }
     });
 
-    return aiData;
+    // Keep backwards compatibility with code expecting camelCase.
+    return { ...aiData, isCrisis };
   }
 }
 

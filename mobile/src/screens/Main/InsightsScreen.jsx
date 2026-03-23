@@ -15,11 +15,47 @@ import { BlurView } from 'expo-blur';
 import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
 import logo from '../../../assets/images/logo.png';
+import api from '../../services/api';
+import { aiApi } from '../../services/aiApi';
 
 const { width } = Dimensions.get('window');
 
 const InsightsScreen = ({ navigation }) => {
     const [tab, setTab] = useState('Month');
+    const [user, setUser] = useState(null);
+    const [trendData, setTrendData] = useState(null);
+    const [loadingAI, setLoadingAI] = useState(false);
+
+    React.useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const res = await api.get('/profile');
+                setUser(res.data?.user || null);
+            } catch (err) { }
+        };
+        loadProfile();
+    }, []);
+
+    React.useEffect(() => {
+        if (!user?._id) return;
+
+        const fetchTrends = async () => {
+            setLoadingAI(true);
+            try {
+                const days = tab === 'Week' ? 7 : tab === 'Month' ? 30 : 365;
+                const res = await aiApi.analyzeTrends(user._id, days);
+                if (res?.data?.success) {
+                    setTrendData(res.data.data);
+                }
+            } catch (error) {
+                console.log('Failed to fetch trend data:', error);
+            } finally {
+                setLoadingAI(false);
+            }
+        };
+
+        fetchTrends();
+    }, [tab, user?._id]);
 
     return (
         <View style={styles.container}>
@@ -240,6 +276,28 @@ const InsightsScreen = ({ navigation }) => {
                     </View>
                 </View>
 
+                {/* AI INSIGHTS SECTION */}
+                <View style={[styles.ctaCard, { backgroundColor: '#fff', padding: 24, marginBottom: 32 }]}>
+                    <View style={styles.heatTitleRow}>
+                        <MaterialIcons name="auto-awesome" size={20} color={theme.colors.primary} />
+                        <Text style={[styles.cardTitle, { marginBottom: 0 }]}>AI Insights</Text>
+                    </View>
+                    
+                    {loadingAI ? (
+                        <Text style={styles.insightText}>Analyzing your emotional landscape...</Text>
+                    ) : trendData?.insights?.length > 0 ? (
+                        <View style={{ gap: 12, marginTop: 16 }}>
+                            {trendData.insights.map((insight, idx) => (
+                                <View key={idx} style={styles.heatInsightBox}>
+                                    <Text style={styles.insightText}>{insight}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    ) : (
+                        <Text style={[styles.insightText, { marginTop: 16 }]}>Keep logging your mood to unlock deep AI insights!</Text>
+                    )}
+                </View>
+
                 {/* CTA SECTION */}
                 <View style={styles.ctaCard}>
                     <View style={styles.ctaContent}>
@@ -256,7 +314,6 @@ const InsightsScreen = ({ navigation }) => {
                             <MaterialIcons name="self-improvement" size={48} color="rgba(255,255,255,0.4)" />
                         </View>
                     </View>
-                    {/* Decorative element */}
                     <View style={styles.ctaDecor} />
                 </View>
             </ScrollView>
