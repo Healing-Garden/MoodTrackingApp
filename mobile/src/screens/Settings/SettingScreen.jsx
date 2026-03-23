@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -9,15 +9,92 @@ import {
     Image,
     Switch,
     Dimensions,
+    Modal,
+    TextInput,
+    Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
 import { theme } from '../../theme';
+import api, { setAuthToken } from '../../services/api';
+import { useFocusEffect } from '@react-navigation/native';
+import BottomNavBar from '../../components/common/BottomNavBar';
 
 const { width } = Dimensions.get('window');
 
 const SettingScreen = ({ navigation }) => {
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const [user, setUser] = useState(null);
+    const [isPasswordModalVisible, setPasswordModalVisible] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordLoading, setPasswordLoading] = useState(false);
+
+    const handleChangePassword = async () => {
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            Alert.alert("Error", "Please enter all information.");
+            return;
+        }
+
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            Alert.alert("Error", "Password must be at least 8 characters long, include one uppercase letter and one special character.");
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            Alert.alert("Error", "Confirm password does not match.");
+            return;
+        }
+        setPasswordLoading(true);
+        try {
+            await api.post('/profile/change-password', {
+                currentPassword,
+                newPassword
+            });
+            Alert.alert("Success", "Password changed successfully!");
+            setPasswordModalVisible(false);
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+        } catch (error) {
+            Alert.alert("Error", error.response?.data?.message || "Password change failed.");
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
+
+    const handleLogout = () => {
+        setAuthToken(null);
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+        });
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchProfile = async () => {
+                try {
+                    const res = await api.get('/profile');
+                    setUser(res.data.user);
+                } catch (error) {
+                    console.log('Error fetching profile:', error);
+                }
+            };
+            fetchProfile();
+        }, [])
+    );
+
+    const getAvatarSource = () => {
+        if (user && user.avatarUrl) {
+            const url = user.avatarUrl;
+            if (url.startsWith('http')) return { uri: url };
+            return { uri: `http://192.168.1.245:8080${url}` };
+        }
+        return { uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBgugw2M9Dna7xm0EIeV169BACNOkEIdTJYj7wAwE682VqOA0ojQ-qXFQELVPOUbwrph8x0e0KK3LSfztVw9Z71y1KX1Rojin9QNwMG9tnnHzpPDbDaCA_4N7ubYDUYEf9y9ofZ0ZpkbKP7GG2s1F-AgiZISLngEXpMmI6EoBhbkEz-na-rEAYrmicKoI7Lty_Hl4j1A2Rb1m3U25r68luy1bXJBHqfUi4YQfoHKTlowBKDnmi1HVcXm8LBF8cL41ZL4lcLRYSlEYc' };
+    };
 
     return (
         <View style={styles.container}>
@@ -60,19 +137,17 @@ const SettingScreen = ({ navigation }) => {
                     <View style={styles.avatarWrapper}>
                         <View style={styles.avatarBorder}>
                             <Image
-                                source={{
-                                    uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBgugw2M9Dna7xm0EIeV169BACNOkEIdTJYj7wAwE682VqOA0ojQ-qXFQELVPOUbwrph8x0e0KK3LSfztVw9Z71y1KX1Rojin9QNwMG9tnnHzpPDbDaCA_4N7ubYDUYEf9y9ofZ0ZpkbKP7GG2s1F-AgiZISLngEXpMmI6EoBhbkEz-na-rEAYrmicKoI7Lty_Hl4j1A2Rb1m3U25r68luy1bXJBHqfUi4YQfoHKTlowBKDnmi1HVcXm8LBF8cL41ZL4lcLRYSlEYc',
-                                }}
+                                source={getAvatarSource()}
                                 style={styles.avatar}
                             />
                         </View>
-                        <TouchableOpacity style={styles.editBadge}>
+                        {/* <TouchableOpacity style={styles.editBadge} onPress={() => navigation.navigate('EditProfile')}>
                             <MaterialIcons name="edit" size={18} color="#fff" />
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
                     <View style={styles.profileInfo}>
-                        <Text style={styles.userName}>Amelia Gardner</Text>
-                        <Text style={styles.userStatus}>Daily Nurturer since March 2024</Text>
+                        <Text style={styles.userName}>{user ? user.fullName : "User Name"}</Text>
+                        <Text style={styles.userStatus}>Age: {user?.age || '--'}, W: {user?.weight || '--'}kg, H: {user?.heightCm || '--'}cm</Text>
                         <TouchableOpacity
                             style={styles.editPill}
                             onPress={() => navigation.navigate('EditProfile')}
@@ -129,7 +204,7 @@ const SettingScreen = ({ navigation }) => {
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>SECURITY</Text>
                         <View style={styles.group}>
-                            <TouchableOpacity style={styles.menuItem}>
+                            <TouchableOpacity style={styles.menuItem} onPress={() => setPasswordModalVisible(true)}>
                                 <View style={[styles.menuIconBg, { backgroundColor: '#fff6' }]}>
                                     <MaterialIcons name="lock-reset" size={22} color="#0c6780" />
                                 </View>
@@ -145,8 +220,60 @@ const SettingScreen = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     </View>
+
+                    {/* Account */}
+                    <View style={styles.section}>
+                        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+                            <MaterialIcons name="logout" size={20} color="#ba1a1a" />
+                            <Text style={styles.logoutText}>Sign Out</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </ScrollView>
+
+            {/* Password Modal */}
+            <Modal visible={isPasswordModalVisible} animationType="slide" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Change Password</Text>
+                        
+                        <TextInput 
+                            style={styles.modalInput}
+                            placeholder="Current Password"
+                            secureTextEntry
+                            value={currentPassword}
+                            onChangeText={setCurrentPassword}
+                        />
+                        <TextInput 
+                            style={styles.modalInput}
+                            placeholder="New Password"
+                            secureTextEntry
+                            value={newPassword}
+                            onChangeText={setNewPassword}
+                        />
+                        <TextInput 
+                            style={styles.modalInput}
+                            placeholder="Confirm New Password"
+                            secureTextEntry
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                        />
+                        
+                        <View style={styles.modalActions}>
+                            <TouchableOpacity style={styles.modalButtonCancel} onPress={() => setPasswordModalVisible(false)}>
+                                <Text style={styles.modalButtonCancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.modalButtonSubmit} onPress={handleChangePassword} disabled={passwordLoading}>
+                                <Text style={styles.modalButtonSubmitText}>{passwordLoading ? 'Saving...' : 'Save'}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* BottomNavBar */}
+            <BottomNavBar navigation={navigation} activeTab="Settings" />
+
         </View>
     );
 };
@@ -179,6 +306,21 @@ const styles = StyleSheet.create({
     menuText: { flex: 1 },
     menuLabel: { fontSize: 16, fontWeight: '700', color: '#06210a' },
     menuSubLabel: { fontSize: 12, color: '#40493e', marginTop: 2, opacity: 0.7 },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+    modalContent: { width: '85%', backgroundColor: '#fff', borderRadius: 20, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
+    modalTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.primary, marginBottom: 16, textAlign: 'center' },
+    modalInput: { backgroundColor: '#f0f0f0', borderRadius: 10, padding: 12, marginBottom: 12, fontSize: 16 },
+    modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
+    modalButtonCancel: { flex: 1, padding: 12, alignItems: 'center', backgroundColor: '#e0e0e0', borderRadius: 10, marginRight: 8 },
+    modalButtonCancelText: { fontSize: 16, fontWeight: '600', color: '#555' },
+    modalButtonSubmit: { flex: 1, padding: 12, alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 10, marginLeft: 8 },
+    modalButtonSubmitText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+    bottomNav: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 24, backgroundColor: '#ffffff', borderTopLeftRadius: 48, borderTopRightRadius: 48, shadowColor: '#000', shadowOpacity: 0.06, shadowOffset: { width: 0, height: -12 }, shadowRadius: 32 },
+    navItem: { justifyContent: 'center', alignItems: 'center' },
+    activeNavItem: { backgroundColor: '#D1F7D6', paddingHorizontal: 20, paddingVertical: 6, borderRadius: 999 },
+    navLabel: { fontSize: 11, fontWeight: '500', marginTop: 2, color: theme.colors.stone500 },
+    logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 20, backgroundColor: '#ffdad6', borderRadius: 24, gap: 12, marginTop: 12 },
+    logoutText: { fontSize: 16, fontWeight: '700', color: '#ba1a1a' },
 });
 
 export default SettingScreen;

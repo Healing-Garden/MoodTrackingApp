@@ -31,9 +31,9 @@ const LandingScreen = ({ navigation }) => {
                 {/* slogan */}
                 <View>
                     <Text style={styles.slogan}>
-                        Nơi tâm hồn{"\n"}
-                        tìm lại sự{" "}
-                        <Text style={styles.sloganHighlight}>tĩnh lặng</Text>
+                        Where your soul{"\n"}
+                        finds its{" "}
+                        <Text style={styles.sloganHighlight}>tranquility</Text>
                     </Text>
                 </View>
 
@@ -45,7 +45,7 @@ const LandingScreen = ({ navigation }) => {
                         onPress={() => navigation.navigate("OnboardingWelcome")}
                     >
                         <BlurView intensity={50} tint="dark" style={styles.primaryButton}>
-                            <Text style={styles.primaryText}>Bắt đầu hành trình mới</Text>
+                            <Text style={styles.primaryText}>Begin a new journey</Text>
                             <MaterialIcons name="arrow-forward" size={22} color="#fff" />
                         </BlurView>
                     </TouchableOpacity>
@@ -56,7 +56,7 @@ const LandingScreen = ({ navigation }) => {
                         onPress={() => navigation.navigate("Login")}
                     >
                         <BlurView intensity={40} tint="light" style={styles.secondaryButton}>
-                            <Text style={styles.secondaryText}>Đã có tài khoản</Text>
+                            <Text style={styles.secondaryText}>Already have an account</Text>
                         </BlurView>
                     </TouchableOpacity>
                 </View>
