@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Digital Sanctuary - Trash</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-error-container": "#93000a",
+              "surface-container-highest": "#caebc6",
+              "surface-container": "#d6f7d1",
+              "secondary": "#0c6780",
+              "on-primary-fixed-variant": "#075318",
+              "on-secondary-container": "#09657f",
+              "tertiary": "#705d00",
+              "primary": "#276b2e",
+              "on-tertiary-container": "#4c3e00",
+              "on-primary-container": "#00370b",
+              "error-container": "#ffdad6",
+              "surface-tint": "#276b2e",
+              "surface-variant": "#caebc6",
+              "on-primary-fixed": "#002105",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed-variant": "#554500",
+              "tertiary-fixed-dim": "#e7c433",
+              "tertiary-fixed": "#ffe174",
+              "surface": "#ebffe6",
+              "surface-container-low": "#dbfdd7",
+              "on-surface-variant": "#40493e",
+              "on-tertiary-fixed": "#221b00",
+              "background": "#ebffe6",
+              "inverse-surface": "#1b361d",
+              "error": "#ba1a1a",
+              "on-secondary-fixed-variant": "#004d62",
+              "primary-fixed": "#abf4a7",
+              "on-tertiary": "#ffffff",
+              "secondary-container": "#9ae1ff",
+              "inverse-primary": "#90d88d",
+              "tertiary-container": "#caa910",
+              "surface-container-lowest": "#ffffff",
+              "on-surface": "#06210a",
+              "on-error": "#ffffff",
+              "outline": "#717a6d",
+              "on-background": "#06210a",
+              "surface-bright": "#ebffe6",
+              "secondary-fixed": "#baeaff",
+              "primary-container": "#60a560",
+              "on-secondary": "#ffffff",
+              "secondary-fixed-dim": "#89d0ed",
+              "surface-dim": "#c2e3be",
+              "outline-variant": "#c0c9bb",
+              "primary-fixed-dim": "#90d88d",
+              "inverse-on-surface": "#d8fad4",
+              "on-secondary-fixed": "#001f29",
+              "surface-container-high": "#d0f1cc"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Be Vietnam Pro"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .bg-glass {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .mood-bloom {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container min-h-screen pb-32">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 left-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-emerald-50/80 dark:bg-emerald-950/80 backdrop-blur-xl">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="User profile reflecting calm energy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzldgveiq-37_7eC5Hrtrcyz2Yksax6PLCEQ6IgnscKprh1RGHJqbKALNUYLdDWs8f7Kedv8CHQV0ubIty9wruPdM9zAml9iZrhwH697FRlfmmNtuQ9ORWwvgVQ0sX12fLc7j8b5izYdhqmlOLX48kQTaBd8maXnusl_sf2mvW7olCP9lNtLJQj29GAT0lzl_oix1Pzdf-OUqxGMRap5sktV0E8DxuanM86m7LtZRtzm7q5lL3dsM4w4NaMdIxe2TIRaTS75BnC6M"/>
+</div>
+<h1 class="text-xl font-bold text-emerald-900 dark:text-emerald-50 tracking-tighter font-headline">Digital Sanctuary</h1>
+</div>
+<button class="p-2 hover:bg-emerald-100/50 dark:hover:bg-emerald-800/50 rounded-full transition-colors active:scale-95 transition-transform duration-300">
+<span class="material-symbols-outlined text-emerald-800 dark:text-emerald-200">settings</span>
+</button>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Tab Navigation -->
+<nav class="flex items-center gap-2 p-1.5 bg-surface-container-low rounded-xl">
+<button class="flex-1 py-3 text-center text-sm font-semibold font-headline rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors">Write</button>
+<button class="flex-1 py-3 text-center text-sm font-semibold font-headline rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors">My Entries</button>
+<button class="flex-1 py-3 text-center text-sm font-semibold font-headline rounded-lg bg-primary text-on-primary shadow-sm">Trash</button>
+</nav>
+<!-- Informational Banner -->
+<section class="relative overflow-hidden bg-surface-container-highest/40 p-6 rounded-xl border border-primary/5">
+<div class="relative z-10 flex gap-4 items-start">
+<div class="bg-primary/10 p-2 rounded-full">
+<span class="material-symbols-outlined text-primary text-xl">cleaning_services</span>
+</div>
+<p class="text-sm leading-relaxed text-on-surface-variant font-medium">
+                    Items in trash will be permanently deleted after 30 days to keep your sanctuary clear.
+                </p>
+</div>
+<!-- Decorative organic shape -->
+<div class="absolute -right-8 -top-8 w-24 h-24 bg-primary/5 mood-bloom rotate-45"></div>
+</section>
+<!-- Trash List -->
+<div class="space-y-6">
+<!-- Entry Card 1 -->
+<article class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_rgba(6,33,10,0.04)] relative group border border-transparent hover:border-outline-variant/20 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="inline-flex items-center px-3 py-1 bg-error-container/50 text-on-error-container text-[11px] font-bold uppercase tracking-wider rounded-full">
+                        24 days remaining
+                    </span>
+<span class="text-[12px] font-medium text-outline">Deleted Oct 12</span>
+</div>
+<h3 class="text-xl font-bold font-headline text-on-surface mb-2">Morning Reflection on Growth</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6 line-clamp-2 italic">
+                    "I felt like a seedling pushing through the soil today. The weight of expectations was heavy, but the sunlight felt..."
+                </p>
+<div class="flex items-center justify-between pt-4 border-t border-surface-container">
+<button class="flex items-center gap-2 text-primary font-bold text-sm px-4 py-2 rounded-lg hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-lg">settings_backup_restore</span>
+                        Restore
+                    </button>
+<button class="p-2 text-on-error-container/60 hover:text-error hover:bg-error-container/30 rounded-full transition-all">
+<span class="material-symbols-outlined">delete_forever</span>
+</button>
+</div>
+</article>
+<!-- Entry Card 2 -->
+<article class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_rgba(6,33,10,0.04)] relative border border-transparent hover:border-outline-variant/20 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="inline-flex items-center px-3 py-1 bg-error-container/50 text-on-error-container text-[11px] font-bold uppercase tracking-wider rounded-full">
+                        12 days remaining
+                    </span>
+<span class="text-[12px] font-medium text-outline">Deleted Oct 04</span>
+</div>
+<h3 class="text-xl font-bold font-headline text-on-surface mb-2">Unspoken Storm Clouds</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6 line-clamp-2 italic">
+                    "Sometimes the silence is louder than the rain. I'm trying to find where the tension lives in my body and just let it..."
+                </p>
+<div class="flex items-center justify-between pt-4 border-t border-surface-container">
+<button class="flex items-center gap-2 text-primary font-bold text-sm px-4 py-2 rounded-lg hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-lg">settings_backup_restore</span>
+                        Restore
+                    </button>
+<button class="p-2 text-on-error-container/60 hover:text-error hover:bg-error-container/30 rounded-full transition-all">
+<span class="material-symbols-outlined">delete_forever</span>
+</button>
+</div>
+</article>
+<!-- Entry Card 3 -->
+<article class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_rgba(6,33,10,0.04)] relative border border-transparent hover:border-outline-variant/20 transition-all opacity-80">
+<div class="flex justify-between items-start mb-4">
+<span class="inline-flex items-center px-3 py-1 bg-error-container/80 text-on-error-container text-[11px] font-bold uppercase tracking-wider rounded-full">
+                        2 days remaining
+                    </span>
+<span class="text-[12px] font-medium text-outline">Deleted Sep 22</span>
+</div>
+<h3 class="text-xl font-bold font-headline text-on-surface mb-2">Draft: The River Path</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6 line-clamp-2 italic">
+                    "Walking by the creek helped me realize that life doesn't always have to be a straight line. The curves are where..."
+                </p>
+<div class="flex items-center justify-between pt-4 border-t border-surface-container">
+<button class="flex items-center gap-2 text-primary font-bold text-sm px-4 py-2 rounded-lg hover:bg-primary-container/10 transition-colors">
+<span class="material-symbols-outlined text-lg">settings_backup_restore</span>
+                        Restore
+                    </button>
+<button class="p-2 text-on-error-container/60 hover:text-error hover:bg-error-container/30 rounded-full transition-all">
+<span class="material-symbols-outlined">delete_forever</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Empty State (Hidden) -->
+<div class="hidden flex-col items-center justify-center py-20 text-center space-y-4">
+<div class="w-24 h-24 bg-surface-container-high mood-bloom flex items-center justify-center">
+<span class="material-symbols-outlined text-4xl text-outline-variant">eco</span>
+</div>
+<h4 class="font-headline font-bold text-lg">Your Trash is Clear</h4>
+<p class="text-outline text-sm max-w-[200px]">Like a well-tended garden, your digital space is breathing freely.</p>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-emerald-50/90 dark:bg-emerald-950/90 backdrop-blur-2xl rounded-t-[3rem] shadow-[0_-8px_32px_rgba(6,33,10,0.04)] pb-safe">
+<a class="flex flex-col items-center justify-center text-emerald-700/60 dark:text-emerald-300/60 px-5 py-2 hover:text-emerald-800 dark:hover:text-emerald-100 active:scale-90 transition-all duration-500 cubic-bezier(0.34,1.56,0.64,1)" href="#">
+<span class="material-symbols-outlined">eco</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold tracking-wide uppercase">Garden</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-700/60 dark:text-emerald-300/60 px-5 py-2 hover:text-emerald-800 dark:hover:text-emerald-100 active:scale-90 transition-all duration-500 cubic-bezier(0.34,1.56,0.64,1)" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold tracking-wide uppercase">Insights</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-50 rounded-full px-5 py-2 scale-105 transition-all active:scale-90 transition-all duration-500 cubic-bezier(0.34,1.56,0.64,1)" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">import_contacts</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold tracking-wide uppercase">Journal</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-700/60 dark:text-emerald-300/60 px-5 py-2 hover:text-emerald-800 dark:hover:text-emerald-100 active:scale-90 transition-all duration-500 cubic-bezier(0.34,1.56,0.64,1)" href="#">
+<span class="material-symbols-outlined">local_library</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold tracking-wide uppercase">Library</span>
+</a>
+</nav>
+</body></html>

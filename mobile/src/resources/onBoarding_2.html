@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Healing Garden - Onboarding Step 2</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;family=Be+Vietnam+Pro:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed": "#221b00",
+              "primary-fixed-dim": "#90d88d",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#001f29",
+              "tertiary-fixed": "#ffe174",
+              "on-primary-fixed-variant": "#075318",
+              "on-error": "#ffffff",
+              "surface-dim": "#c2e3be",
+              "surface-variant": "#caebc6",
+              "on-secondary-fixed-variant": "#004d62",
+              "background": "#ebffe6",
+              "tertiary-container": "#caa910",
+              "primary-fixed": "#abf4a7",
+              "tertiary-fixed-dim": "#e7c433",
+              "primary": "#276b2e",
+              "on-secondary": "#ffffff",
+              "primary-container": "#60a560",
+              "on-surface-variant": "#40493e",
+              "secondary": "#0c6780",
+              "on-error-container": "#93000a",
+              "surface-container-low": "#dbfdd7",
+              "inverse-primary": "#90d88d",
+              "surface-container": "#d6f7d1",
+              "secondary-fixed-dim": "#89d0ed",
+              "secondary-container": "#9ae1ff",
+              "outline": "#717a6d",
+              "on-secondary-container": "#09657f",
+              "surface-container-highest": "#caebc6",
+              "surface-container-high": "#d0f1cc",
+              "inverse-on-surface": "#d8fad4",
+              "on-primary-container": "#00370b",
+              "on-tertiary-container": "#4c3e00",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-fixed-variant": "#554500",
+              "on-primary-fixed": "#002105",
+              "tertiary": "#705d00",
+              "surface": "#ebffe6",
+              "inverse-surface": "#1b361d",
+              "surface-bright": "#ebffe6",
+              "error-container": "#ffdad6",
+              "on-surface": "#06210a",
+              "on-background": "#06210a",
+              "secondary-fixed": "#baeaff",
+              "surface-tint": "#276b2e",
+              "outline-variant": "#c0c9bb",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Be Vietnam Pro"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .mood-bloom-shape {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      }
+      body {
+        font-family: 'Be Vietnam Pro', sans-serif;
+      }
+      h1, h2, h3, .headline {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col items-center">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 flex items-center px-6 h-16 bg-emerald-50/80 dark:bg-emerald-950/80 backdrop-blur-xl no-line tonal-layering bg-emerald-100/30 dark:bg-emerald-900/20">
+<div class="flex items-center w-full justify-between max-w-2xl mx-auto">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800 transition-colors active:scale-95 duration-200 ease-in-out">
+<span class="material-symbols-outlined text-emerald-800 dark:text-emerald-100">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] tracking-tight font-bold text-lg text-emerald-800 dark:text-emerald-100">Step 2 of 3</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-2xl px-6 pt-24 pb-32 flex-grow">
+<!-- Progress Indicator -->
+<div class="w-full mb-12">
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full w-[66%] bg-gradient-to-r from-primary to-primary-container transition-all duration-700"></div>
+</div>
+</div>
+<!-- Section 1: Stress Level -->
+<section class="mb-14">
+<h2 class="text-3xl font-headline font-extrabold tracking-tight mb-4 leading-tight">How has your stress level been over the past week?</h2>
+<p class="text-on-surface-variant font-body mb-8 text-lg">Reflection helps identify patterns in your garden's growth.</p>
+<div class="grid grid-cols-1 gap-4">
+<div class="flex flex-wrap gap-3">
+<!-- Very Low -->
+<button class="flex-1 min-w-[120px] py-6 px-4 rounded-xl bg-surface-container-low hover:bg-primary-container transition-all duration-300 group flex flex-col items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary-fixed-dim group-hover:bg-white"></div>
+<span class="font-headline font-bold text-sm">Very low</span>
+</button>
+<!-- Low -->
+<button class="flex-1 min-w-[120px] py-6 px-4 rounded-xl bg-surface-container-low border-2 border-transparent hover:border-primary transition-all duration-300 group flex flex-col items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary group-hover:scale-125 transition-transform"></div>
+<span class="font-headline font-bold text-sm">Low</span>
+</button>
+<!-- Moderate -->
+<button class="flex-1 min-w-[120px] py-6 px-4 rounded-xl bg-surface-container-high ring-2 ring-primary transition-all duration-300 flex flex-col items-center gap-2">
+<div class="w-4 h-4 rounded-full bg-tertiary-container shadow-[0_0_12px_rgba(202,169,16,0.4)]"></div>
+<span class="font-headline font-bold text-sm text-primary">Moderate</span>
+</button>
+<!-- High -->
+<button class="flex-1 min-w-[120px] py-6 px-4 rounded-xl bg-surface-container-low hover:bg-tertiary-container/20 transition-all duration-300 flex flex-col items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-[#E78C33]"></div>
+<span class="font-headline font-bold text-sm">High</span>
+</button>
+<!-- Very High -->
+<button class="flex-1 min-w-[120px] py-6 px-4 rounded-xl bg-surface-container-low hover:bg-error-container transition-all duration-300 flex flex-col items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-error"></div>
+<span class="font-headline font-bold text-sm">Very high</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Section 2: Emotional States -->
+<section class="mb-14">
+<h2 class="text-3xl font-headline font-extrabold tracking-tight mb-4 leading-tight">Which state have you most frequently felt recently?</h2>
+<p class="text-on-surface-variant font-body mb-8 text-lg">Choose the frequency that resonates with your current landscape.</p>
+<div class="flex flex-wrap gap-4">
+<!-- Peaceful -->
+<button class="flex items-center gap-3 px-6 py-4 rounded-full bg-surface-container-lowest shadow-sm hover:shadow-md transition-shadow group">
+<div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">spa</span>
+</div>
+<span class="font-headline font-semibold">Peaceful</span>
+</button>
+<!-- Anxious -->
+<button class="flex items-center gap-3 px-6 py-4 rounded-full bg-surface-container-lowest shadow-sm hover:shadow-md transition-shadow">
+<div class="w-10 h-10 rounded-full bg-secondary-container/30 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">air</span>
+</div>
+<span class="font-headline font-semibold">Anxious</span>
+</button>
+<!-- Tired -->
+<button class="flex items-center gap-3 px-6 py-4 rounded-full bg-surface-container-lowest shadow-sm hover:shadow-md transition-shadow">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">bedtime</span>
+</div>
+<span class="font-headline font-semibold">Tired</span>
+</button>
+<!-- Sad -->
+<button class="flex items-center gap-3 px-6 py-4 rounded-full bg-surface-container-lowest shadow-sm hover:shadow-md transition-shadow">
+<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-800">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<span class="font-headline font-semibold">Sad</span>
+</button>
+<!-- Stressed -->
+<button class="flex items-center gap-3 px-6 py-4 rounded-full bg-surface-container-lowest shadow-sm hover:shadow-md transition-shadow">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+<span class="font-headline font-semibold">Stressed</span>
+</button>
+</div>
+</section>
+<!-- NEW SECTION: Understanding Emotions -->
+<section class="mb-14">
+<h2 class="text-3xl font-headline font-extrabold tracking-tight mb-4 leading-tight">To what extent do you feel you understand your emotions?</h2>
+<p class="text-on-surface-variant font-body mb-8 text-lg">Self-awareness is the first step toward cultivation.</p>
+<div class="grid grid-cols-1 gap-3">
+<!-- Very clearly -->
+<button class="flex items-center justify-between px-6 py-5 rounded-2xl bg-surface-container-lowest border-2 border-transparent hover:border-primary/20 hover:bg-surface-container-low transition-all group">
+<span class="font-headline font-semibold text-lg">Very clearly</span>
+<span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">check_circle</span>
+</button>
+<!-- Quite clearly -->
+<button class="flex items-center justify-between px-6 py-5 rounded-2xl bg-surface-container-lowest border-2 border-transparent hover:border-primary/20 hover:bg-surface-container-low transition-all group">
+<span class="font-headline font-semibold text-lg">Quite clearly</span>
+<span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">check_circle</span>
+</button>
+<!-- Moderately -->
+<button class="flex items-center justify-between px-6 py-5 rounded-2xl bg-surface-container-high border-2 border-primary transition-all">
+<span class="font-headline font-semibold text-lg text-primary">Moderately</span>
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</button>
+<!-- Hard to understand -->
+<button class="flex items-center justify-between px-6 py-5 rounded-2xl bg-surface-container-lowest border-2 border-transparent hover:border-primary/20 hover:bg-surface-container-low transition-all group">
+<span class="font-headline font-semibold text-lg">Hard to understand</span>
+<span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">check_circle</span>
+</button>
+<!-- Very hard to understand -->
+<button class="flex items-center justify-between px-6 py-5 rounded-2xl bg-surface-container-lowest border-2 border-transparent hover:border-primary/20 hover:bg-surface-container-low transition-all group">
+<span class="font-headline font-semibold text-lg">Very hard to understand</span>
+<span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">check_circle</span>
+</button>
+</div>
+</section>
+<!-- Asymmetric Visual Element -->
+<div class="relative w-full h-48 mb-12 flex justify-end items-center pointer-events-none opacity-40 overflow-hidden">
+<div class="mood-bloom-shape w-64 h-64 bg-gradient-to-br from-primary-container to-secondary-container blur-2xl absolute -right-20"></div>
+<div class="mood-bloom-shape w-32 h-32 bg-tertiary-container blur-xl absolute right-12 bottom-0"></div>
+</div>
+</main>
+<!-- BottomNavBar as Control Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-8 pb-8 pt-4 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl rounded-t-[3rem] shadow-[0_-12px_32px_rgba(6,33,10,0.04)]">
+<!-- Inactive Action: Skip -->
+<button class="flex flex-col items-center justify-center text-emerald-600 dark:text-emerald-500 px-6 py-3 hover:opacity-80 transition-opacity active:scale-98">
+<span class="material-symbols-outlined mb-1">forward</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold tracking-wide">Skip</span>
+</button>
+<!-- Center FAB-style Button (Custom Next) -->
+<button class="bg-gradient-to-br from-primary to-primary-container text-white px-12 py-4 rounded-xl font-headline font-bold text-lg shadow-lg hover:shadow-primary/20 transition-all active:scale-95 flex items-center gap-2">
+            Continue
+            <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<!-- Inactive Action: Save Progress -->
+<button class="flex flex-col items-center justify-center text-emerald-600 dark:text-emerald-500 px-6 py-3 hover:opacity-80 transition-opacity active:scale-98">
+<span class="material-symbols-outlined mb-1">save</span>
+<span class="font-['Plus_Jakarta_Sans'] text-xs font-semibold tracking-wide">Save Progress</span>
+</button>
+</nav>
+</body></html>

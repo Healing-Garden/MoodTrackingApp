@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary-fixed-variant": "#004d62",
+                        "tertiary-container": "#caa910",
+                        "surface": "#ebffe6",
+                        "on-surface": "#06210a",
+                        "secondary-container": "#9ae1ff",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#1b361d",
+                        "inverse-primary": "#90d88d",
+                        "on-surface-variant": "#40493e",
+                        "error": "#ba1a1a",
+                        "outline": "#717a6d",
+                        "surface-container": "#d6f7d1",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#89d0ed",
+                        "on-secondary-container": "#09657f",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#00370b",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#caebc6",
+                        "on-background": "#06210a",
+                        "secondary": "#0c6780",
+                        "on-primary-fixed-variant": "#075318",
+                        "tertiary-fixed-dim": "#e7c433",
+                        "on-primary-fixed": "#002105",
+                        "surface-container-high": "#d0f1cc",
+                        "on-tertiary-fixed-variant": "#554500",
+                        "tertiary-fixed": "#ffe174",
+                        "primary-fixed-dim": "#90d88d",
+                        "surface-tint": "#276b2e",
+                        "primary": "#276b2e",
+                        "inverse-on-surface": "#d8fad4",
+                        "surface-container-low": "#dbfdd7",
+                        "primary-container": "#60a560",
+                        "tertiary": "#705d00",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "background": "#ebffe6",
+                        "on-tertiary-fixed": "#221b00",
+                        "surface-dim": "#c2e3be",
+                        "surface-bright": "#ebffe6",
+                        "outline-variant": "#c0c9bb",
+                        "on-secondary-fixed": "#001f29",
+                        "on-tertiary-container": "#4c3e00",
+                        "secondary-fixed": "#baeaff",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#abf4a7",
+                        "surface-variant": "#caebc6"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Be Vietnam Pro"],
+                        "label": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .mood-bloom {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-container/30">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl shadow-[0_12px_32px_rgba(6,33,10,0.06)]">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-green-800 dark:text-green-300">close</span>
+</div>
+<h1 class="font-['Plus_Jakarta_Sans'] text-xl font-extrabold tracking-tighter text-green-900 dark:text-green-50">Healing Garden</h1>
+<button class="font-['Plus_Jakarta_Sans'] tracking-tight font-bold text-lg text-green-800 dark:text-green-300 hover:opacity-80 transition-opacity active:scale-90 duration-300">Skip</button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto space-y-12">
+<!-- Progress Indicator -->
+<div class="flex items-center justify-between gap-4 mb-8">
+<div class="flex-1 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full w-3/4 bg-primary rounded-full"></div>
+</div>
+<span class="font-label text-sm font-bold text-primary">Step 3 of 4</span>
+</div>
+<!-- Header Section -->
+<section class="space-y-4">
+<h2 class="font-headline text-4xl font-extrabold tracking-tight leading-tight text-on-surface">
+                Cultivating Reflection
+            </h2>
+<p class="text-on-surface-variant text-lg leading-relaxed">
+                Understanding your inner patterns is the first step toward a flourishing mind.
+            </p>
+</section>
+<!-- Question 1: Chips/Cards Layout -->
+<section class="space-y-6">
+<label class="font-headline text-xl font-bold block">How often do you take time to reflect on your day?</label>
+<div class="flex flex-wrap gap-3">
+<button class="px-6 py-4 bg-surface-container-lowest hover:bg-primary-container hover:text-on-primary-container transition-all duration-300 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] font-medium text-on-surface-variant active:scale-95">Every day</button>
+<button class="px-6 py-4 bg-primary-container text-on-primary-container rounded-xl shadow-[0_8px_20px_rgba(39,107,46,0.15)] font-bold active:scale-95">A few times a week</button>
+<button class="px-6 py-4 bg-surface-container-lowest hover:bg-primary-container hover:text-on-primary-container transition-all duration-300 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] font-medium text-on-surface-variant active:scale-95">Occasionally</button>
+<button class="px-6 py-4 bg-surface-container-lowest hover:bg-primary-container hover:text-on-primary-container transition-all duration-300 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] font-medium text-on-surface-variant active:scale-95">Rarely</button>
+<button class="px-6 py-4 bg-surface-container-lowest hover:bg-primary-container hover:text-on-primary-container transition-all duration-300 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] font-medium text-on-surface-variant active:scale-95">Almost never</button>
+</div>
+</section>
+<!-- Visual Element: Asymmetric Layout -->
+<div class="relative py-8">
+<div class="mood-bloom w-32 h-32 bg-primary-container/20 absolute -top-4 -right-4 blur-2xl"></div>
+<div class="relative bg-surface-container-low rounded-xl p-8 overflow-hidden">
+<div class="flex flex-col md:flex-row items-center gap-8">
+<img alt="Gentle morning light over a serene garden" class="w-full md:w-48 h-48 object-cover rounded-xl shadow-lg transform -rotate-2" data-alt="Calm morning garden with soft green light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDB-3K13d3P2nyek5rk8sCt46N5zWDuSnUO_NyeCrgeeSCTXnhcidcUcjmGuVtPK2m4HPSZq_dkOZBYGey7qoldoQipA4wPZIraGZRtow6fiTbPdOwWQJUz8s6OdNkXyuTnyd9sM5XjQ22NwJ4uPs5xkNsqx1bJIvgRJ7ryeTtSutGFGN75E7ZaWsrMLEjjjW2WHqMpGCS8uxLjP-yxPoz3wAvY5nrwC75kYm3qHOmcv1j3rua4I6WqPHhL-G9NG7Ep0fdVOoZjGFA"/>
+<div class="space-y-2">
+<span class="text-xs font-bold uppercase tracking-widest text-primary">Growth Insight</span>
+<p class="text-on-surface italic font-medium leading-relaxed">
+                            "The garden of the mind grows most vibrant when tended with daily awareness."
+                        </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Question 2: List with Icons -->
+<section class="space-y-6">
+<label class="font-headline text-xl font-bold block">What is your typical response to negative emotions?</label>
+<div class="grid gap-4">
+<button class="flex items-center gap-4 p-5 bg-surface-container-lowest hover:bg-secondary-container/30 transition-colors rounded-xl text-left group">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+</div>
+<span class="font-bold text-on-surface">Talk to someone</span>
+</button>
+<button class="flex items-center gap-4 p-5 bg-surface-container-lowest hover:bg-secondary-container/30 transition-colors rounded-xl text-left group">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+</div>
+<span class="font-bold text-on-surface">Write down my thoughts</span>
+</button>
+<button class="flex items-center gap-4 p-5 bg-surface-container-lowest hover:bg-secondary-container/30 transition-colors rounded-xl text-left group border-2 border-primary/20">
+<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+<span class="font-bold text-on-surface">Keep it inside</span>
+</button>
+<button class="flex items-center gap-4 p-5 bg-surface-container-lowest hover:bg-secondary-container/30 transition-colors rounded-xl text-left group">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="self_improvement">self_improvement</span>
+</div>
+<span class="font-bold text-on-surface">Do something else to distract myself</span>
+</button>
+<button class="flex items-center gap-4 p-5 bg-surface-container-lowest hover:bg-secondary-container/30 transition-colors rounded-xl text-left group">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</div>
+<span class="font-bold text-on-surface">I'm not sure</span>
+</button>
+</div>
+</section>
+<!-- Question 3: Mood Chips -->
+<section class="space-y-6">
+<label class="font-headline text-xl font-bold block">How often do you learn from your personal experiences?</label>
+<div class="flex flex-wrap gap-4">
+<button class="px-8 py-3 rounded-full bg-tertiary-container/20 text-on-tertiary-container font-bold hover:bg-tertiary-container transition-colors">Very often</button>
+<button class="px-8 py-3 rounded-full bg-tertiary-container/20 text-on-tertiary-container font-bold hover:bg-tertiary-container transition-colors">Quite often</button>
+<button class="px-8 py-3 rounded-full bg-tertiary-container text-on-tertiary-container font-extrabold shadow-lg">Occasionally</button>
+<button class="px-8 py-3 rounded-full bg-tertiary-container/20 text-on-tertiary-container font-bold hover:bg-tertiary-container transition-colors">Rarely</button>
+<button class="px-8 py-3 rounded-full bg-tertiary-container/20 text-on-tertiary-container font-bold hover:bg-tertiary-container transition-colors">Almost never</button>
+</div>
+</section>
+<!-- Navigation Action -->
+<div class="pt-8 pb-12">
+<button class="w-full py-6 rounded-xl bg-gradient-to-r from-primary to-primary-container text-white font-headline text-xl font-extrabold shadow-xl hover:opacity-90 transition-all active:scale-[0.98]">
+                Continue to Final Step
+            </button>
+</div>
+</main>
+<!-- Bottom Nav Suppression Logic: Not rendered for onboarding -->
+<!-- Ambient Background Elements -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none opacity-40">
+<div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-container/20 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-secondary-container/20 blur-[120px] rounded-full"></div>
+</div>
+</body></html>

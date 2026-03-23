@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Healing Garden - Digital Sanctuary</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed": "#002105",
+              "tertiary-container": "#caa910",
+              "primary-container": "#60a560",
+              "surface-container": "#d6f7d1",
+              "on-error-container": "#93000a",
+              "tertiary-fixed-dim": "#e7c433",
+              "on-secondary": "#ffffff",
+              "surface-variant": "#caebc6",
+              "secondary-container": "#9ae1ff",
+              "surface-container-lowest": "#ffffff",
+              "primary": "#276b2e",
+              "inverse-primary": "#90d88d",
+              "on-primary-fixed-variant": "#075318",
+              "on-surface-variant": "#40493e",
+              "on-tertiary-container": "#4c3e00",
+              "error-container": "#ffdad6",
+              "on-tertiary-fixed-variant": "#554500",
+              "error": "#ba1a1a",
+              "tertiary-fixed": "#ffe174",
+              "on-secondary-container": "#09657f",
+              "tertiary": "#705d00",
+              "on-secondary-fixed": "#001f29",
+              "on-primary-container": "#00370b",
+              "on-surface": "#06210a",
+              "primary-fixed": "#abf4a7",
+              "primary-fixed-dim": "#90d88d",
+              "surface-container-low": "#dbfdd7",
+              "on-primary": "#ffffff",
+              "inverse-surface": "#1b361d",
+              "inverse-on-surface": "#d8fad4",
+              "secondary-fixed": "#baeaff",
+              "surface-container-high": "#d0f1cc",
+              "on-background": "#06210a",
+              "surface": "#ebffe6",
+              "on-tertiary-fixed": "#221b00",
+              "background": "#ebffe6",
+              "secondary": "#0c6780",
+              "secondary-fixed-dim": "#89d0ed",
+              "on-secondary-fixed-variant": "#004d62",
+              "outline": "#717a6d",
+              "surface-dim": "#c2e3be",
+              "outline-variant": "#c0c9bb",
+              "surface-tint": "#276b2e",
+              "surface-container-highest": "#caebc6",
+              "on-error": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "surface-bright": "#ebffe6"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Be Vietnam Pro"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .mood-bloom {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 py-4 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl z-50 shadow-[0_12px_32px_rgba(6,33,10,0.06)]">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a smiling woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsbf3FPBnCQO8QlMn0DdR5QVRs2ryfIKkcinkVMI2hiUtrBgaSPnjpWrLaOtRtm6VnVf5QbtHhPCv4drG5JRbp2eewb_muRNWTB4ZrdMA6zVyeQe4OE2f4hOxMhgYwevns0FNiV-Kxf3eMSCbLrRsOGphYV_tqmXwG9ZAYbJRv7_-lIW-9-gA4oMlJOaiTIF7gdwJUTjYwIq4-QNUltGvjIAlThA9CuJ5m6iNdc4GoXoTtjDlYIK-wvagPvH2-dKtN13DWSAHfnkM"/>
+</div>
+<h1 class="font-headline tracking-tighter font-bold text-2xl text-emerald-800 dark:text-emerald-400">Healing Garden</h1>
+</div>
+<button class="text-emerald-900 dark:text-emerald-50 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<main class="pt-24 px-6 space-y-10">
+<!-- Hero Section: Garden Growth -->
+<section class="relative overflow-hidden bg-gradient-to-br from-primary to-primary-container rounded-xl p-8 text-on-primary shadow-[0_20px_40px_rgba(39,107,46,0.15)]">
+<div class="relative z-10">
+<p class="font-headline text-lg opacity-90 mb-1">Good Morning, Elena</p>
+<h2 class="font-headline text-3xl font-extrabold tracking-tight leading-tight mb-4">Your garden is blooming beautifully</h2>
+<div class="flex items-center gap-2 bg-white/20 backdrop-blur-md w-fit px-4 py-2 rounded-full border border-white/10">
+<span class="material-symbols-outlined text-sm" data-icon="spa" style="font-variation-settings: 'FILL' 1;">spa</span>
+<span class="text-sm font-semibold">12 plants in full bloom</span>
+</div>
+</div>
+<!-- Asymmetrical organic element -->
+<div class="mood-bloom absolute -bottom-10 -right-10 w-48 h-48 bg-tertiary-container/30 blur-2xl"></div>
+<div class="absolute top-4 right-4 opacity-20">
+<span class="material-symbols-outlined text-8xl" data-icon="filter_vintage">filter_vintage</span>
+</div>
+</section>
+<!-- Quick Actions: Bento Grid Layout -->
+<section>
+<h3 class="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4 ml-1">Daily Sanctuary</h3>
+<div class="grid grid-cols-2 gap-4">
+<button class="col-span-2 flex items-center justify-between bg-surface-container-low p-6 rounded-xl hover:bg-surface-container-high transition-all active:scale-[0.98]">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary-container rounded-full flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+</div>
+<div class="text-left">
+<p class="font-headline font-bold text-lg">Daily Check-in</p>
+<p class="text-sm text-on-surface-variant">Log your morning mood</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="flex flex-col gap-4 bg-secondary-container/30 p-5 rounded-xl hover:bg-secondary-container/50 transition-all active:scale-[0.98] items-start">
+<div class="w-10 h-10 bg-secondary-container rounded-lg flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="self_improvement">self_improvement</span>
+</div>
+<p class="font-headline font-bold text-base leading-tight">Start Meditation</p>
+</button>
+<button class="flex flex-col gap-4 bg-tertiary-container/20 p-5 rounded-xl hover:bg-tertiary-container/40 transition-all active:scale-[0.98] items-start">
+<div class="w-10 h-10 bg-tertiary-container rounded-lg flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+</div>
+<p class="font-headline font-bold text-base leading-tight">Write in Journal</p>
+</button>
+</div>
+</section>
+<!-- Mood Summary: Wave Chart Visual -->
+<section class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_8px_24px_rgba(6,33,10,0.04)]">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h3 class="font-headline font-bold text-xl">Mood Trend</h3>
+<p class="text-sm text-on-surface-variant">Past 7 days</p>
+</div>
+<div class="flex items-center gap-1 bg-surface-container-low px-3 py-1 rounded-full text-xs font-bold text-primary">
+<span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span>
+                    Steadily Rising
+                </div>
+</div>
+<!-- Soft Wave Visual Mockup -->
+<div class="relative h-24 w-full flex items-end justify-between px-2 gap-2">
+<div class="flex-1 bg-primary/10 rounded-t-full h-1/2 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/40 text-sm" data-icon="sentiment_satisfied">sentiment_satisfied</span>
+</div>
+<div class="flex-1 bg-primary/20 rounded-t-full h-2/3 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/60 text-sm" data-icon="sentiment_satisfied">sentiment_satisfied</span>
+</div>
+<div class="flex-1 bg-primary/15 rounded-t-full h-1/2 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/40 text-sm" data-icon="sentiment_neutral">sentiment_neutral</span>
+</div>
+<div class="flex-1 bg-primary/30 rounded-t-full h-3/4 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/80 text-sm" data-icon="sentiment_very_satisfied">sentiment_very_satisfied</span>
+</div>
+<div class="flex-1 bg-primary/40 rounded-t-full h-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="sentiment_very_satisfied" style="font-variation-settings: 'FILL' 1;">sentiment_very_satisfied</span>
+</div>
+<div class="flex-1 bg-primary/25 rounded-t-full h-2/3 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/60 text-sm" data-icon="sentiment_satisfied">sentiment_satisfied</span>
+</div>
+<div class="flex-1 bg-primary/50 rounded-t-full h-[90%] flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="sentiment_very_satisfied" style="font-variation-settings: 'FILL' 1;">sentiment_very_satisfied</span>
+</div>
+</div>
+<div class="flex justify-between mt-3 px-2">
+<span class="text-[10px] font-bold text-on-surface-variant/40">MON</span>
+<span class="text-[10px] font-bold text-on-surface-variant/40">TUE</span>
+<span class="text-[10px] font-bold text-on-surface-variant/40">WED</span>
+<span class="text-[10px] font-bold text-on-surface-variant/40">THU</span>
+<span class="text-[10px] font-bold text-on-surface-variant/40">FRI</span>
+<span class="text-[10px] font-bold text-on-surface-variant/40">SAT</span>
+<span class="text-[10px] font-bold text-primary">TODAY</span>
+</div>
+</section>
+<!-- Growth Insight: Editorial Style -->
+<section class="relative bg-surface-bright border border-primary/5 rounded-xl p-8 mb-4">
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-tertiary text-4xl" data-icon="format_quote">format_quote</span>
+<div class="space-y-4">
+<blockquote class="font-headline text-lg font-medium leading-relaxed italic text-on-surface">
+                        "The soul cannot thrive in a garden of stones. Take a moment today to breathe in the green."
+                    </blockquote>
+<div class="h-px w-12 bg-tertiary-fixed-dim"></div>
+<p class="font-headline text-xs font-bold uppercase tracking-[0.2em] text-on-tertiary-fixed-variant">Insight for your growth</p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center pt-3 pb-8 bg-white/90 dark:bg-stone-900/90 backdrop-blur-2xl shadow-[0_-8px_24px_rgba(6,33,10,0.04)] rounded-t-[3rem] px-4">
+<!-- Garden (Active) -->
+<a class="flex flex-col items-center justify-center bg-emerald-100 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-100 rounded-[2rem] px-5 py-2 transition-all active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="filter_vintage" style="font-variation-settings: 'FILL' 1;">filter_vintage</span>
+<span class="font-plus-jakarta text-[11px] font-semibold tracking-wide">Garden</span>
+</a>
+<!-- Journal -->
+<a class="flex flex-col items-center justify-center text-emerald-800/50 dark:text-emerald-100/40 px-5 py-2 hover:bg-emerald-50/50 dark:hover:bg-emerald-800/20 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-plus-jakarta text-[11px] font-semibold tracking-wide">Journal</span>
+</a>
+<!-- Insights -->
+<a class="flex flex-col items-center justify-center text-emerald-800/50 dark:text-emerald-100/40 px-5 py-2 hover:bg-emerald-50/50 dark:hover:bg-emerald-800/20 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="font-plus-jakarta text-[11px] font-semibold tracking-wide">Insights</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center text-emerald-800/50 dark:text-emerald-100/40 px-5 py-2 hover:bg-emerald-50/50 dark:hover:bg-emerald-800/20 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-plus-jakarta text-[11px] font-semibold tracking-wide">Settings</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Healing Garden - Insights</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#276b2e",
+              "primary-fixed-dim": "#90d88d",
+              "surface-tint": "#276b2e",
+              "tertiary-fixed": "#ffe174",
+              "surface-container-high": "#d0f1cc",
+              "on-tertiary-fixed-variant": "#554500",
+              "tertiary-fixed-dim": "#e7c433",
+              "on-primary-fixed": "#002105",
+              "secondary": "#0c6780",
+              "on-primary-fixed-variant": "#075318",
+              "surface-container-highest": "#caebc6",
+              "on-background": "#06210a",
+              "on-primary-container": "#00370b",
+              "on-tertiary": "#ffffff",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#89d0ed",
+              "on-secondary-container": "#09657f",
+              "on-secondary": "#ffffff",
+              "surface-container": "#d6f7d1",
+              "outline": "#717a6d",
+              "secondary-container": "#9ae1ff",
+              "on-error": "#ffffff",
+              "inverse-surface": "#1b361d",
+              "inverse-primary": "#90d88d",
+              "on-surface-variant": "#40493e",
+              "error": "#ba1a1a",
+              "on-secondary-fixed-variant": "#004d62",
+              "tertiary-container": "#caa910",
+              "surface": "#ebffe6",
+              "on-surface": "#06210a",
+              "surface-container-lowest": "#ffffff",
+              "primary-fixed": "#abf4a7",
+              "surface-variant": "#caebc6",
+              "on-tertiary-container": "#4c3e00",
+              "secondary-fixed": "#baeaff",
+              "on-secondary-fixed": "#001f29",
+              "surface-bright": "#ebffe6",
+              "outline-variant": "#c0c9bb",
+              "surface-dim": "#c2e3be",
+              "on-tertiary-fixed": "#221b00",
+              "on-primary": "#ffffff",
+              "background": "#ebffe6",
+              "primary-container": "#60a560",
+              "tertiary": "#705d00",
+              "error-container": "#ffdad6",
+              "surface-container-low": "#dbfdd7",
+              "inverse-on-surface": "#d8fad4"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Be Vietnam Pro"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-effect {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+      .mood-bloom {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-emerald-50/80 dark:bg-emerald-950/80 backdrop-blur-xl flex items-center justify-between px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-emerald-900 dark:text-emerald-100 hover:bg-emerald-100/50 dark:hover:bg-emerald-800/50 p-2 rounded-full transition-colors active:scale-95 duration-200">menu</button>
+<h1 class="text-2xl font-bold text-emerald-900 dark:text-emerald-100 font-headline tracking-tight">Insights</h1>
+</div>
+<div class="flex items-center gap-2">
+<img alt="User Avatar" class="w-10 h-10 rounded-full border-2 border-primary-container" data-alt="Close up of a friendly person smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjRXTgDll1avr-Y9b_vLfQrbOQPrhsDkEEl5YtLomZjJhC7m5G5xSXAA4-dQFP9uKM8bz7WjX0F6UOv7SyK-UB2O1Ez7radZX0MQCA_5GZ3JhZu7sHTaY5j8JdQ1cqMxJQsfDGPUWGyCmDGFn0vjYgP65_5peET9QI-S8errXL2JrHHMsPye8LaZ6Wl0At1k7t5xCGBoqSiy3RkbkI571nCSllSpbQz25fy8yM6Q1S0yp3HDZCEOE8M9m7wDq8qMaPpeSg4CnMuDs"/>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-5xl mx-auto space-y-10">
+<!-- Interactive Tabs -->
+<div class="flex justify-center">
+<nav class="inline-flex bg-surface-container-low p-1.5 rounded-xl">
+<button class="px-6 py-2 rounded-lg font-headline text-sm font-semibold transition-all text-on-surface-variant hover:text-primary">Week</button>
+<button class="px-6 py-2 rounded-lg font-headline text-sm font-bold bg-surface-container-lowest text-primary shadow-sm">Month</button>
+<button class="px-6 py-2 rounded-lg font-headline text-sm font-semibold transition-all text-on-surface-variant hover:text-primary">Year</button>
+</nav>
+</div>
+<!-- Summary Stats Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-container-lowest p-8 rounded-xl flex flex-col items-center justify-center text-center shadow-[0_12px_32px_rgba(6,33,10,0.04)] relative overflow-hidden">
+<div class="absolute -top-4 -right-4 w-20 h-20 bg-primary/5 mood-bloom"></div>
+<span class="text-on-surface-variant font-label text-xs uppercase tracking-widest mb-2">Avg Mood Score</span>
+<span class="text-5xl font-headline font-extrabold text-primary">4.8</span>
+<div class="mt-4 flex items-center gap-1 text-primary text-xs font-bold">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span>+12% vs last month</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-xl flex flex-col items-center justify-center text-center shadow-[0_12px_32px_rgba(6,33,10,0.04)]">
+<span class="text-on-surface-variant font-label text-xs uppercase tracking-widest mb-2">Consistency</span>
+<div class="relative flex items-center justify-center">
+<svg class="w-24 h-24 transform -rotate-90">
+<circle class="text-surface-container" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-secondary" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="37.68" stroke-width="8"></circle>
+</svg>
+<span class="absolute text-2xl font-headline font-bold text-on-surface">85%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-xl flex flex-col items-center justify-center text-center shadow-[0_12px_32px_rgba(6,33,10,0.04)]">
+<span class="text-on-surface-variant font-label text-xs uppercase tracking-widest mb-2">Total Entries</span>
+<span class="text-5xl font-headline font-extrabold text-tertiary">24</span>
+<span class="mt-4 text-on-surface-variant text-xs font-medium italic">"Deepening your practice"</span>
+</div>
+</section>
+<!-- Mood Flow Chart -->
+<section class="bg-surface-container-low rounded-xl p-8 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h2 class="text-xl font-headline font-bold text-on-surface">Mood Flow</h2>
+<p class="text-sm text-on-surface-variant">Visualizing your emotional landscape</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="text-xs font-semibold text-on-surface-variant">Mood</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="text-xs font-semibold text-on-surface-variant">Energy</span>
+</div>
+</div>
+</div>
+<div class="h-64 w-full relative">
+<!-- Chart Background Lines -->
+<div class="absolute inset-0 flex flex-col justify-between py-2">
+<div class="border-t border-outline-variant/20 w-full h-px"></div>
+<div class="border-t border-outline-variant/20 w-full h-px"></div>
+<div class="border-t border-outline-variant/20 w-full h-px"></div>
+<div class="border-t border-outline-variant/20 w-full h-px"></div>
+</div>
+<!-- SVG Visualization of Chart (Conceptual) -->
+<svg class="absolute inset-0 w-full h-full overflow-visible" viewbox="0 0 800 200">
+<!-- Energy Line -->
+<path d="M0,150 Q100,80 200,120 T400,60 T600,140 T800,100" fill="none" opacity="0.4" stroke="#0c6780" stroke-dasharray="4 4" stroke-linecap="round" stroke-width="3"></path>
+<!-- Mood Line -->
+<path d="M0,180 Q100,140 200,60 T400,90 T600,30 T800,70" fill="none" stroke="#276b2e" stroke-linecap="round" stroke-width="4"></path>
+<!-- Dots -->
+<circle cx="200" cy="60" fill="#276b2e" r="6"></circle>
+<circle cx="600" cy="30" fill="#276b2e" r="6"></circle>
+</svg>
+<!-- X-Axis Labels -->
+<div class="absolute -bottom-8 w-full flex justify-between px-2 text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">
+<span>Week 1</span>
+<span>Week 2</span>
+<span>Week 3</span>
+<span>Week 4</span>
+</div>
+</div>
+</section>
+<!-- Comparative Analysis & Insights -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+<!-- Table Card -->
+<div class="bg-surface-container-highest rounded-xl p-8 shadow-sm overflow-hidden">
+<h3 class="text-lg font-headline font-bold mb-6 text-on-surface">Comparative Analysis</h3>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-xs text-on-surface-variant uppercase tracking-widest">
+<th class="pb-4 font-semibold">Metric</th>
+<th class="pb-4 font-semibold">Prev.</th>
+<th class="pb-4 font-semibold">Current</th>
+<th class="pb-4 font-semibold">Change</th>
+</tr>
+</thead>
+<tbody class="text-sm font-medium text-on-surface">
+<tr class="border-t border-on-surface/5">
+<td class="py-4">Avg Mood</td>
+<td class="py-4">4.2</td>
+<td class="py-4 font-bold">4.8</td>
+<td class="py-4 text-primary font-bold">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">arrow_upward</span> 14%
+                                    </span>
+</td>
+</tr>
+<tr class="border-t border-on-surface/5">
+<td class="py-4">Consistency</td>
+<td class="py-4">78%</td>
+<td class="py-4 font-bold">85%</td>
+<td class="py-4 text-primary font-bold">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">arrow_upward</span> 9%
+                                    </span>
+</td>
+</tr>
+<tr class="border-t border-on-surface/5">
+<td class="py-4">Entries</td>
+<td class="py-4">18</td>
+<td class="py-4 font-bold">24</td>
+<td class="py-4 text-primary font-bold">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">add</span> 6
+                                    </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Heatmap / Trigger Insights -->
+<div class="bg-surface-container-lowest border border-primary/5 rounded-xl p-8 shadow-sm relative overflow-hidden h-full">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h3 class="text-lg font-headline font-bold text-on-surface">Trigger Heatmap</h3>
+</div>
+<div class="space-y-6">
+<div class="grid grid-cols-7 gap-1">
+<!-- Heatmap Grid -->
+<div class="aspect-square bg-primary/10 rounded-sm" title="Low activity"></div>
+<div class="aspect-square bg-primary/30 rounded-sm"></div>
+<div class="aspect-square bg-primary/5 rounded-sm"></div>
+<div class="aspect-square bg-primary/60 rounded-sm" title="High stress trigger"></div>
+<div class="aspect-square bg-primary/20 rounded-sm"></div>
+<div class="aspect-square bg-primary/80 rounded-sm"></div>
+<div class="aspect-square bg-primary/10 rounded-sm"></div>
+<!-- More rows... -->
+<div class="aspect-square bg-primary/5 rounded-sm"></div>
+<div class="aspect-square bg-primary/40 rounded-sm"></div>
+<div class="aspect-square bg-primary/10 rounded-sm"></div>
+<div class="aspect-square bg-primary/70 rounded-sm"></div>
+<div class="aspect-square bg-primary/10 rounded-sm"></div>
+<div class="aspect-square bg-primary/5 rounded-sm"></div>
+<div class="aspect-square bg-primary/30 rounded-sm"></div>
+</div>
+<div class="bg-primary/5 p-4 rounded-lg">
+<p class="text-sm font-medium leading-relaxed italic text-on-surface-variant">
+                            "You tend to feel most grounded on Tuesday mornings after <span class="text-primary font-bold">outdoor walks</span>. However, late-night screen time correlates with 20% lower mood scores the following day."
+                        </p>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full">Nature</span>
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full">Sleep</span>
+<span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-bold rounded-full">Hydration</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Asymmetric CTA Section -->
+<section class="relative bg-primary text-white rounded-xl p-10 overflow-hidden flex flex-col md:flex-row items-center gap-8 mb-12 shadow-xl shadow-primary/20">
+<div class="flex-1 z-10">
+<h2 class="text-3xl font-headline font-bold mb-4">Cultivate Deeper Insight</h2>
+<p class="text-primary-fixed-dim font-body mb-8 max-w-md">Our AI gardener has noticed a positive pattern in your journaling. Ready to dive deeper into your reflection practice?</p>
+<button class="bg-tertiary-fixed text-on-tertiary-fixed px-8 py-3 rounded-xl font-headline font-bold shadow-lg active:scale-95 transition-transform">Start Daily Focus</button>
+</div>
+<div class="relative w-full md:w-1/3 h-48 md:h-64 z-10 flex justify-center items-center">
+<div class="mood-bloom w-48 h-48 bg-primary-container/30 border-4 border-white/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-6xl text-white/40">self_improvement</span>
+</div>
+</div>
+<!-- Decorative circle -->
+<div class="absolute -bottom-20 -left-20 w-64 h-64 bg-primary-container/20 rounded-full blur-3xl"></div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-emerald-50/90 dark:bg-stone-900/90 backdrop-blur-2xl shadow-[0_-12px_32px_rgba(6,33,10,0.06)] rounded-t-[3rem] border-t border-emerald-900/5">
+<a class="flex flex-col items-center justify-center text-emerald-700/60 dark:text-emerald-400/60 hover:text-emerald-900 dark:hover:text-emerald-200 transition-colors" href="#">
+<span class="material-symbols-outlined">local_florist</span>
+<span class="font-headline text-[11px] font-semibold tracking-wide mt-1">Garden</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-emerald-200/50 dark:bg-emerald-800/50 text-emerald-900 dark:text-emerald-50 rounded-full px-6 py-2 active:scale-90 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-headline text-[11px] font-bold tracking-wide mt-1">Insights</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-700/60 dark:text-emerald-400/60 hover:text-emerald-900 dark:hover:text-emerald-200 transition-colors" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="font-headline text-[11px] font-semibold tracking-wide mt-1">Journal</span>
+</a>
+<a class="flex flex-col items-center justify-center text-emerald-700/60 dark:text-emerald-400/60 hover:text-emerald-900 dark:hover:text-emerald-200 transition-colors" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-headline text-[11px] font-semibold tracking-wide mt-1">Growth</span>
+</a>
+</nav>
+</body></html>
