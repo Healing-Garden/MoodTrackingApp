@@ -27,21 +27,21 @@ const StepFourScreen = ({ navigation, route }) => {
     const [note, setNote] = useState('');
 
     const moods = [
-        { id: 5, emoji: '🤩', label: 'Rất tốt' },
-        { id: 4, emoji: '😊', label: 'Ổn' },
-        { id: 3, emoji: '😐', label: 'Bình thường' },
-        { id: 2, emoji: '😔', label: 'Hơi thấp' },
-        { id: 1, emoji: '😫', label: 'Tệ' },
+        { id: 5, emoji: '🤩', label: 'Great' },
+        { id: 4, emoji: '😊', label: 'Good' },
+        { id: 3, emoji: '😐', label: 'Normal' },
+        { id: 2, emoji: '😔', label: 'Bad' },
+        { id: 1, emoji: '😫', label: 'Awful' },
     ];
 
     const triggerOptions = [
-        { id: 'Work', label: 'Công việc' },
-        { id: 'Family', label: 'Gia đình' },
-        { id: 'Health', label: 'Sức khỏe' },
-        { id: 'Finance', label: 'Tài chính' },
-        { id: 'Social', label: 'Xã hội' },
-        { id: 'Weather', label: 'Thời tiết' },
-        { id: 'Sleep', label: 'Giấc ngủ' },
+        { id: 'Work', label: 'Work' },
+        { id: 'Family', label: 'Family' },
+        { id: 'Health', label: 'Health' },
+        { id: 'Finance', label: 'Finance' },
+        { id: 'Social', label: 'Social' },
+        { id: 'Weather', label: 'Weather' },
+        { id: 'Sleep', label: 'Sleep' },
     ];
 
     const toggleTrigger = (id) => {
@@ -74,8 +74,8 @@ const StepFourScreen = ({ navigation, route }) => {
         } catch (error) {
             console.error('Submission failed:', error);
             Alert.alert(
-                'Lỗi',
-                'Không thể lưu thông tin. Vui lòng thử lại sau.'
+                'Error',
+                'Could not save information. Please try again later.'
             );
         } finally {
             setLoading(false);
@@ -97,7 +97,7 @@ const StepFourScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
                 <View style={styles.headerTitleContainer}>
                     <Text style={styles.headerTitle}>
-                        {isDailyCheckIn ? 'Kiểm tra hàng ngày' : 'Cột mốc 04: Nuôi dưỡng'}
+                        {isDailyCheckIn ? 'Daily Check-in' : 'Milestone 04: Nurture'}
                     </Text>
                 </View>
                 <View style={styles.stepBadge}>
@@ -114,12 +114,12 @@ const StepFourScreen = ({ navigation, route }) => {
                 {/* Hero Section */}
                 <View style={styles.heroSection}>
                     <Text style={styles.displayTitle}>
-                        {isDailyCheckIn ? 'Bạn đang ' : 'Hãy bắt đầu '}
+                        {isDailyCheckIn ? 'How are you ' : "Let's start your "}
                         {"\n"}
                         <Text style={styles.italicTitle}>
-                            {isDailyCheckIn ? 'cảm thấy' : 'kiểm tra'}
+                            {isDailyCheckIn ? 'feeling' : 'first check'}
                         </Text>
-                        {isDailyCheckIn ? ' thế nào?' : ' cảm xúc đầu tiên'}
+                        {isDailyCheckIn ? ' today?' : ''}
                     </Text>
                 </View>
 
@@ -150,12 +150,12 @@ const StepFourScreen = ({ navigation, route }) => {
 
                 {/* Energy Level (Editorial Slider) */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Mức năng lượng của bạn?</Text>
+                    <Text style={styles.sectionTitle}>Your energy level?</Text>
                     <View style={styles.editorialSliderContainer}>
                         <View style={styles.sliderHeader}>
                             <Text style={styles.sliderValue}>{energyLevel}/10</Text>
                             <Text style={styles.sliderStatus}>
-                                {energyLevel > 7 ? 'Tràn đầy tự tin' : energyLevel > 4 ? 'Vừa phải' : 'Hơi mệt mỏi'}
+                                {energyLevel > 7 ? 'Full of energy' : energyLevel > 4 ? 'Moderate' : 'A bit tired'}
                             </Text>
                         </View>
 
@@ -171,15 +171,15 @@ const StepFourScreen = ({ navigation, route }) => {
                         </View>
 
                         <View style={styles.sliderLabels}>
-                            <Text style={styles.labelSmall}>KIỆT SỨC</Text>
-                            <Text style={styles.labelSmall}>PHẤN CHẤN</Text>
+                            <Text style={styles.labelSmall}>EXHAUSTED</Text>
+                            <Text style={styles.labelSmall}>ENERGETIC</Text>
                         </View>
                     </View>
                 </View>
 
                 {/* Triggers Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Yếu tố nào ảnh hưởng đến bạn?</Text>
+                    <Text style={styles.sectionTitle}>What factors affect you?</Text>
                     <View style={styles.triggerGrid}>
                         {triggerOptions.map((trigger) => {
                             const isSelected = selectedTriggers.includes(trigger.id);
@@ -202,12 +202,12 @@ const StepFourScreen = ({ navigation, route }) => {
 
                 {/* Quick Note */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Ghi chú nhanh (Tùy chọn)</Text>
+                    <Text style={styles.sectionTitle}>Quick Note (Optional)</Text>
                     <TextInput
                         style={styles.noteInput}
                         value={note}
                         onChangeText={setNote}
-                        placeholder="Có điều gì đang ở trong tâm trí bạn?"
+                        placeholder="What's on your mind?"
                         placeholderTextColor="rgba(39, 107, 46, 0.3)"
                         multiline
                         textAlignVertical="top"
@@ -230,7 +230,7 @@ const StepFourScreen = ({ navigation, route }) => {
                     ) : (
                         <>
                             <MaterialIcons name="celebration" size={24} color={theme.colors.white} />
-                            <Text style={styles.primaryButtonText}>Hoàn tất & Khám phá</Text>
+                            <Text style={styles.primaryButtonText}>Finish & Explore</Text>
                         </>
                     )}
                 </TouchableOpacity>

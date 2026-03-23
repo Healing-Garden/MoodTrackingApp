@@ -29,7 +29,7 @@ const RegisterScreen = ({ navigation }) => {
 
     const handleRegister = async () => {
         if (!fullName || !email || !password) {
-            Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin.");
+            Alert.alert("Error", "Please fill in all information.");
             return;
         }
 
@@ -42,11 +42,11 @@ const RegisterScreen = ({ navigation }) => {
             });
 
             setShowOtp(true);
-            Alert.alert("Thành công", "Mã OTP đã được gửi đến email của bạn.");
+            Alert.alert("Success", "OTP code has been sent to your email.");
         } catch (error) {
             console.error("Registration initial failed:", error);
-            const errorMsg = error.response?.data?.message || "Đăng ký thất bại. Email có thể đã tồn tại.";
-            Alert.alert("Lỗi", errorMsg);
+            const errorMsg = error.response?.data?.message || "Registration failed. Email might already exist.";
+            Alert.alert("Error", errorMsg);
         } finally {
             setLoading(false);
         }
@@ -54,7 +54,7 @@ const RegisterScreen = ({ navigation }) => {
 
     const handleVerifyOtp = async () => {
         if (!otp) {
-            Alert.alert("Lỗi", "Vui lòng nhập mã OTP.");
+            Alert.alert("Error", "Please enter the OTP code.");
             return;
         }
 
@@ -65,12 +65,12 @@ const RegisterScreen = ({ navigation }) => {
                 otp,
             });
 
-            Alert.alert("Thành công", "Đăng ký thành công! Hãy bắt đầu hành trình của bạn.");
+            Alert.alert("Success", "Registration successful! Start your journey.");
             navigation.replace("OnboardingStep1");
         } catch (error) {
             console.error("OTP Verification failed:", error);
-            const errorMsg = error.response?.data?.message || "Mã OTP không hợp lệ hoặc đã hết hạn.";
-            Alert.alert("Lỗi", errorMsg);
+            const errorMsg = error.response?.data?.message || "Invalid or expired OTP code.";
+            Alert.alert("Error", errorMsg);
         } finally {
             setLoading(false);
         }
@@ -92,7 +92,7 @@ const RegisterScreen = ({ navigation }) => {
                 </View>
 
                 <TouchableOpacity>
-                    <Text style={styles.lang}>VN</Text>
+                    <Text style={styles.lang}>EN</Text>
                 </TouchableOpacity>
             </View>
 
@@ -100,13 +100,13 @@ const RegisterScreen = ({ navigation }) => {
                 {/* HERO */}
                 <View style={styles.hero}>
                     <Text style={styles.title}>
-                        {showOtp ? "Xác thực OTP" : "Bắt đầu hành trình\n" + "chữa lành."}
+                        {showOtp ? "OTP Verification" : "Start your\n" + "healing journey."}
                     </Text>
 
                     <Text style={styles.subtitle}>
                         {showOtp 
-                            ? "Vui lòng kiểm tra email của bạn để lấy mã xác thực."
-                            : "Tham gia cùng cộng đồng Healing Garden để tìm lại sự bình yên trong tâm hồn."}
+                            ? "Please check your email for the verification code."
+                            : "Join the Healing Garden community to find your inner peace."}
                     </Text>
                 </View>
 
@@ -114,9 +114,9 @@ const RegisterScreen = ({ navigation }) => {
                 <View style={styles.form}>
                     {!showOtp ? (
                         <>
-                            <Input label="Họ tên" icon="person-outline" value={fullName} onChangeText={setFullName} />
+                            <Input label="Full Name" icon="person-outline" value={fullName} onChangeText={setFullName} />
                             <Input label="Email" icon="mail-outline" value={email} onChangeText={setEmail} />
-                            <Input label="Mật khẩu" icon="lock-outline" secure value={password} onChangeText={setPassword} />
+                            <Input label="Password" icon="lock-outline" secure value={password} onChangeText={setPassword} />
 
                             <TouchableOpacity onPress={handleRegister} disabled={loading}>
                                 <LinearGradient
@@ -127,7 +127,7 @@ const RegisterScreen = ({ navigation }) => {
                                         <ActivityIndicator color="#fff" />
                                     ) : (
                                         <>
-                                            <Text style={styles.buttonText}>Đăng Ký Ngay</Text>
+                                            <Text style={styles.buttonText}>Register Now</Text>
                                             <MaterialIcons name="east" size={22} color="#fff" />
                                         </>
                                     )}
@@ -136,7 +136,7 @@ const RegisterScreen = ({ navigation }) => {
                         </>
                     ) : (
                         <>
-                            <Input label="Mã OTP" icon="vpn-key" value={otp} onChangeText={setOtp} />
+                            <Input label="OTP Code" icon="vpn-key" value={otp} onChangeText={setOtp} />
                             
                             <TouchableOpacity onPress={handleVerifyOtp} disabled={loading}>
                                 <LinearGradient
@@ -147,7 +147,7 @@ const RegisterScreen = ({ navigation }) => {
                                         <ActivityIndicator color="#fff" />
                                     ) : (
                                         <>
-                                            <Text style={styles.buttonText}>Xác nhận OTP</Text>
+                                            <Text style={styles.buttonText}>Verify OTP</Text>
                                             <MaterialIcons name="check" size={22} color="#fff" />
                                         </>
                                     )}
@@ -155,7 +155,7 @@ const RegisterScreen = ({ navigation }) => {
                             </TouchableOpacity>
 
                             <TouchableOpacity onPress={() => setShowOtp(false)} style={{ marginTop: 10 }}>
-                                <Text style={{ textAlign: 'center', color: theme.colors.primary }}>Quay lại</Text>
+                                <Text style={{ textAlign: 'center', color: theme.colors.primary }}>Go back</Text>
                             </TouchableOpacity>
                         </>
                     )}
@@ -164,7 +164,7 @@ const RegisterScreen = ({ navigation }) => {
                 {/* DIVIDER */}
                 <View style={styles.dividerRow}>
                     <View style={styles.line} />
-                    <Text style={styles.dividerText}>hoặc tham gia bằng</Text>
+                    <Text style={styles.dividerText}>or join with</Text>
                     <View style={styles.line} />
                 </View>
 
@@ -188,10 +188,10 @@ const RegisterScreen = ({ navigation }) => {
 
                 {/* FOOTER */}
                 <View style={styles.footer}>
-                    <Text>Đã có tài khoản?</Text>
+                    <Text>Already have an account?</Text>
 
                     <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                        <Text style={styles.login}>Đăng nhập ngay</Text>
+                        <Text style={styles.login}>Login now</Text>
                     </TouchableOpacity>
                 </View>
 

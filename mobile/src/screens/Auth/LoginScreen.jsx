@@ -26,7 +26,7 @@ const LoginScreen = ({ navigation }) => {
 
     const handleLogin = async () => {
         if (!email || !password) {
-            Alert.alert("Lỗi", "Vui lòng nhập email và mật khẩu.");
+            Alert.alert("Error", "Please enter email and password.");
             return;
         }
 
@@ -68,8 +68,8 @@ const LoginScreen = ({ navigation }) => {
             }
         } catch (error) {
             console.error("Login failed:", error);
-            const errorMsg = error.response?.data?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
-            Alert.alert("Lỗi", errorMsg);
+            const errorMsg = error.response?.data?.message || "Login failed. Please check your information again.";
+            Alert.alert("Error", errorMsg);
         } finally {
             setLoading(false);
         }
@@ -94,7 +94,7 @@ const LoginScreen = ({ navigation }) => {
                     <Text style={styles.title}>Healing Garden</Text>
 
                     <Text style={styles.subtitle}>
-                        Chào mừng bạn trở lại khu vườn tâm hồn
+                        Welcome back to your soul's garden
                     </Text>
                 </View>
 
@@ -127,10 +127,10 @@ const LoginScreen = ({ navigation }) => {
                     {/* PASSWORD */}
                     <View style={styles.inputGroup}>
                         <View style={styles.labelRow}>
-                            <Text style={styles.label}>Mật khẩu</Text>
+                            <Text style={styles.label}>Password</Text>
 
                             <TouchableOpacity>
-                                <Text style={styles.forgot}>Quên mật khẩu?</Text>
+                                <Text style={styles.forgot}>Forgot password?</Text>
                             </TouchableOpacity>
                         </View>
 
@@ -164,7 +164,7 @@ const LoginScreen = ({ navigation }) => {
                             {loading ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
-                                <Text style={styles.buttonText}>Đăng nhập</Text>
+                                <Text style={styles.buttonText}>Login</Text>
                             )}
                         </LinearGradient>
                     </TouchableOpacity>
@@ -173,7 +173,7 @@ const LoginScreen = ({ navigation }) => {
                     <View style={styles.dividerRow}>
                         <View style={styles.divider} />
                         <Text style={styles.dividerText}>
-                            Hoặc đăng nhập với
+                            Or login with
                         </Text>
                         <View style={styles.divider} />
                     </View>
@@ -203,12 +203,12 @@ const LoginScreen = ({ navigation }) => {
 
                 {/* FOOTER */}
                 <View style={styles.footer}>
-                    <Text>Chưa có tài khoản?</Text>
+                    <Text>Don't have an account?</Text>
 
                     <TouchableOpacity
                         onPress={() => navigation.navigate("Register")}
                     >
-                        <Text style={styles.register}>Đăng ký ngay</Text>
+                        <Text style={styles.register}>Register now</Text>
                     </TouchableOpacity>
                 </View>
 
