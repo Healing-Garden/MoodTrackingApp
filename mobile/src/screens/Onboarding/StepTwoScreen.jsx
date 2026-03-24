@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -7,76 +7,116 @@ import {
     StyleSheet,
     StatusBar,
     Dimensions,
+    Animated,
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
+
+// Local Gradients for Onboarding
+const GRADIENTS = {
+    primary: ['#276b2e', '#60a560'],
+    secondary: ['#0c6780', '#09657f'],
+    soft: ['#ebffe6', '#caebc6'],
+};
 
 const StepTwoScreen = ({ navigation, route }) => {
     const { onboardingData } = route.params || { onboardingData: {} };
 
-    // Q4 Options
-    const stressLevelOptions = [
-        'Very low',
-        'Low',
-        'Moderate',
-        'High',
-        'Very high',
+    // Animation refs
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(30)).current;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 1000,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, []);
+
+    // Q4 Options (Stress Level)
+    const stressLevels = [
+        { level: 1, label: 'Calm', color: '#95D5B2' },
+        { level: 2, label: 'Stable', color: '#74C69D' },
+        { level: 3, label: 'Tense', color: '#FFD166' },
+        { level: 4, label: 'Stressed', color: '#F4A261' },
+        { level: 5, label: 'Overwhelmed', color: '#E76F51' },
     ];
 
-    // Q5 Options
-    const recentStateOptions = [
-        { id: 'Peaceful', emoji: '😌', label: 'Peaceful' },
-        { id: 'Anxious', emoji: '😰', label: 'Anxious' },
-        { id: 'Tired', emoji: '😓', label: 'Tired' },
-        { id: 'Sad', emoji: '😔', label: 'Sad' },
-        { id: 'Stressed', emoji: '😠', label: 'Stressed' },
+    // Q5 Options (Mood Pebbles)
+    const moodPebbles = [
+        { id: 'joy', emoji: '😊', label: 'Joy' },
+        { id: 'peace', emoji: '🍃', label: 'Peace' },
+        { id: 'anxiety', emoji: '😟', label: 'Anxiety' },
+        { id: 'sadness', emoji: '😢', label: 'Sadness' },
+        { id: 'fatigue', emoji: '😴', label: 'Fatigue' },
+        { id: 'anger', emoji: '😠', label: 'Anger' },
     ];
 
-    // Q6 Options
-    const emotionalClarityOptions = [
-        'Very clearly',
-        'Quite clearly',
-        'Normal',
-        'Difficult',
-        'Very difficult',
+    // Q6 Options (Emotional Clarity)
+    const clarityOptions = [
+        'Often clear',
+        'Sometimes confused',
+        'Rarely understand',
+        'Need more tools',
     ];
 
-    const [selectedStress, setSelectedStress] = useState('');
-    const [selectedRecentState, setSelectedRecentState] = useState('');
+    const [selectedStress, setSelectedStress] = useState(2);
+    const [selectedMoods, setSelectedMoods] = useState([]);
     const [selectedClarity, setSelectedClarity] = useState('');
 
+    const toggleMood = (id) => {
+        if (selectedMoods.includes(id)) {
+            setSelectedMoods(selectedMoods.filter(m => m !== id));
+        } else {
+            setSelectedMoods([...selectedMoods, id]);
+        }
+    };
+
     const handleContinue = () => {
-        if (selectedStress && selectedRecentState && selectedClarity) {
+        if (selectedMoods.length > 0 && selectedClarity) {
             navigation.navigate('OnboardingStep3', {
                 onboardingData: {
                     ...onboardingData,
                     stressLevel: selectedStress,
-                    recentState: selectedRecentState,
+                    currentMoods: selectedMoods,
                     emotionalClarity: selectedClarity,
                 }
             });
         }
     };
 
-    const isFormValid = selectedStress !== '' && selectedRecentState !== '' && selectedClarity !== '';
+    const isFormValid = selectedMoods.length > 0 && selectedClarity !== '';
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" transparent backgroundColor="transparent" />
+            <StatusBar barStyle="dark-content" />
+            
+            <LinearGradient
+                colors={GRADIENTS.soft}
+                style={styles.backgroundGradient}
+            />
 
-            {/* Organic Asymmetrical Background */}
-            <View style={styles.blob1} />
-            <View style={styles.blob2} />
-
-            {/* Editorial Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <MaterialIcons name="arrow-back" size={24} color={theme.colors.onSurface} />
+                <TouchableOpacity 
+                    onPress={() => navigation.goBack()} 
+                    style={styles.backButton}
+                    activeOpacity={0.7}
+                >
+                    <MaterialIcons name="chevron-left" size={28} color={theme.colors.onSurface} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-                    <Text style={styles.skipText}>Skip</Text>
+                    <Text style={styles.skipText}>SKIP</Text>
                 </TouchableOpacity>
             </View>
 
@@ -84,100 +124,123 @@ const StepTwoScreen = ({ navigation, route }) => {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Progress Stepper */}
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressLabel}>MILESTONE 02: JOURNAL</Text>
-                    <View style={styles.progressBar}>
-                        <View style={styles.progressFill} />
+                <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+                    <View style={styles.progressContainer}>
+                        <Text style={styles.progressLabel}>02 / 04</Text>
+                        <View style={styles.progressBar}>
+                            <View style={[styles.progressFill, { width: '50%' }]} />
+                        </View>
+                        <Text style={styles.milestoneTag}>WATERING PHASE</Text>
                     </View>
-                </View>
 
-                {/* Section 1: Stress Level */}
-                <View style={styles.section}>
-                    <Text style={styles.displayTitle}>
-                        Share your {"\n"}
-                        current <Text style={styles.italicTitle}>state</Text>
-                    </Text>
-
-                    <Text style={styles.sectionTitle}>How stressed have you been lately?</Text>
-                    <View style={styles.stressContainer}>
-                        {stressLevelOptions.map((opt) => {
-                            const isSelected = selectedStress === opt;
-                            return (
-                                <TouchableOpacity
-                                    key={opt}
-                                    onPress={() => setSelectedStress(opt)}
-                                    style={[styles.stressBtn, isSelected && styles.stressBtnSelected]}
-                                >
-                                    <Text style={[styles.stressText, isSelected && styles.stressTextSelected]}>
-                                        {opt}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        })}
+                    <View style={styles.heroSection}>
+                        <Text style={styles.displayTitle}>
+                            Feeling the{"\n"}
+                            <Text style={styles.elegantTitle}>atmosphere</Text>
+                        </Text>
+                        <Text style={styles.subtitle}>How is the weather in your inner garden today?</Text>
                     </View>
-                </View>
 
-                {/* Section 2: Typical Mood */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Common emotional state recently?</Text>
-                    <View style={styles.moodGrid}>
-                        {recentStateOptions.map((item) => {
-                            const isSelected = selectedRecentState === item.id;
-                            return (
-                                <TouchableOpacity
-                                    key={item.id}
-                                    onPress={() => setSelectedRecentState(item.id)}
-                                    style={[styles.moodPebble, isSelected && styles.moodPebbleSelected]}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={styles.moodEmoji}>{item.emoji}</Text>
-                                    <Text style={[styles.moodLabel, isSelected && styles.moodLabelSelected]}>
-                                        {item.label}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        })}
+                    {/* Stress Level Scale */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>My stress level is...</Text>
+                        <View style={styles.stressScale}>
+                            {stressLevels.map((item) => {
+                                const isSelected = selectedStress === item.level;
+                                return (
+                                    <TouchableOpacity
+                                        key={item.level}
+                                        onPress={() => setSelectedStress(item.level)}
+                                        style={styles.stressNode}
+                                        activeOpacity={0.8}
+                                    >
+                                        <View style={[
+                                            styles.stressDot,
+                                            { backgroundColor: item.color },
+                                            isSelected && styles.stressDotSelected
+                                        ]}>
+                                            {isSelected && <MaterialIcons name="bubble-chart" size={16} color="white" />}
+                                        </View>
+                                        <Text style={[styles.stressLabel, isSelected && { fontWeight: '700', color: theme.colors.primary }]}>
+                                            {item.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
                     </View>
-                </View>
 
-                {/* Section 3: Emotional Clarity */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>How well do you understand your emotions?</Text>
-                    <View style={styles.listContainer}>
-                        {emotionalClarityOptions.map((item) => {
-                            const isSelected = selectedClarity === item;
-                            return (
-                                <TouchableOpacity
-                                    key={item}
-                                    onPress={() => setSelectedClarity(item)}
-                                    style={[styles.listItem, isSelected && styles.listItemSelected]}
-                                >
-                                    <Text style={[styles.listItemText, isSelected && styles.listItemTextSelected]}>
-                                        {item}
-                                    </Text>
-                                    <View style={[styles.radio, isSelected && styles.radioSelected]}>
-                                        {isSelected && <View style={styles.radioInner} />}
-                                    </View>
-                                </TouchableOpacity>
-                            );
-                        })}
+                    {/* Mood Pebbles Grid */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Typical emotions lately?</Text>
+                        <View style={styles.moodGrid}>
+                            {moodPebbles.map((pebble) => {
+                                const isSelected = selectedMoods.includes(pebble.id);
+                                return (
+                                    <TouchableOpacity
+                                        key={pebble.id}
+                                        onPress={() => toggleMood(pebble.id)}
+                                        style={[styles.moodPebble, isSelected && styles.moodPebbleSelected]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={styles.moodEmoji}>{pebble.emoji}</Text>
+                                        <Text style={[styles.moodLabel, isSelected && styles.moodLabelSelected]}>
+                                            {pebble.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
                     </View>
-                </View>
 
-                <View style={{ height: 120 }} />
+                    {/* Emotional Clarity List */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>My emotional clarity...</Text>
+                        <View style={styles.listContainer}>
+                            {clarityOptions.map((item) => {
+                                const isSelected = selectedClarity === item;
+                                return (
+                                    <TouchableOpacity
+                                        key={item}
+                                        onPress={() => setSelectedClarity(item)}
+                                        style={[styles.listItem, isSelected && styles.listItemSelected]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={[styles.listItemText, isSelected && styles.listItemTextSelected]}>
+                                            {item}
+                                        </Text>
+                                        {isSelected && (
+                                            <MaterialIcons name="radio-button-checked" size={24} color={theme.colors.secondary} />
+                                        )}
+                                        {!isSelected && (
+                                            <MaterialIcons name="radio-button-off" size={24} color={theme.colors.outline} />
+                                        )}
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    <View style={{ height: 160 }} />
+                </Animated.View>
             </ScrollView>
 
-            {/* Bottom Floating Action */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={[styles.primaryButton, !isFormValid && { opacity: 0.5 }]}
-                    onPress={handleContinue}
                     disabled={!isFormValid}
+                    onPress={handleContinue}
                     activeOpacity={0.9}
+                    style={{ width: '100%' }}
                 >
-                    <Text style={styles.primaryButtonText}>Continue</Text>
-                    <MaterialIcons name="arrow-forward" size={20} color={theme.colors.white} />
+                    <LinearGradient
+                        colors={isFormValid ? GRADIENTS.primary : [theme.colors.surfaceDim, theme.colors.outlineVariant]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.primaryButton}
+                    >
+                        <Text style={styles.primaryButtonText}>Continue Nurturing</Text>
+                        <MaterialIcons name="water-drop" size={24} color={theme.colors.white} />
+                    </LinearGradient>
                 </TouchableOpacity>
             </View>
         </View>
@@ -187,58 +250,46 @@ const StepTwoScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.surface,
+        backgroundColor: theme.colors.background,
     },
-    blob1: {
+    backgroundGradient: {
         position: 'absolute',
-        top: -height * 0.1,
-        right: -width * 0.2,
-        width: width * 0.8,
-        height: width * 0.8,
-        backgroundColor: 'rgba(96, 165, 96, 0.1)',
-        borderRadius: width * 0.4,
-        opacity: 0.7,
-    },
-    blob2: {
-        position: 'absolute',
-        bottom: height * 0.05,
-        left: -width * 0.3,
-        width: width * 0.9,
-        height: width * 0.9,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: width * 0.45,
+        top: 0,
+        left: 0,
+        right: 0,
+        height: height,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: theme.spacing.lg,
-        paddingTop: 48,
+        paddingTop: 60,
+        paddingBottom: 10,
         zIndex: 10,
     },
     backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: theme.colors.surfaceBright,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: theme.colors.surface,
         justifyContent: 'center',
         alignItems: 'center',
         ...theme.shadows.soft,
-    },
-    backIcon: {
-        fontSize: 24,
-        color: theme.colors.onSurface,
     },
     skipText: {
         ...theme.typography.label,
         color: theme.colors.onSurfaceVariant,
         opacity: 0.6,
+        letterSpacing: 1,
     },
     scrollContent: {
         paddingHorizontal: theme.spacing.lg,
-        paddingTop: 32,
+        paddingTop: 20,
     },
     progressContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginBottom: 32,
         gap: 12,
     },
@@ -246,122 +297,90 @@ const styles = StyleSheet.create({
         ...theme.typography.label,
         fontSize: 12,
         color: theme.colors.primary,
-        opacity: 0.6,
-        letterSpacing: 1.5,
+        width: 45,
     },
     progressBar: {
+        flex: 1,
         height: 6,
-        backgroundColor: theme.colors.surfaceContainerHighest,
+        backgroundColor: theme.colors.outlineVariant,
         borderRadius: 3,
         overflow: 'hidden',
     },
     progressFill: {
-        width: '50%',
         height: '100%',
         backgroundColor: theme.colors.primary,
         borderRadius: 3,
     },
-    section: {
-        marginBottom: 48,
-        gap: 24,
-    },
-    displayTitle: {
-        ...theme.typography.headline,
-        fontSize: 34,
-        lineHeight: 40,
-        color: theme.colors.onSurface,
-    },
-    italicTitle: {
-        fontFamily: theme.fonts.elegant,
-        color: theme.colors.secondary,
-        fontWeight: 'normal',
-        fontStyle: 'italic',
-    },
-    editorialSliderContainer: {
-        backgroundColor: theme.colors.surfaceBright,
-        padding: 24,
-        borderRadius: 32,
-        ...theme.shadows.soft,
-    },
-    sliderHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    sliderValue: {
-        ...theme.typography.headline,
-        fontSize: 32,
-        color: theme.colors.primary,
-    },
-    sliderStatus: {
-        ...theme.typography.label,
-        color: theme.colors.onSurfaceVariant,
-    },
-    track: {
-        height: 12,
-        backgroundColor: theme.colors.surfaceContainerHighest,
-        borderRadius: 6,
-        justifyContent: 'center',
-    },
-    fill: {
-        height: '100%',
-        backgroundColor: theme.colors.primary,
-        borderRadius: 6,
-    },
-    thumb: {
-        position: 'absolute',
-        width: 32,
-        height: 32,
-        backgroundColor: theme.colors.white,
-        borderRadius: 16,
-        borderWidth: 8,
-        borderColor: theme.colors.primary,
-        marginLeft: -16,
-        ...theme.shadows.soft,
-    },
-    sliderLabels: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 16,
-    },
-    labelSmall: {
+    milestoneTag: {
         ...theme.typography.label,
         fontSize: 10,
         color: theme.colors.onSurfaceVariant,
-        opacity: 0.6,
-        letterSpacing: 1,
+        backgroundColor: theme.colors.surfaceVariant,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 10,
+        overflow: 'hidden',
     },
-    stressContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 10,
+    heroSection: {
+        marginBottom: 40,
     },
-    stressBtn: {
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: 'transparent',
+    displayTitle: {
+        ...theme.typography.headline,
+        color: theme.colors.onSurface,
+        marginBottom: 16,
     },
-    stressBtnSelected: {
-        backgroundColor: theme.colors.primaryContainer,
-        borderColor: theme.colors.primary,
+    elegantTitle: {
+        fontFamily: theme.fonts.elegant,
+        color: theme.colors.secondary,
+        fontStyle: 'italic',
+        fontSize: 40,
     },
-    stressText: {
+    subtitle: {
         ...theme.typography.body,
-        fontSize: 14,
         color: theme.colors.onSurfaceVariant,
+        opacity: 0.8,
     },
-    stressTextSelected: {
-        color: theme.colors.primary,
-        fontWeight: '700',
+    section: {
+        marginBottom: 40,
     },
     sectionTitle: {
-        ...theme.typography.headline,
-        fontSize: 24,
+        ...theme.typography.body,
+        fontWeight: '700',
         color: theme.colors.onSurface,
+        marginBottom: 20,
+    },
+    stressScale: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        paddingHorizontal: 10,
+        height: 80,
+    },
+    stressNode: {
+        alignItems: 'center',
+        gap: 8,
+    },
+    stressDot: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        ...theme.shadows.soft,
+    },
+    stressDotSelected: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        borderWidth: 3,
+        borderColor: 'white',
+        ...theme.shadows.primary,
+    },
+    stressLabel: {
+        ...theme.typography.label,
+        fontSize: 10,
+        color: theme.colors.onSurfaceVariant,
+        letterSpacing: 0.5,
     },
     moodGrid: {
         flexDirection: 'row',
@@ -369,26 +388,30 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     moodPebble: {
-        width: (width - 32 - 24) / 3,
-        aspectRatio: 1,
-        backgroundColor: theme.colors.surfaceBright,
-        borderRadius: 40, // More rounded/organic
-        justifyContent: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 18,
+        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderRadius: 24,
+        flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
         ...theme.shadows.soft,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
     },
     moodPebbleSelected: {
         backgroundColor: theme.colors.secondary,
-        ...theme.shadows.primary, // Using primary shadow for elevation feel
+        borderColor: theme.colors.secondary,
+        ...theme.shadows.primary,
     },
     moodEmoji: {
-        fontSize: 32,
+        fontSize: 20,
     },
     moodLabel: {
-        ...theme.typography.label,
-        fontSize: 12,
-        color: theme.colors.onSurfaceVariant,
+        ...theme.typography.body,
+        fontSize: 14,
+        fontWeight: '600',
+        color: theme.colors.onSurface,
     },
     moodLabelSelected: {
         color: theme.colors.white,
@@ -400,55 +423,39 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 22,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: 24,
+        padding: 24,
+        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderRadius: theme.borderRadius.lg,
+        ...theme.shadows.soft,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
     },
     listItemSelected: {
-        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderColor: theme.colors.secondary,
+        backgroundColor: theme.colors.secondaryContainer + '20',
     },
     listItemText: {
         ...theme.typography.body,
-        fontSize: 16,
         color: theme.colors.onSurface,
-        flex: 1,
     },
     listItemTextSelected: {
         fontWeight: '700',
-        color: theme.colors.primary,
-    },
-    radio: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: theme.colors.outline,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    radioSelected: {
-        borderColor: theme.colors.primary,
-    },
-    radioInner: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: theme.colors.primary,
+        color: theme.colors.secondary,
     },
     footer: {
         position: 'absolute',
         bottom: 0,
-        width: '100%',
-        paddingHorizontal: theme.spacing.lg,
+        left: 0,
+        right: 0,
+        padding: theme.spacing.lg,
         paddingBottom: 40,
-        paddingTop: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        backgroundColor: 'rgba(235, 255, 230, 0.9)',
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.outlineVariant,
     },
     primaryButton: {
-        width: '100%',
         height: 64,
-        backgroundColor: theme.colors.primary,
-        borderRadius: theme.borderRadius.xl,
+        borderRadius: theme.borderRadius.lg,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -456,15 +463,10 @@ const styles = StyleSheet.create({
         ...theme.shadows.primary,
     },
     primaryButtonText: {
-        ...theme.typography.label,
-        fontSize: 18,
-        color: theme.colors.white,
-    },
-    buttonArrow: {
-        fontSize: 20,
+        ...theme.typography.body,
+        fontWeight: '700',
         color: theme.colors.white,
     },
 });
 
 export default StepTwoScreen;
-
