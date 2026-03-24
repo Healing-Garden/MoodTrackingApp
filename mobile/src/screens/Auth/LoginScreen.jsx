@@ -14,11 +14,11 @@ import {
     Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { theme } from "../../theme";
 import api, { setAuthToken } from "../../services/api";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState("");
@@ -68,12 +68,11 @@ const LoginScreen = ({ navigation }) => {
             const { accessToken, user } = response.data;
             setAuthToken(accessToken);
 
-            // Successfully logged in
             if (user && user.role === 'admin') {
                 navigation.replace("AdminDashboard");
                 return;
             }
-            // 1. Check Onboarding Status
+
             try {
                 const statusRes = await api.get("/user/onboarding/status");
                 if (statusRes.data.isOnboarded === false) {
@@ -81,17 +80,13 @@ const LoginScreen = ({ navigation }) => {
                     return;
                 }
 
-                // 2. Check Today's Check-in
                 try {
                     await api.get("/user/checkins/today");
-                    // If 200/Success -> Already checked in
                     navigation.replace("Dashboard");
                 } catch (checkinErr) {
                     if (checkinErr.response?.status === 404) {
-                        // Not checked in yet -> Go to Step 4 (Daily Check-in)
                         navigation.replace("OnboardingStep4", { isDailyCheckIn: true });
                     } else {
-                        // Other error -> Default to Dashboard
                         navigation.replace("Dashboard");
                     }
                 }
@@ -109,9 +104,7 @@ const LoginScreen = ({ navigation }) => {
                         setShowBanModal(true);
                         return;
                     }
-                } catch (e) {
-                    // Not JSON
-                }
+                } catch (e) {}
             }
             const errorMsg = error.response?.data?.message || "Login failed. Please check your information.";
             Alert.alert("Error", errorMsg);
@@ -124,173 +117,152 @@ const LoginScreen = ({ navigation }) => {
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
 
-            {/* Background blobs */}
-            <View style={styles.blob1} />
-            <View style={styles.blob2} />
+            {/* Decorative Elements */}
+            <View style={[styles.bloom, styles.bloom1]} />
+            <View style={[styles.bloom, styles.bloom2]} />
 
-            <ScrollView contentContainerStyle={styles.scroll}>
-
-                {/* BRAND */}
+            <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+                
+                {/* Brand Anchor */}
                 <View style={styles.brandSection}>
                     <View style={styles.logoBox}>
-                        <MaterialIcons name="spa" size={36} color="#00370b" />
+                        <Image 
+                            source={require("../../../assets/images/logo.png")} 
+                            style={styles.logoImage}
+                            resizeMode="contain"
+                        />
                     </View>
-
                     <Text style={styles.title}>Healing Garden</Text>
-
-                    <Text style={styles.subtitle}>
-                        Welcome back to your soul garden
-                    </Text>
+                    <Text style={styles.subtitle}>Welcome back to your soul garden</Text>
                 </View>
 
-                {/* FORM CARD */}
+                {/* Login Form Container */}
                 <View style={styles.card}>
-
-                    {/* EMAIL */}
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Email</Text>
-
-                        <View style={styles.inputWrapper}>
-                            <MaterialIcons
-                                name="mail-outline"
-                                size={22}
-                                color="#717a6d"
-                                style={styles.inputIcon}
-                            />
-
-                            <TextInput
-                                placeholder="example@garden.com"
-                                style={styles.input}
-                                value={email}
-                                onChangeText={setEmail}
-                                autoCapitalize="none"
-                                keyboardType="email-address"
-                            />
-                        </View>
-                    </View>
-
-                    {/* PASSWORD */}
-                    <View style={styles.inputGroup}>
-                        <View style={styles.labelRow}>
-                            <Text style={styles.label}>Password</Text>
-
-                            <TouchableOpacity>
-                                <Text style={styles.forgot}>Forgot password?</Text>
-                            </TouchableOpacity>
+                    <View style={styles.form}>
+                        {/* Email Input */}
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Email</Text>
+                            <View style={styles.inputWrapper}>
+                                <MaterialIcons name="mail" size={20} color={theme.colors.outline} style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="example@garden.com"
+                                    placeholderTextColor={theme.colors.outline}
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
+                                />
+                            </View>
                         </View>
 
-                        <View style={styles.inputWrapper}>
-                            <MaterialIcons
-                                name="lock-outline"
-                                size={22}
-                                color="#717a6d"
-                                style={styles.inputIcon}
-                            />
-
-                            <TextInput
-                                placeholder="••••••••"
-                                secureTextEntry
-                                style={styles.input}
-                                value={password}
-                                onChangeText={setPassword}
-                            />
+                        {/* Password Input */}
+                        <View style={styles.inputGroup}>
+                            <View style={styles.labelRow}>
+                                <Text style={styles.label}>Password</Text>
+                                <TouchableOpacity>
+                                    <Text style={styles.forgot}>Forgot password?</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={styles.inputWrapper}>
+                                <MaterialIcons name="lock" size={20} color={theme.colors.outline} style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="••••••••"
+                                    placeholderTextColor={theme.colors.outline}
+                                    secureTextEntry
+                                    value={password}
+                                    onChangeText={setPassword}
+                                />
+                            </View>
                         </View>
-                    </View>
 
-                    {/* BUTTON */}
-                    <TouchableOpacity
-                        onPress={handleLogin}
-                        disabled={loading}
-                    >
-                        <LinearGradient
-                            colors={["#276b2e", "#60a560"]}
-                            style={[styles.button, loading && { opacity: 0.7 }]}
+                        {/* Submit Button */}
+                        <TouchableOpacity 
+                            style={styles.submitBtnContainer} 
+                            onPress={handleLogin}
+                            disabled={loading}
+                            activeOpacity={0.8}
                         >
-                            {loading ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Text style={styles.buttonText}>Sign In</Text>
-                            )}
-                        </LinearGradient>
-                    </TouchableOpacity>
+                            <LinearGradient
+                                colors={[theme.colors.primary, theme.colors.primaryContainer]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={styles.submitBtn}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color={theme.colors.onPrimary} />
+                                ) : (
+                                    <Text style={styles.submitBtnText}>Sign In</Text>
+                                )}
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
 
-                    {/* DIVIDER */}
-                    <View style={styles.dividerRow}>
+                    {/* Divider */}
+                    <View style={styles.dividerContainer}>
                         <View style={styles.divider} />
-                        <Text style={styles.dividerText}>
-                            Or sign in with
-                        </Text>
+                        <Text style={styles.dividerText}>OR SIGN IN WITH</Text>
                         <View style={styles.divider} />
                     </View>
 
-                    {/* SOCIAL LOGIN */}
-                    <View style={styles.socialRow}>
-                        <TouchableOpacity style={styles.socialBtn}>
+                    {/* Social Login */}
+                    <View style={styles.socialContainer}>
+                        <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
                             <Image
-                                source={{
-                                    uri: "https://cdn-icons-png.flaticon.com/512/300/300221.png"
-                                }}
-                                style={styles.socialIcon}
+                                source={{ uri: "https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png" }}
+                                style={styles.googleIcon}
                             />
-                            <Text style={styles.socialText}>Google</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.socialBtn}>
-                            <MaterialIcons
-                                name="facebook"
-                                size={22}
-                                color="#1877F2"
-                            />
-                            <Text style={styles.socialText}>Facebook</Text>
+                            <Text style={styles.socialBtnText}>Google</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                {/* FOOTER */}
+                {/* Footer Link */}
                 <View style={styles.footer}>
-                    <Text>Don't have an account?</Text>
-
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate("Register")}
-                    >
-                        <Text style={styles.register}>Register now</Text>
+                    <Text style={styles.footerText}>Don't have an account?</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+                        <Text style={styles.registerLink}> Register now</Text>
                     </TouchableOpacity>
                 </View>
+
+                {/* Copyright */}
+                <Text style={styles.copyright}>© 2026 Healing Garden. All rights reserved.</Text>
 
             </ScrollView>
 
-            {/* BAN MODAL */}
+            {/* Ban Modal */}
             <Modal visible={showBanModal} transparent animationType="fade">
                 <View style={styles.modalOverlay}>
                     <View style={styles.banModalContainer}>
-                        <MaterialIcons name="block" size={48} color="#ba1a1a" style={{ marginBottom: 16 }} />
-                        <Text style={styles.banTitle}>Tài khoản bị cấm</Text>
-                        <Text style={styles.banSubtitle}>Bạn không thể đăng nhập vào lúc này.</Text>
+                        <MaterialIcons name="block" size={48} color={theme.colors.error} style={{ marginBottom: 16 }} />
+                        <Text style={styles.banTitle}>Account Banned</Text>
+                        <Text style={styles.banSubtitle}>You cannot log in at this time.</Text>
                         
                         <View style={styles.banReasonBox}>
-                            <Text style={styles.banReasonLabel}>Lý do khóa:</Text>
-                            <Text style={styles.banReasonText}>{banData?.banReason || 'Vi phạm chính sách'}</Text>
+                            <Text style={styles.banReasonLabel}>Reason:</Text>
+                            <Text style={styles.banReasonText}>{banData?.banReason || 'Policy Violation'}</Text>
                         </View>
 
                         {banData?.banExpiresAt && (
                             <View style={styles.countdownContainer}>
-                                <Text style={styles.countdownLabel}>Mở khóa sau:</Text>
+                                <Text style={styles.countdownLabel}>Unlocks in:</Text>
                                 <View style={styles.countdownRow}>
-                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.days}</Text><Text style={styles.countdownUnit}>Ngày</Text></View>
-                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.hours}</Text><Text style={styles.countdownUnit}>Giờ</Text></View>
-                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.minutes}</Text><Text style={styles.countdownUnit}>Phút</Text></View>
-                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.seconds}</Text><Text style={styles.countdownUnit}>Giây</Text></View>
+                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.days}</Text><Text style={styles.countdownUnit}>Days</Text></View>
+                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.hours}</Text><Text style={styles.countdownUnit}>Hours</Text></View>
+                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.minutes}</Text><Text style={styles.countdownUnit}>Minutes</Text></View>
+                                    <View style={styles.countdownBox}><Text style={styles.countdownNumber}>{countdownObj.seconds}</Text><Text style={styles.countdownUnit}>Seconds</Text></View>
                                 </View>
                             </View>
                         )}
                         {!banData?.banExpiresAt && (
                             <View style={styles.countdownContainer}>
-                                <Text style={[styles.countdownLabel, { color: "#ba1a1a" }]}>Tài khoản bị khóa vĩnh viễn</Text>
+                                <Text style={[styles.countdownLabel, { color: theme.colors.error }]}>Permanently Banned</Text>
                             </View>
                         )}
 
                         <TouchableOpacity style={styles.banCloseBtn} onPress={() => setShowBanModal(false)}>
-                            <Text style={styles.banCloseText}>Đóng</Text>
+                            <Text style={styles.banCloseText}>Close</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -299,220 +271,293 @@ const LoginScreen = ({ navigation }) => {
     );
 };
 
-export default LoginScreen;
-
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
-        backgroundColor: "#ebffe6"
+        backgroundColor: theme.colors.background,
     },
-
     scroll: {
-        padding: 24,
-        alignItems: "center"
+        flexGrow: 1,
+        paddingHorizontal: 24,
+        paddingTop: 60,
+        paddingBottom: 40,
+        alignItems: "center",
     },
-
-    blob1: {
+    bloom: {
         position: "absolute",
-        top: -120,
-        left: -120,
+        width: 380,
+        height: 380,
+        opacity: 0.2,
+    },
+    bloom1: {
+        top: -100,
+        left: -100,
+        backgroundColor: theme.colors.primaryContainer,
+        borderRadius: 190,
+        borderBottomRightRadius: 100,
+    },
+    bloom2: {
+        bottom: -150,
+        right: -80,
+        backgroundColor: theme.colors.secondaryContainer,
         width: 320,
         height: 320,
-        backgroundColor: "rgba(96,165,96,0.2)",
-        borderRadius: 160
+        borderRadius: 160,
+        borderTopLeftRadius: 80,
     },
-
-    blob2: {
-        position: "absolute",
-        bottom: -120,
-        right: -80,
-        width: 260,
-        height: 260,
-        backgroundColor: "rgba(154,225,255,0.3)",
-        borderRadius: 140
-    },
-
     brandSection: {
         alignItems: "center",
-        marginBottom: 40
+        marginBottom: 48,
     },
-
     logoBox: {
         width: 80,
         height: 80,
-        backgroundColor: "#60a560",
-        borderRadius: 16,
+        backgroundColor: theme.colors.primaryContainer,
+        borderRadius: 20,
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 20
+        marginBottom: 24,
+        ...theme.shadows.primary,
+        overflow: "hidden",
     },
-
+    logoImage: {
+        width: "90%",
+        height: "90%",
+    },
     title: {
-        fontSize: 32,
-        fontWeight: "800"
+        fontSize: 36,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "800",
+        color: theme.colors.onBackground,
+        letterSpacing: -0.5,
     },
-
     subtitle: {
-        color: "#40493e",
-        marginTop: 6
+        fontSize: 16,
+        fontFamily: theme.fonts.body,
+        fontWeight: "500",
+        color: theme.colors.onSurfaceVariant,
+        marginTop: 8,
+        textAlign: "center",
     },
-
     card: {
         width: "100%",
-        backgroundColor: "rgba(255,255,255,0.85)",
-        borderRadius: 20,
-        padding: 24,
-        shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowRadius: 12
+        backgroundColor: "#ffffff",
+        borderRadius: 24,
+        padding: 32,
+        borderWidth: 2,
+        borderColor: "white",
+        ...theme.shadows.soft,
     },
-
+    form: {
+        gap: 24,
+    },
     inputGroup: {
-        marginBottom: 18
+        gap: 8,
     },
-
-    label: {
-        fontWeight: "600",
-        marginBottom: 6
-    },
-
     labelRow: {
         flexDirection: "row",
-        justifyContent: "space-between"
+        justifyContent: "space-between",
+        alignItems: "center",
     },
-
+    label: {
+        fontSize: 14,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "600",
+        color: theme.colors.onSurfaceVariant,
+        marginLeft: 4,
+    },
     forgot: {
         fontSize: 12,
-        color: "#276b2e"
+        fontFamily: theme.fonts.headline,
+        fontWeight: "600",
+        color: theme.colors.primary,
     },
-
     inputWrapper: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#dbfdd7",
+        backgroundColor: theme.colors.surfaceContainerLow,
         borderRadius: 12,
-        paddingHorizontal: 12
+        paddingHorizontal: 16,
+        height: 56,
     },
-
     inputIcon: {
-        marginRight: 10
+        marginRight: 12,
     },
-
     input: {
         flex: 1,
-        paddingVertical: 14
+        fontSize: 16,
+        fontFamily: theme.fonts.body,
+        color: theme.colors.onSurface,
     },
-
-    button: {
-        marginTop: 12,
-        paddingVertical: 16,
-        borderRadius: 12,
-        alignItems: "center"
+    submitBtnContainer: {
+        marginTop: 8,
+        borderRadius: 16,
+        overflow: "hidden",
+        ...theme.shadows.primary,
     },
-
-    buttonText: {
-        color: "#fff",
+    submitBtn: {
+        height: 60,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    submitBtnText: {
+        fontSize: 18,
+        fontFamily: theme.fonts.headline,
         fontWeight: "700",
-        fontSize: 16
+        color: theme.colors.onPrimary,
     },
-
-    dividerRow: {
+    dividerContainer: {
         flexDirection: "row",
         alignItems: "center",
-        marginVertical: 24
+        marginVertical: 40,
     },
-
     divider: {
         flex: 1,
         height: 1,
-        backgroundColor: "#c0c9bb"
+        backgroundColor: theme.colors.outlineVariant + "50",
     },
-
     dividerText: {
-        marginHorizontal: 10,
-        fontSize: 12
+        marginHorizontal: 16,
+        fontSize: 10,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "800",
+        color: theme.colors.outline,
+        letterSpacing: 1.5,
     },
-
-    socialRow: {
-        flexDirection: "row",
-        gap: 12
+    socialContainer: {
+        width: "100%",
     },
-
     socialBtn: {
-        flex: 1,
         flexDirection: "row",
+        height: 52,
+        backgroundColor: theme.colors.surfaceContainer,
+        borderRadius: 12,
         justifyContent: "center",
         alignItems: "center",
-        padding: 12,
-        backgroundColor: "#d6f7d1",
-        borderRadius: 10
+        gap: 8,
     },
-
-    socialIcon: {
-        width: 22,
-        height: 22,
-        marginRight: 8
+    googleIcon: {
+        width: 24,
+        height: 24,
     },
-
-    socialText: {
-        fontWeight: "600"
+    socialBtnText: {
+        fontSize: 14,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "700",
+        color: theme.colors.onSurfaceVariant,
     },
-
     footer: {
         flexDirection: "row",
-        marginTop: 30,
-        gap: 6
+        justifyContent: "center",
+        marginTop: 40,
     },
-
-    register: {
-        color: "#276b2e",
-        fontWeight: "700"
+    footerText: {
+        fontSize: 15,
+        fontFamily: theme.fonts.body,
+        fontWeight: "500",
+        color: theme.colors.onSurfaceVariant,
     },
-
+    registerLink: {
+        fontSize: 15,
+        fontFamily: theme.fonts.body,
+        fontWeight: "700",
+        color: theme.colors.primary,
+    },
+    copyright: {
+        marginTop: 32,
+        fontSize: 12,
+        fontFamily: theme.fonts.body,
+        color: theme.colors.outline + "80",
+        textAlign: "center",
+    },
     modalOverlay: {
-        flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center'
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     banModalContainer: {
-        backgroundColor: '#fff', width: '85%', padding: 24, borderRadius: 20, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10
+        backgroundColor: '#fff',
+        width: '85%',
+        padding: 24,
+        borderRadius: 20,
+        alignItems: 'center',
+        ...theme.shadows.soft,
     },
     banTitle: {
-        fontSize: 22, fontWeight: '800', color: '#ba1a1a', marginBottom: 8
+        fontSize: 22,
+        fontWeight: '800',
+        color: theme.colors.error,
+        marginBottom: 8,
     },
     banSubtitle: {
-        fontSize: 14, color: '#555', marginBottom: 20, textAlign: 'center'
+        fontSize: 14,
+        color: '#555',
+        marginBottom: 20,
+        textAlign: 'center',
     },
     banReasonBox: {
-        width: '100%', backgroundColor: '#fff0f0', padding: 16, borderRadius: 12, marginBottom: 20
+        width: '100%',
+        backgroundColor: theme.colors.errorContainer + "30",
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 20,
     },
     banReasonLabel: {
-        fontSize: 12, fontWeight: '700', color: '#93000a', marginBottom: 4
+        fontSize: 12,
+        fontWeight: '700',
+        color: theme.colors.onErrorContainer,
+        marginBottom: 4,
     },
     banReasonText: {
-        fontSize: 14, color: '#555'
+        fontSize: 14,
+        color: '#555',
     },
     countdownContainer: {
-        width: '100%', alignItems: 'center', marginBottom: 24
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 24,
     },
     countdownLabel: {
-        fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 12
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 12,
     },
     countdownRow: {
-        flexDirection: 'row', gap: 12
+        flexDirection: 'row',
+        gap: 12,
     },
     countdownBox: {
-        alignItems: 'center', backgroundColor: '#f0f0f0', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, minWidth: 50
+        alignItems: 'center',
+        backgroundColor: '#f0f0f0',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        minWidth: 50,
     },
     countdownNumber: {
-        fontSize: 18, fontWeight: '800', color: '#005a80'
+        fontSize: 18,
+        fontWeight: '800',
+        color: theme.colors.secondary,
     },
     countdownUnit: {
-        fontSize: 10, color: '#666', marginTop: 2
+        fontSize: 10,
+        color: '#666',
+        marginTop: 2,
     },
     banCloseBtn: {
-        backgroundColor: '#005a80', width: '100%', paddingVertical: 14, borderRadius: 12, alignItems: 'center'
+        backgroundColor: theme.colors.primary,
+        width: '100%',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
     },
     banCloseText: {
-        color: '#fff', fontSize: 16, fontWeight: '700'
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '700',
     }
 });
+
+export default LoginScreen;
