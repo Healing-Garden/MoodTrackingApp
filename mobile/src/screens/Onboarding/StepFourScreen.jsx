@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -6,233 +6,364 @@ import {
     ScrollView,
     StyleSheet,
     StatusBar,
-    TextInput,
     Dimensions,
+    Animated,
+    TextInput,
     ActivityIndicator,
     Alert,
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import api from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
+// Local Gradients for Onboarding
+const GRADIENTS = {
+    primary: ['#276b2e', '#60a560'],
+    secondary: ['#0c6780', '#09657f'],
+    soft: ['#ebffe6', '#caebc6'],
+};
+
+const MOOD_OPTIONS = [
+    { level: 1, emoji: '😢', label: 'Very Low', color: '#E76F51' },
+    { level: 2, emoji: '😟', label: 'Low', color: '#F4A261' },
+    { level: 3, emoji: '😐', label: 'Neutral', color: '#FFD166' },
+    { level: 4, emoji: '😊', label: 'Good', color: '#74C69D' },
+    { level: 5, emoji: '😄', label: 'Great', color: '#276B2E' },
+];
+
 const StepFourScreen = ({ navigation, route }) => {
     const { onboardingData, isDailyCheckIn } = route.params || { onboardingData: {}, isDailyCheckIn: false };
-    const [loading, setLoading] = useState(false);
 
-    const [selectedMood, setSelectedMood] = useState(3);
-    const [energyLevel, setEnergyLevel] = useState(5);
-    const [selectedTriggers, setSelectedTriggers] = useState(['Work']);
+    // Animation refs
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(30)).current;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 1000,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, []);
+
+    // Q10 Options (Sleep Selection)
+    const sleepOptions = [
+        { label: '< 5h', value: 4 },
+        { label: '5-6h', value: 5.5 },
+        { label: '6-7h', value: 6.5 },
+        { label: '7-8h', value: 7.5 },
+        { label: '8-9h', value: 8.5 },
+        { label: '> 9h', value: 10 },
+    ];
+
+    // Q11 Options (Energy) - Mapping labels to numeric levels for API
+    const energyOptions = [
+        { id: 'Exhausted', label: 'Exhausted', icon: 'battery-alert', color: '#E76F51', level: 2 },
+        { id: 'Low', label: 'Low Energy', icon: 'battery-unknown', color: '#F4A261', level: 4 },
+        { id: 'Normal', label: 'Balanced', icon: 'battery-std', color: '#FFD166', level: 6 },
+        { id: 'Good', label: 'Energetic', icon: 'battery-charging-full', color: '#74C69D', level: 8 },
+        { id: 'High', label: 'Powerful', icon: 'battery-full', color: '#276B2E', level: 10 },
+    ];
+
+    // Q12 Options (Focus)
+    const focusLevelOptions = [
+        'Very high',
+        'Quite high',
+        'Normal',
+        'Easily distracted',
+        'Very difficult to focus',
+    ];
+
+    const [selectedMood, setSelectedMood] = useState(onboardingData?.stressLevel ? (6 - onboardingData.stressLevel) : 3);
+    const [selectedSleep, setSelectedSleep] = useState(7.5);
+    const [selectedEnergy, setSelectedEnergy] = useState('');
+    const [selectedFocus, setSelectedFocus] = useState('');
     const [note, setNote] = useState('');
-
-    const moods = [
-        { id: 5, emoji: '🤩', label: 'Great' },
-        { id: 4, emoji: '😊', label: 'Good' },
-        { id: 3, emoji: '😐', label: 'Normal' },
-        { id: 2, emoji: '😔', label: 'Bad' },
-        { id: 1, emoji: '😫', label: 'Awful' },
-    ];
-
-    const triggerOptions = [
-        { id: 'Work', label: 'Work' },
-        { id: 'Family', label: 'Family' },
-        { id: 'Health', label: 'Health' },
-        { id: 'Finance', label: 'Finance' },
-        { id: 'Social', label: 'Social' },
-        { id: 'Weather', label: 'Weather' },
-        { id: 'Sleep', label: 'Sleep' },
-    ];
-
-    const toggleTrigger = (id) => {
-        setSelectedTriggers((prev) =>
-            prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
-        );
-    };
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleFinish = async () => {
-        setLoading(true);
+        if (!selectedEnergy || !selectedFocus || !selectedMood) {
+            Alert.alert("Missing Info", "Please select your mood, energy, and focus levels.");
+            return;
+        }
+
+        setIsSubmitting(true);
         try {
+            const energyObj = energyOptions.find(e => e.id === selectedEnergy);
+            const energyLevelVal = energyObj ? energyObj.level : 5;
+
+            // 1. Prepare Check-in Payload
+            const allowedTriggers = ["Family", "Work", "Health", "Relationships", "Friends", "Study", "Finance", "Sleep", "Social", "Self-care", "Other"];
+            const selectedTriggers = Array.isArray(onboardingData?.negativeEmotionHandling)
+                ? onboardingData.negativeEmotionHandling
+                    .map((t) => (t || "").toString().trim())
+                    .filter((t) => t && allowedTriggers.includes(t))
+                : [];
+
+            const checkInData = {
+                mood: selectedMood,
+                energy: energyLevelVal,
+                note: note.trim() || undefined,
+                triggers: selectedTriggers.length > 0 ? selectedTriggers : ["Other"],
+                metadata: {
+                    sleepHours: selectedSleep,
+                    focusLevel: selectedFocus,
+                }
+            };
+
+            // 2. Submit Daily Check-in
+            await api.post('/user/checkins', checkInData);
+
+            // 3. If in Onboarding Flow, mark Onboarding as complete
             if (!isDailyCheckIn) {
-                // 1. Save Onboarding Preferences (Only if not just a daily check-in)
-                await api.post('/user/onboarding', {
+                const safeNegativeEmotionHandling = Array.isArray(onboardingData?.negativeEmotionHandling)
+                    ? onboardingData.negativeEmotionHandling.join(', ')
+                    : onboardingData?.negativeEmotionHandling || '';
+
+                const finalPreferences = {
                     ...onboardingData,
+                    sleepHours: selectedSleep,
+                    energyLevel: selectedEnergy,
+                    focusLevel: selectedFocus,
+                    negativeEmotionHandling: safeNegativeEmotionHandling,
                     isOnboarded: true,
-                });
+                };
+                await api.post('/user/onboarding', finalPreferences);
             }
 
-            // 2. Save Daily Check-in
-            await api.post('/user/checkins', {
-                mood: selectedMood,
-                energy: energyLevel, // Corrected from energyLevel to match BE saveDailyCheckIn (line 149)
-                triggers: selectedTriggers,
-                note: note,
-            });
-
-            // 3. Navigate to Home
+            // 4. Navigate to Dashboard
             navigation.replace('Dashboard');
         } catch (error) {
-            console.error('Submission failed:', error);
-            Alert.alert(
-                'Error',
-                'Could not save information. Please try again later.'
-            );
+            console.error('Check-in failed:', error);
+            const errorMsg = error.response?.data?.message || "Failed to save your progress. Please try again.";
+            Alert.alert("Error", errorMsg);
         } finally {
-            setLoading(false);
+            setIsSubmitting(false);
         }
     };
 
+    const isFormValid = selectedEnergy !== '' && selectedFocus !== '' && selectedMood !== null;
+
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" transparent backgroundColor="transparent" />
+            <StatusBar barStyle="dark-content" />
+            
+            <LinearGradient
+                colors={GRADIENTS.soft}
+                style={styles.backgroundGradient}
+            />
 
-            {/* Organic Asymmetrical Background */}
-            <View style={styles.blob1} />
-            <View style={styles.blob2} />
-
-            {/* Editorial Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <MaterialIcons name="arrow-back" size={24} color={theme.colors.onSurface} />
+                {!isDailyCheckIn && (
+                    <TouchableOpacity 
+                        onPress={() => navigation.goBack()} 
+                        style={styles.backButton}
+                        activeOpacity={0.7}
+                    >
+                        <MaterialIcons name="chevron-left" size={28} color={theme.colors.onSurface} />
+                    </TouchableOpacity>
+                )}
+                {isDailyCheckIn && <View style={{ width: 48 }} />}
+                
+                <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+                    <Text style={styles.skipText}>SKIP</Text>
                 </TouchableOpacity>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>
-                        {isDailyCheckIn ? 'Daily Check-in' : 'Milestone 04: Nurture'}
-                    </Text>
-                </View>
-                <View style={styles.stepBadge}>
-                    <Text style={styles.stepBadgeText}>
-                        {isDailyCheckIn ? 'DAILY' : 'GROW'}
-                    </Text>
-                </View>
             </View>
 
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Hero Section */}
-                <View style={styles.heroSection}>
-                    <Text style={styles.displayTitle}>
-                        {isDailyCheckIn ? 'How are you ' : "Let's start your "}
-                        {"\n"}
-                        <Text style={styles.italicTitle}>
-                            {isDailyCheckIn ? 'feeling' : 'first check'}
+                <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+                    {!isDailyCheckIn && (
+                        <View style={styles.progressContainer}>
+                            <Text style={styles.progressLabel}>04 / 04</Text>
+                            <View style={styles.progressBar}>
+                                <View style={[styles.progressFill, { width: '100%' }]} />
+                            </View>
+                            <Text style={styles.milestoneTag}>FINAL HARVEST</Text>
+                        </View>
+                    )}
+
+                    <View style={styles.heroSection}>
+                        <Text style={styles.displayTitle}>
+                            {isDailyCheckIn ? "Good Morning," : "Finalizing your\n"}
+                            <Text style={styles.elegantTitle}>{isDailyCheckIn ? "Gardener" : "environment"}</Text>
                         </Text>
-                        {isDailyCheckIn ? ' today?' : ''}
-                    </Text>
-                </View>
-
-                {/* Mood Selection (Asymmetric Pebbles) */}
-                <View style={styles.section}>
-                    <View style={styles.moodGrid}>
-                        {moods.map((mood) => (
-                            <TouchableOpacity
-                                key={mood.id}
-                                style={[
-                                    styles.moodPebble,
-                                    selectedMood === mood.id && styles.moodPebbleSelected
-                                ]}
-                                onPress={() => setSelectedMood(mood.id)}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.moodEmoji}>{mood.emoji}</Text>
-                                <Text style={[
-                                    styles.moodLabel,
-                                    selectedMood === mood.id && styles.moodLabelSelected
-                                ]}>
-                                    {mood.label}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
+                        <Text style={styles.subtitle}>
+                            {isDailyCheckIn 
+                                ? "Let's check the stability of your inner garden today." 
+                                : "How was your rest and focus as we begin this path together?"}
+                        </Text>
                     </View>
-                </View>
 
-                {/* Energy Level (Editorial Slider) */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Your energy level?</Text>
-                    <View style={styles.editorialSliderContainer}>
-                        <View style={styles.sliderHeader}>
-                            <Text style={styles.sliderValue}>{energyLevel}/10</Text>
-                            <Text style={styles.sliderStatus}>
-                                {energyLevel > 7 ? 'Full of energy' : energyLevel > 4 ? 'Moderate' : 'A bit tired'}
+                    {/* Mood Selector (Crucial for Check-in) */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>How are you feeling right now?</Text>
+                        <View style={styles.moodSelector}>
+                            {MOOD_OPTIONS.map((opt) => {
+                                const isSelected = selectedMood === opt.level;
+                                return (
+                                    <TouchableOpacity
+                                        key={opt.level}
+                                        onPress={() => setSelectedMood(opt.level)}
+                                        style={[styles.moodItem, isSelected && { backgroundColor: opt.color + '20', borderColor: opt.color }]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={styles.moodEmoji}>{opt.emoji}</Text>
+                                        <Text style={[styles.moodLabel, isSelected && { color: opt.color, fontWeight: '700' }]}>
+                                            {opt.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    {/* Sleep Duration Selector */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Quality of your rest last night?</Text>
+                        <View style={styles.sleepSelector}>
+                            {sleepOptions.map((opt) => {
+                                const isSelected = selectedSleep === opt.value;
+                                return (
+                                    <TouchableOpacity
+                                        key={opt.label}
+                                        onPress={() => setSelectedSleep(opt.value)}
+                                        style={[styles.sleepNode, isSelected && styles.sleepNodeSelected]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={[styles.sleepValue, isSelected && styles.sleepValueSelected]}>
+                                            {opt.label}
+                                        </Text>
+                                        <View style={[styles.sleepDot, isSelected && styles.sleepDotSelected]} />
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    {/* Energy Selection */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Your vital energy today?</Text>
+                        <View style={styles.energyGrid}>
+                            {energyOptions.map((item) => {
+                                const isSelected = selectedEnergy === item.id;
+                                return (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        onPress={() => setSelectedEnergy(item.id)}
+                                        style={[
+                                            styles.energyItem, 
+                                            isSelected && styles.energyItemSelected,
+                                            { borderColor: isSelected ? item.color : 'transparent' }
+                                        ]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <MaterialIcons 
+                                            name={item.icon} 
+                                            size={28} 
+                                            color={isSelected ? item.color : theme.colors.onSurfaceVariant} 
+                                        />
+                                        <Text style={[styles.energyLabel, isSelected && { color: item.color, fontWeight: '700' }]}>
+                                            {item.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    {/* Focus Level List */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>My focus level is...</Text>
+                        <View style={styles.listContainer}>
+                            {focusLevelOptions.map((item) => {
+                                const isSelected = selectedFocus === item;
+                                return (
+                                    <TouchableOpacity
+                                        key={item}
+                                        onPress={() => setSelectedFocus(item)}
+                                        style={[styles.listItem, isSelected && styles.listItemSelected]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={[styles.listItemText, isSelected && styles.listItemTextSelected]}>
+                                            {item}
+                                        </Text>
+                                        {isSelected && (
+                                            <MaterialIcons name="radio-button-checked" size={24} color={theme.colors.secondary} />
+                                        )}
+                                        {!isSelected && (
+                                            <MaterialIcons name="radio-button-off" size={24} color={theme.colors.outline} />
+                                        )}
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    {/* Quick Note Section */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Any thoughts on your mind? (Optional)</Text>
+                        <View style={styles.noteContainer}>
+                            <TextInput
+                                placeholder="Write a short reflection..."
+                                style={styles.noteInput}
+                                multiline
+                                numberOfLines={4}
+                                value={note}
+                                onChangeText={setNote}
+                                placeholderTextColor={theme.colors.onSurfaceVariant + '80'}
+                            />
+                        </View>
+                    </View>
+
+                    {!isDailyCheckIn && (
+                        <View style={styles.affirmationCard}>
+                            <Text style={styles.affirmationText}>
+                                "Every moment is a fresh beginning. Your garden is ready for you to plant your first seed."
                             </Text>
                         </View>
+                    )}
 
-                        {/* Interactive Slider Placeholder using 5 buttons for mobile simplicity/consistency */}
-                        <View style={styles.energyButtons}>
-                            {[2, 4, 6, 8, 10].map((val) => (
-                                <TouchableOpacity
-                                    key={val}
-                                    onPress={() => setEnergyLevel(val)}
-                                    style={[styles.energyDot, energyLevel === val && styles.energyDotActive]}
-                                />
-                            ))}
-                        </View>
-
-                        <View style={styles.sliderLabels}>
-                            <Text style={styles.labelSmall}>EXHAUSTED</Text>
-                            <Text style={styles.labelSmall}>ENERGETIC</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Triggers Section */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>What factors affect you?</Text>
-                    <View style={styles.triggerGrid}>
-                        {triggerOptions.map((trigger) => {
-                            const isSelected = selectedTriggers.includes(trigger.id);
-                            return (
-                                <TouchableOpacity
-                                    key={trigger.id}
-                                    onPress={() => toggleTrigger(trigger.id)}
-                                    style={[styles.triggerChip, isSelected && styles.triggerChipSelected]}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={[styles.triggerChipText, isSelected && styles.triggerChipTextSelected]}>
-                                        {trigger.label}
-                                    </Text>
-                                    {isSelected && <MaterialIcons name="check" size={16} color={theme.colors.secondary} />}
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                </View>
-
-                {/* Quick Note */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Quick Note (Optional)</Text>
-                    <TextInput
-                        style={styles.noteInput}
-                        value={note}
-                        onChangeText={setNote}
-                        placeholder="What's on your mind?"
-                        placeholderTextColor="rgba(39, 107, 46, 0.3)"
-                        multiline
-                        textAlignVertical="top"
-                    />
-                </View>
-
-                <View style={{ height: 160 }} />
+                    <View style={{ height: 160 }} />
+                </Animated.View>
             </ScrollView>
 
-            {/* Final Celebration Button */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={[styles.primaryButton, loading && { opacity: 0.7 }]}
+                    disabled={!isFormValid || isSubmitting}
                     onPress={handleFinish}
-                    disabled={loading}
                     activeOpacity={0.9}
+                    style={{ width: '100%' }}
                 >
-                    {loading ? (
-                        <ActivityIndicator color={theme.colors.white} />
-                    ) : (
-                        <>
-                            <MaterialIcons name="celebration" size={24} color={theme.colors.white} />
-                            <Text style={styles.primaryButtonText}>Finish & Explore</Text>
-                        </>
-                    )}
+                    <LinearGradient
+                        colors={isFormValid ? GRADIENTS.primary : [theme.colors.surfaceDim, theme.colors.outlineVariant]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.primaryButton}
+                    >
+                        {isSubmitting ? (
+                            <ActivityIndicator color={theme.colors.white} />
+                        ) : (
+                            <>
+                                <Text style={styles.primaryButtonText}>
+                                    {isDailyCheckIn ? "Submit Check-in" : "Enter My Healing Garden"}
+                                </Text>
+                                <MaterialIcons name={isDailyCheckIn ? "send" : "local-florist"} size={24} color={theme.colors.white} />
+                            </>
+                        )}
+                    </LinearGradient>
                 </TouchableOpacity>
             </View>
         </View>
@@ -242,272 +373,274 @@ const StepFourScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.surface,
+        backgroundColor: theme.colors.background,
     },
-    blob1: {
+    backgroundGradient: {
         position: 'absolute',
-        top: -height * 0.1,
-        left: -width * 0.2,
-        width: width * 0.8,
-        height: width * 0.8,
-        backgroundColor: 'rgba(171, 244, 167, 0.1)',
-        borderRadius: width * 0.4,
-    },
-    blob2: {
-        position: 'absolute',
-        bottom: height * 0.05,
-        right: -width * 0.3,
-        width: width * 0.9,
-        height: width * 0.9,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: width * 0.45,
+        top: 0,
+        left: 0,
+        right: 0,
+        height: height,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: theme.spacing.lg,
-        paddingTop: 48,
+        paddingTop: 60,
+        paddingBottom: 10,
         zIndex: 10,
     },
     backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: theme.colors.surfaceBright,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: theme.colors.surface,
         justifyContent: 'center',
         alignItems: 'center',
         ...theme.shadows.soft,
     },
-    backIcon: {
-        fontSize: 24,
-        color: theme.colors.onSurface,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    headerTitle: {
-        ...theme.typography.headline,
-        fontSize: 18,
-        color: theme.colors.onSurface,
-    },
-    stepBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        backgroundColor: theme.colors.primaryContainer,
-        borderRadius: 20,
-    },
-    stepBadgeText: {
+    skipText: {
         ...theme.typography.label,
-        fontSize: 12,
-        color: theme.colors.primary,
-        fontWeight: '700',
-    },
-    scrollContent: {
-        paddingHorizontal: theme.spacing.lg,
-        paddingTop: 32,
-    },
-    heroSection: {
-        marginBottom: 32,
-    },
-    displayTitle: {
-        ...theme.typography.headline,
-        fontSize: 34,
-        lineHeight: 40,
-        color: theme.colors.onSurface,
-    },
-    italicTitle: {
-        fontFamily: theme.fonts.elegant,
-        color: theme.colors.primary,
-        fontWeight: 'normal',
-        fontStyle: 'italic',
-    },
-    section: {
-        marginBottom: 40,
-        gap: 20,
-    },
-    sectionTitle: {
-        ...theme.typography.headline,
-        fontSize: 24,
-        color: theme.colors.onSurface,
-    },
-    moodGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-    },
-    moodPebble: {
-        width: (width - 32 - 24) / 3,
-        aspectRatio: 1,
-        backgroundColor: theme.colors.surfaceBright,
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 8,
-        ...theme.shadows.soft,
-    },
-    moodPebbleSelected: {
-        backgroundColor: theme.colors.primaryContainer,
-        borderWidth: 2,
-        borderColor: theme.colors.primary,
-    },
-    moodEmoji: {
-        fontSize: 32,
-    },
-    moodLabel: {
-        ...theme.typography.label,
-        fontSize: 12,
-        color: theme.colors.onSurfaceVariant,
-        textAlign: 'center',
-    },
-    moodLabelSelected: {
-        color: theme.colors.primary,
-        fontWeight: '700',
-    },
-    editorialSliderContainer: {
-        backgroundColor: theme.colors.surfaceBright,
-        padding: 24,
-        borderRadius: 32,
-        ...theme.shadows.soft,
-    },
-    sliderHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    sliderValue: {
-        ...theme.typography.headline,
-        fontSize: 32,
-        color: theme.colors.secondary,
-    },
-    sliderStatus: {
-        ...theme.typography.label,
-        color: theme.colors.onSurfaceVariant,
-    },
-    energyButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 10,
-        marginBottom: 20,
-    },
-    energyDot: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        backgroundColor: theme.colors.surfaceContainerHighest,
-        borderWidth: 2,
-        borderColor: 'transparent',
-    },
-    energyDotActive: {
-        backgroundColor: theme.colors.secondary,
-        borderColor: theme.colors.secondaryContainer,
-        transform: [{ scale: 1.2 }],
-    },
-    track: {
-        height: 12,
-        backgroundColor: theme.colors.surfaceContainerHighest,
-        borderRadius: 6,
-        justifyContent: 'center',
-    },
-    fill: {
-        height: '100%',
-        backgroundColor: theme.colors.secondary,
-        borderRadius: 6,
-    },
-    thumb: {
-        position: 'absolute',
-        width: 32,
-        height: 32,
-        backgroundColor: theme.colors.white,
-        borderRadius: 16,
-        borderWidth: 8,
-        borderColor: theme.colors.secondary,
-        marginLeft: -16,
-        ...theme.shadows.soft,
-    },
-    sliderLabels: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 16,
-    },
-    labelSmall: {
-        ...theme.typography.label,
-        fontSize: 10,
         color: theme.colors.onSurfaceVariant,
         opacity: 0.6,
         letterSpacing: 1,
     },
-    triggerGrid: {
+    scrollContent: {
+        paddingHorizontal: theme.spacing.lg,
+        paddingTop: 20,
+    },
+    progressContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 32,
+        gap: 12,
+    },
+    progressLabel: {
+        ...theme.typography.label,
+        fontSize: 12,
+        color: theme.colors.primary,
+        width: 45,
+    },
+    progressBar: {
+        flex: 1,
+        height: 6,
+        backgroundColor: theme.colors.outlineVariant,
+        borderRadius: 3,
+        overflow: 'hidden',
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: theme.colors.primary,
+        borderRadius: 3,
+    },
+    milestoneTag: {
+        ...theme.typography.label,
+        fontSize: 10,
+        color: theme.colors.onSurfaceVariant,
+        backgroundColor: theme.colors.surfaceVariant,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 10,
+        overflow: 'hidden',
+    },
+    heroSection: {
+        marginBottom: 40,
+    },
+    displayTitle: {
+        ...theme.typography.headline,
+        color: theme.colors.onSurface,
+        marginBottom: 16,
+    },
+    elegantTitle: {
+        fontFamily: theme.fonts.elegant,
+        color: theme.colors.secondary,
+        fontStyle: 'italic',
+        fontSize: 40,
+    },
+    subtitle: {
+        ...theme.typography.body,
+        color: theme.colors.onSurfaceVariant,
+        opacity: 0.8,
+    },
+    section: {
+        marginBottom: 40,
+    },
+    sectionTitle: {
+        ...theme.typography.body,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+        marginBottom: 20,
+    },
+    moodSelector: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 8,
+    },
+    moodItem: {
+        flex: 1,
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
+        backgroundColor: theme.colors.surface,
+        ...theme.shadows.soft,
+    },
+    moodEmoji: {
+        fontSize: 24,
+        marginBottom: 4,
+    },
+    moodLabel: {
+        ...theme.typography.label,
+        fontSize: 8,
+        color: theme.colors.onSurfaceVariant,
+        textAlign: 'center',
+    },
+    sleepSelector: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        backgroundColor: theme.colors.surfaceContainerHighest,
+        padding: 24,
+        borderRadius: 24,
+        ...theme.shadows.soft,
+    },
+    sleepNode: {
+        alignItems: 'center',
+        gap: 8,
+    },
+    sleepNodeSelected: {
+        transform: [{ scale: 1.2 }],
+    },
+    sleepValue: {
+        ...theme.typography.label,
+        fontSize: 12,
+        color: theme.colors.onSurfaceVariant,
+    },
+    sleepValueSelected: {
+        color: theme.colors.primary,
+        fontWeight: '700',
+    },
+    sleepDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: theme.colors.outlineVariant,
+    },
+    sleepDotSelected: {
+        backgroundColor: theme.colors.primary,
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+    },
+    energyGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
     },
-    triggerChip: {
-        flexDirection: 'row',
+    energyItem: {
+        flex: 1,
+        minWidth: '30%',
+        aspectRatio: 1,
+        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderRadius: 20,
+        justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: 24,
         gap: 8,
+        ...theme.shadows.soft,
+        borderWidth: 2,
     },
-    triggerChipSelected: {
-        backgroundColor: theme.colors.secondaryContainer,
+    energyItemSelected: {
+        backgroundColor: theme.colors.surface,
+        ...theme.shadows.medium,
     },
-    triggerChipText: {
-        ...theme.typography.body,
-        fontSize: 15,
+    energyLabel: {
+        ...theme.typography.label,
+        fontSize: 10,
         color: theme.colors.onSurfaceVariant,
+        textAlign: 'center',
     },
-    triggerChipTextSelected: {
-        color: theme.colors.onSecondaryContainer,
+    listContainer: {
+        gap: 12,
+    },
+    listItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 24,
+        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderRadius: theme.borderRadius.lg,
+        ...theme.shadows.soft,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
+    },
+    listItemSelected: {
+        borderColor: theme.colors.secondary,
+        backgroundColor: theme.colors.secondaryContainer + '20',
+    },
+    listItemText: {
+        ...theme.typography.body,
+        color: theme.colors.onSurface,
+    },
+    listItemTextSelected: {
         fontWeight: '700',
-    },
-    checkIconSmall: {
-        fontSize: 16,
         color: theme.colors.secondary,
     },
-    noteInput: {
-        backgroundColor: theme.colors.surfaceContainerLow,
+    noteContainer: {
+        backgroundColor: theme.colors.surfaceContainerHighest,
         borderRadius: 24,
-        padding: 24,
-        minHeight: 140,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
+        ...theme.shadows.soft,
+    },
+    noteInput: {
         ...theme.typography.body,
-        fontSize: 16,
         color: theme.colors.onSurface,
+        minHeight: 100,
+        textAlignVertical: 'top',
+    },
+    affirmationCard: {
+        padding: 32,
+        backgroundColor: 'rgba(39, 107, 46, 0.05)',
+        borderRadius: 32,
+        borderStyle: 'dashed',
+        borderWidth: 1,
+        borderColor: theme.colors.primary,
+        marginTop: 20,
+    },
+    affirmationText: {
+        ...theme.typography.body,
+        color: theme.colors.primary,
+        fontStyle: 'italic',
+        textAlign: 'center',
+        lineHeight: 28,
+        opacity: 0.8,
     },
     footer: {
         position: 'absolute',
         bottom: 0,
-        width: '100%',
-        paddingHorizontal: theme.spacing.lg,
+        left: 0,
+        right: 0,
+        padding: theme.spacing.lg,
         paddingBottom: 40,
-        paddingTop: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        backgroundColor: 'rgba(235, 255, 230, 0.9)',
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.outlineVariant,
     },
     primaryButton: {
-        width: '100%',
-        height: 72, // Slightly taller for celebration fill
-        backgroundColor: theme.colors.primary,
-        borderRadius: theme.borderRadius.xl,
+        height: 64,
+        borderRadius: theme.borderRadius.lg,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         gap: 12,
         ...theme.shadows.primary,
     },
-    buttonIcon: {
-        fontSize: 24,
-        color: theme.colors.white,
-    },
     primaryButtonText: {
-        ...theme.typography.label,
-        fontSize: 20,
+        ...theme.typography.body,
+        fontWeight: '700',
         color: theme.colors.white,
-        fontWeight: '800',
     },
 });
 
