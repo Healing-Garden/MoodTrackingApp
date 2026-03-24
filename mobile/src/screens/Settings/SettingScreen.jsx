@@ -131,10 +131,15 @@ const SettingScreen = ({ navigation }) => {
                 <View style={styles.profileCard}>
                     <View style={styles.avatarWrapper}>
                         <View style={styles.avatarBorder}>
-                            <Image
-                                source={getAvatarSource()}
-                                style={styles.avatar}
-                            />
+                            {user?.avatarUrl ? (
+                                <Image source={getAvatarSource()} style={styles.avatar} />
+                            ) : (
+                                <View style={[styles.avatar, { backgroundColor: 'rgba(39, 107, 46, 0.2)', justifyContent: 'center', alignItems: 'center' }]}>
+                                    <Text style={{ fontSize: 40, fontWeight: 'bold', color: '#276b2e' }}>
+                                        {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                                    </Text>
+                                </View>
+                            )}
                         </View>
                         {/* <TouchableOpacity style={styles.editBadge} onPress={() => navigation.navigate('EditProfile')}>
                             <MaterialIcons name="edit" size={18} color="#fff" />
@@ -220,13 +225,15 @@ const SettingScreen = ({ navigation }) => {
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>SUPPORT & INFO</Text>
                         <View style={styles.group}>
-                            <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Feedback')}>
-                                <View style={[styles.menuIconBg, { backgroundColor: theme.colors.white }]}>
-                                    <MaterialIcons name="chat-bubble" size={22} color="#705d00" />
-                                </View>
-                                <Text style={styles.menuLabel}>Send Feedback</Text>
-                                <MaterialIcons name="open-in-new" size={20} color={theme.colors.outline} />
-                            </TouchableOpacity>
+                            {user?.role !== 'admin' && (
+                                <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Feedback')}>
+                                    <View style={[styles.menuIconBg, { backgroundColor: theme.colors.white }]}>
+                                        <MaterialIcons name="chat-bubble" size={22} color="#705d00" />
+                                    </View>
+                                    <Text style={styles.menuLabel}>Send Feedback</Text>
+                                    <MaterialIcons name="open-in-new" size={20} color={theme.colors.outline} />
+                                </TouchableOpacity>
+                            )}
 
                             <TouchableOpacity style={styles.menuItem}>
                                 <View style={[styles.menuIconBg, { backgroundColor: theme.colors.white }]}>
