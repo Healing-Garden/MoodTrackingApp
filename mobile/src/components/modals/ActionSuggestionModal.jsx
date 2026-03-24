@@ -26,59 +26,85 @@ const { width, height } = Dimensions.get('window');
 const ConfettiParticle = ({ delay }) => {
     const animatedValue = useRef(new Animated.Value(0)).current;
     
+    // Random physics-like parameters for each particle
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const launchX = side === 'left' ? -20 : width + 20;
+    const peakX = side === 'left' ? width * (0.1 + Math.random() * 0.4) : width * (0.5 + Math.random() * 0.4);
+    const endX = peakX + (Math.random() - 0.5) * 300;
+    
+    const peakY = height * (0.05 + Math.random() * 0.25);
+    const size = 6 + Math.random() * 8;
+    const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const shape = Math.random() < 0.5 ? 0 : 99; // 0 for square, 99 for circle
+
     useEffect(() => {
         Animated.loop(
             Animated.sequence([
                 Animated.delay(delay),
                 Animated.timing(animatedValue, {
                     toValue: 1,
-                    duration: 2000 + Math.random() * 1000,
-                    easing: Easing.bezier(0.41, 0, 0.58, 1),
+                    duration: 3000 + Math.random() * 1500,
+                    easing: Easing.bezier(0.12, 0, 0.39, 0),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(animatedValue, {
+                    toValue: 0,
+                    duration: 0,
                     useNativeDriver: true,
                 })
             ])
         ).start();
     }, []);
 
-    const rotation = animatedValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '720deg'],
-    });
-
     const translateX = animatedValue.interpolate({
-        inputRange: [0, 0.5, 1],
-        outputRange: [0, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 200],
+        inputRange: [0, 0.4, 1],
+        outputRange: [launchX, peakX, endX],
     });
 
     const translateY = animatedValue.interpolate({
-        inputRange: [0, 0.2, 1],
-        outputRange: [height * 0.45, height * 0.1, height * 1.2],
+        inputRange: [0, 0.35, 1],
+        outputRange: [height * 0.9, peakY, height * 1.1],
+    });
+
+    const rotation = animatedValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', `${720 + Math.random() * 1440}deg`],
+    });
+
+    const rotateX = animatedValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', `${360 + Math.random() * 1080}deg`],
     });
 
     const opacity = animatedValue.interpolate({
-        inputRange: [0, 0.8, 1],
-        outputRange: [1, 1, 0],
+        inputRange: [0, 0.1, 0.8, 1],
+        outputRange: [0, 1, 1, 0],
     });
 
-    const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    const size = 6 + Math.random() * 6;
+    const scale = animatedValue.interpolate({
+        inputRange: [0, 0.1, 1],
+        outputRange: [0.5, 1, 0.8],
+    });
 
     return (
         <Animated.View
+            pointerEvents="none"
             style={[
                 styles.confetti,
                 {
                     backgroundColor: color,
                     width: size,
                     height: size,
+                    borderRadius: shape,
                     transform: [
-                        { translateY },
                         { translateX },
-                        { rotate: rotation }
+                        { translateY },
+                        { rotate: rotation },
+                        { rotateX },
+                        { scale }
                     ],
                     opacity,
-                    left: Math.random() * width * 0.8,
                 }
             ]}
         />
@@ -354,19 +380,19 @@ const ActionSuggestionModal = ({ isVisible, onClose, userId, mood }) => {
             <View style={styles.overlay}>
                 <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
                 
-                {phase === 'celebrate' && (
-                    <View style={styles.fullScreenConfetti}>
-                        {Array.from({ length: 60 }).map((_, i) => (
-                            <ConfettiParticle key={i} delay={i * 30} />
-                        ))}
-                    </View>
-                )}
-
                 <View style={styles.modalPanel}>
                     {phase === 'list' && renderListView()}
                     {phase === 'execute' && renderExecuteView()}
                     {phase === 'celebrate' && renderCelebrateView()}
                 </View>
+
+                {phase === 'celebrate' && (
+                    <View style={styles.fullScreenConfetti}>
+                        {Array.from({ length: 120 }).map((_, i) => (
+                            <ConfettiParticle key={i} delay={i * 15} />
+                        ))}
+                    </View>
+                )}
             </View>
         </Modal>
     );
@@ -662,6 +688,7 @@ const styles = StyleSheet.create({
     fullScreenConfetti: {
         ...StyleSheet.absoluteFillObject,
         zIndex: 100,
+        elevation: 999, // Ensure it's above the modal panel (which has elevation 10)
         pointerEvents: 'none',
     },
     confetti: {

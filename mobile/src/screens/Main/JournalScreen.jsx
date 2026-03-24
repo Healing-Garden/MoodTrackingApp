@@ -174,11 +174,15 @@ const JournalScreen = ({ navigation }) => {
 
     React.useEffect(() => {
         if (activeTab === 'My Entries') {
-            fetchEntries();
+            if (user?.appLockEnabled && !isUnlocked) {
+                setPinModalVisible(true);
+            } else {
+                fetchEntries();
+            }
         } else if (activeTab === 'Trash') {
             fetchTrashedEntries();
         }
-    }, [activeTab]);
+    }, [activeTab, isUnlocked, user?.appLockEnabled]);
 
     const pickImage = async (isExpanding = false) => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -258,7 +262,7 @@ const JournalScreen = ({ navigation }) => {
                 title: currentTitle,
                 text: currentContent,
                 mood: currentMoodIdx !== null ? MOODS[currentMoodIdx] : '😐',
-                energy_level: 5,
+                energy_level: currentMoodIdx !== null ? [4, 1, 1, 2, 3, 4, 3, 5][currentMoodIdx] : 3,
                 trigger_tags: selectedEmotions,
                 images: uploadedUrls.filter(u => u !== null),
                 voice_note_url: uploadedAudioUrl,
@@ -334,6 +338,57 @@ const JournalScreen = ({ navigation }) => {
         setExpandingAudioUri(entry.voice_note_url || null);
         setSelectedEmotions(entry.trigger_tags || []);
         // No need to setActiveTab('Write') because we are doing in-place editing
+    };
+
+    const handleVerifyPin = async (enteredPin) => {
+        try {
+            const res = await api.post('/user/app-lock/verify', { pin: enteredPin });
+            if (res.data?.success) {
+                setIsUnlocked(true);
+                setPinModalVisible(false);
+                setPinValue('');
+            } else {
+                Alert.alert("Error", "Mã PIN không chính xác");
+                setPinValue('');
+            }
+        } catch (error) {
+            console.error("PIN verification failed", error);
+            Alert.alert("Error", "Xác thực mã PIN thất bại: " + (error.response?.data?.message || error.message));
+            setPinValue('');
+        }
+    };
+
+    const handleAutoIdentifyEmotions = async () => {
+        if (!content.trim()) {
+            Alert.alert("Thông báo", "Vui lòng nhập nội dung để AI phân tích cảm xúc");
+            return;
+        }
+
+        setIsAnalysingEmotions(true);
+        try {
+            const res = await aiApi.analyzeSentiment(content);
+            if (res?.data?.success && res.data?.data?.emotions) {
+                const aiEmotions = res.data.data.emotions.map(e => {
+                    // Map AI labels to our EMOTIONS constant if needed (AI labels are lowercase)
+                    const label = e.emotion.charAt(0).toUpperCase() + e.emotion.slice(1);
+                    return EMOTIONS.includes(label) ? label : null;
+                }).filter(e => e !== null);
+
+                if (aiEmotions.length > 0) {
+                    setSelectedEmotions(prev => {
+                        const newSet = new Set([...prev, ...aiEmotions]);
+                        return Array.from(newSet);
+                    });
+                    Alert.alert("AI Identified", `AI đã phát hiện những cảm xúc này: ${aiEmotions.join(', ')}`);
+                } else {
+                    Alert.alert("AI Notification", "AI không tìm thấy cảm xúc cụ thể nào trong danh sách hiện có.");
+                }
+            }
+        } catch (error) {
+            console.error("AI emotion analysis failed", error);
+        } finally {
+            setIsAnalysingEmotions(false);
+        }
     };
 
     const renderWrite = () => (
@@ -421,9 +476,21 @@ const JournalScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.emotionsSection}>
-                <View style={[styles.sectionTitleRow, { marginBottom: 16 }]}>
-                    <MaterialIcons name="label" size={24} color={theme.colors.secondary} />
-                    <Text style={styles.sectionTitle}>Identify Emotions</Text>
+                <View style={[styles.sectionTitleRow, { marginBottom: 16, justifyContent: 'space-between' }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <MaterialIcons name="label" size={24} color={theme.colors.secondary} />
+                        <Text style={styles.sectionTitle}>Identify Emotions</Text>
+                    </View>
+                    <TouchableOpacity 
+                        style={[styles.aiIdentifyBtn, isAnalysingEmotions && styles.aiIdentifyBtnLoading]} 
+                        onPress={handleAutoIdentifyEmotions}
+                        disabled={isAnalysingEmotions}
+                    >
+                        <MaterialIcons name="auto-fix-high" size={20} color={isAnalysingEmotions ? "#fff" : theme.colors.primary} />
+                        <Text style={[styles.aiIdentifyBtnText, isAnalysingEmotions && { color: "#fff" }]}>
+                            {isAnalysingEmotions ? 'Analyzing...' : 'Auto-Identify'}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
                 <View style={styles.emotionsGrid}>
                     {EMOTIONS.map((emotion) => {
@@ -780,6 +847,72 @@ const JournalScreen = ({ navigation }) => {
                     </View>
                 </View>
             </Modal>
+
+            {/* PIN MODAL */}
+            {pinModalVisible && (
+                <View style={styles.pinModalOverlay}>
+                    <BlurView intensity={95} style={styles.pinModalContent}>
+                        <View style={styles.lockIconContainer}>
+                            <MaterialIcons name="lock" size={48} color={theme.colors.primary} />
+                        </View>
+                        <Text style={styles.pinModalTitle}>Security Lock</Text>
+                        <Text style={styles.pinModalSubtitle}>Nhập mã PIN để xem nhật ký của bạn</Text>
+                        
+                        <View style={styles.pinDotsRow}>
+                            {[...Array(4)].map((_, i) => (
+                                <View 
+                                    key={i} 
+                                    style={[
+                                        styles.pinDot, 
+                                        pinValue.length > i && styles.pinDotFilled
+                                    ]} 
+                                />
+                            ))}
+                        </View>
+
+                        <View style={styles.keypadContainer}>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "back"].map((item, idx) => (
+                                <TouchableOpacity 
+                                    key={idx} 
+                                    style={[styles.keypadBtn, item === "" && { opacity: 0 }]}
+                                    onPress={() => {
+                                        if (item === "") return;
+                                        if (item === "back") {
+                                            setPinValue(prev => prev.slice(0, -1));
+                                        } else {
+                                            const newVal = pinValue + item;
+                                            if (newVal.length <= 4) {
+                                                setPinValue(newVal);
+                                                if (newVal.length === 4) {
+                                                    handleVerifyPin(newVal);
+                                                }
+                                            }
+                                        }
+                                    }}
+                                    disabled={item === ""}
+                                >
+                                    {item === "back" ? (
+                                        <MaterialIcons name="backspace" size={24} color={theme.colors.onSurface} />
+                                    ) : (
+                                        <Text style={styles.keypadBtnText}>{item}</Text>
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <TouchableOpacity 
+                            style={styles.cancelPinBtn}
+                            onPress={() => {
+                                setPinModalVisible(false);
+                                setPinValue('');
+                                setActiveTab('Write');
+                            }}
+                        >
+                            <Text style={styles.cancelPinBtnText}>Quay lại</Text>
+                        </TouchableOpacity>
+                    </BlurView>
+                </View>
+            )}
 
             <BottomNavBar navigation={navigation} activeTab="Journal" />
         </View>
@@ -1266,13 +1399,17 @@ const styles = StyleSheet.create({
     },
     tagRow: {
         flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
         gap: 8,
         marginBottom: 16,
     },
     tag: {
         paddingHorizontal: 12,
-        paddingVertical: 4,
+        paddingVertical: 6,
         borderRadius: 99,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     gratitudeTag: { backgroundColor: theme.colors.secondaryContainer },
     natureTag: { backgroundColor: theme.colors.surfaceContainer },
@@ -1282,6 +1419,7 @@ const styles = StyleSheet.create({
         fontSize: 11,
         fontWeight: '700',
         color: theme.colors.onSecondaryContainer,
+        textAlign: 'center',
     },
     entryExcerpt: {
         fontSize: 15,

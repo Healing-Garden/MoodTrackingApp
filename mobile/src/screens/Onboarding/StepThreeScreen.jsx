@@ -242,15 +242,15 @@ const StepThreeScreen = ({ navigation, route }) => {
                     activeOpacity={0.9}
                     style={{ width: '100%' }}
                 >
-                    <LinearGradient
-                        colors={isFormValid ? GRADIENTS.primary : [theme.colors.surfaceDim, theme.colors.outlineVariant]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.primaryButton}
+                    <View
+                        style={[
+                            styles.primaryButton,
+                            isFormValid ? styles.primaryButtonActive : styles.primaryButtonInactive
+                        ]}
                     >
                         <Text style={styles.primaryButtonText}>Continue Blooming</Text>
                         <MaterialIcons name="local-florist" size={24} color={theme.colors.white} />
-                    </LinearGradient>
+                    </View>
                 </TouchableOpacity>
             </View>
         </View>
@@ -433,8 +433,8 @@ const styles = StyleSheet.create({
         ...theme.shadows.soft,
     },
     listItemSelected: {
-        borderColor: theme.colors.tertiary,
-        backgroundColor: theme.colors.tertiaryContainer + '20',
+        borderColor: theme.colors.primary,
+        backgroundColor: theme.colors.primary,
     },
     itemIconBox: {
         width: 44,
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     itemIconBoxSelected: {
-        backgroundColor: theme.colors.tertiary,
+        backgroundColor: theme.colors.primary,
     },
     listItemText: {
         ...theme.typography.body,
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     },
     listItemTextSelected: {
         fontWeight: '700',
-        color: theme.colors.tertiary,
+        color: theme.colors.white,
     },
     horizontalList: {
         flexDirection: 'row',
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
     },
     smallChipSelected: {
         borderColor: theme.colors.primary,
-        backgroundColor: theme.colors.primaryContainer + '20',
+        backgroundColor: theme.colors.primary,
     },
     smallChipText: {
         ...theme.typography.label,
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
         color: theme.colors.onSurfaceVariant,
     },
     smallChipTextSelected: {
-        color: theme.colors.primary,
+        color: theme.colors.white,
         fontWeight: '700',
     },
     footer: {
@@ -503,6 +503,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 12,
         ...theme.shadows.primary,
+    },
+    primaryButtonActive: {
+        backgroundColor: theme.colors.primary,
+    },
+    primaryButtonInactive: {
+        backgroundColor: theme.colors.surfaceDim,
     },
     primaryButtonText: {
         ...theme.typography.body,
