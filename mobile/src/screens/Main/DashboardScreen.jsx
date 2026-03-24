@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -10,6 +10,7 @@ import {
     Dimensions,
     ActivityIndicator
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -73,30 +74,37 @@ const DashboardScreen = ({ navigation }) => {
         loadDashboardData();
     }, []);
 
-    useEffect(() => {
-        const checkActionEligibility = async () => {
-            if (!user?._id) return;
-            try {
-                const res = await aiApi.checkActionEligibility(user._id);
-                // The API might return { eligible: true } or { data: { eligible: true } }
-                const isEligible = res.data?.data?.eligible || res.data?.eligible || res.eligible;
+    useFocusEffect(
+        useCallback(() => {
+            const checkActionEligibilityAndRefresh = async () => {
+                if (!user?._id) return;
                 
-                if (isEligible) {
-                    // Try to find last mood from flow or use neutral
-                    const latest = moodFlow.length > 0 ? moodFlow[moodFlow.length - 1].mood : 3;
-                    const moodLabel = latest <= 2 ? 'sad' : (latest >= 4 ? 'happy' : 'neutral');
-                    setLastMood(moodLabel);
-                    setActionModalVisible(true);
+                try {
+                    // 1. Refresh mood flow to get latest data (e.g. after a journal entry)
+                    const flowRes = await userService.getMoodFlow('week');
+                    const updatedFlow = flowRes.items || [];
+                    setMoodFlow(updatedFlow);
+
+                    // 2. Check eligibility
+                    const res = await aiApi.checkActionEligibility(user._id);
+                    const isEligible = res.data?.data?.eligible || res.data?.eligible || res.eligible;
+                    
+                    if (isEligible) {
+                        const latest = updatedFlow.length > 0 ? updatedFlow[updatedFlow.length - 1].mood : 3;
+                        const moodLabel = latest <= 2 ? 'sad' : (latest >= 4 ? 'happy' : 'neutral');
+                        setLastMood(moodLabel);
+                        setActionModalVisible(true);
+                    }
+                } catch (error) {
+                    console.log('Action eligibility/refresh check failed:', error);
                 }
-            } catch (error) {
-                console.log('Action eligibility check failed:', error);
+            };
+
+            if (!loadingData && user?._id) {
+                checkActionEligibilityAndRefresh();
             }
-        };
-        
-        if (!loadingData && user?._id) {
-            checkActionEligibility();
-        }
-    }, [loadingData, user?._id]);
+        }, [loadingData, user?._id])
+    );
 
     useEffect(() => {
         const fetchSummary = async () => {

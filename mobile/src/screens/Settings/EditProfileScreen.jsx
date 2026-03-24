@@ -137,10 +137,15 @@ const EditProfileScreen = ({ navigation }) => {
                     <View style={styles.moodBloom} />
                     <View style={styles.avatarContainer}>
                         <View style={styles.avatarWrapper}>
-                            <Image
-                                source={getAvatarSource()}
-                                style={styles.avatar}
-                            />
+                            {user?.avatarUrl ? (
+                                <Image source={getAvatarSource()} style={styles.avatar} />
+                            ) : (
+                                <View style={[styles.avatar, { backgroundColor: 'rgba(39, 107, 46, 0.2)', justifyContent: 'center', alignItems: 'center' }]}>
+                                    <Text style={{ fontSize: 60, fontWeight: 'bold', color: '#276b2e' }}>
+                                        {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                                    </Text>
+                                </View>
+                            )}
                             {uploading && (
                                 <View style={styles.uploadOverlay}>
                                     <ActivityIndicator color="#fff" size="large" />
@@ -157,6 +162,16 @@ const EditProfileScreen = ({ navigation }) => {
 
                 {/* Form Section */}
                 <View style={styles.form}>
+                    <View style={styles.row}>
+                        <View style={[styles.inputGroup, { flex: 1 }]}>
+                            <Text style={styles.label}>Email Address</Text>
+                            <View style={[styles.inputWrapper, { backgroundColor: '#f0f0f0' }]}>
+                                <MaterialIcons name="email" size={20} color={theme.colors.onSurfaceVariant} style={styles.icon} />
+                                <TextInput style={[styles.input, { color: theme.colors.onSurfaceVariant }]} value={user?.email || ""} editable={false} />
+                            </View>
+                        </View>
+                    </View>
+
                     <View style={styles.row}>
                         <View style={[styles.inputGroup, { flex: 1 }]}>
                             <Text style={styles.label}>Full Name</Text>
