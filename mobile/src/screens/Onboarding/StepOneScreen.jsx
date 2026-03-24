@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -7,84 +7,77 @@ import {
     StyleSheet,
     StatusBar,
     Dimensions,
+    Animated,
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
+// Local Gradients for Onboarding
+const GRADIENTS = {
+    primary: ['#276b2e', '#60a560'],
+    soft: ['#ebffe6', '#caebc6'],
+};
+
 const StepOneScreen = ({ navigation }) => {
-    // Q1 Options
-    const improveGoalsOptions = [
-        { id: 'Reduce stress', icon: 'eco', label: 'Reduce stress' },
-        { id: 'Improve mood', icon: 'mood', label: 'Improve mood' },
-        { id: 'Sleep better', icon: 'bedtime', label: 'Sleep better' },
-        { id: 'Better self-understanding', icon: 'spa', label: 'Self-understanding' },
-        { id: 'Increase focus', icon: 'center-focus-strong', label: 'Increase focus' },
-        { id: 'Build positive habits', icon: 'auto-stories', label: 'Build habits' },
+    // Animation refs
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(30)).current;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, []);
+
+    const goalOptions = [
+        { id: 'Reduce stress', label: 'Reduce Stress', icon: 'self-improvement' },
+        { id: 'Track moods', label: 'Track Moods', icon: 'Timeline' },
+        { id: 'Improve sleep', label: 'Improve Sleep', icon: 'nights-stay' },
+        { id: 'Self-reflection', label: 'Self-Reflection', icon: 'psychology' },
+        { id: 'Better focus', label: 'Better Focus', icon: 'center-focus-strong' },
     ];
 
-    // Q2 Options
-    const frequentFeelingOptions = [
-        'Peaceful & Relaxed',
-        'Positive & Motivated',
-        'More confident',
-        'Balanced & Stable',
-        'Clarity',
-    ];
+    const [selectedGoals, setSelectedGoals] = useState([]);
 
-    // Q3 Options
-    const personalGoalOptions = [
-        'Manage emotions better',
-        'Clearer thoughts',
-        'Improve mental health',
-        'Personal growth',
-        'Find balance',
-    ];
-
-    const [selectedImproveGoals, setSelectedImproveGoals] = useState([]);
-    const [selectedFeeling, setSelectedFeeling] = useState('');
-    const [selectedGoalDesc, setSelectedGoalDesc] = useState('');
-
-    const toggleImproveGoal = (id) => {
-        setSelectedImproveGoals((prev) => {
-            if (prev.includes(id)) {
-                return prev.filter((item) => item !== id);
-            }
-            if (prev.length < 2) {
-                return [...prev, id];
-            }
-            return [prev[1], id]; // Keep max 2, replace oldest
-        });
+    const toggleGoal = (id) => {
+        if (selectedGoals.includes(id)) {
+            setSelectedGoals(selectedGoals.filter(goalId => goalId !== id));
+        } else {
+            setSelectedGoals([...selectedGoals, id]);
+        }
     };
 
     const handleContinue = () => {
-        if (selectedImproveGoals.length > 0 && selectedFeeling && selectedGoalDesc) {
+        if (selectedGoals.length > 0) {
             navigation.navigate('OnboardingStep2', {
-                onboardingData: {
-                    improveGoals: selectedImproveGoals,
-                    frequentFeeling: selectedFeeling,
-                    personalGoalDescription: selectedGoalDesc,
-                }
+                onboardingData: { goals: selectedGoals }
             });
         }
     };
 
-    const isFormValid = selectedImproveGoals.length > 0 && selectedFeeling !== '' && selectedGoalDesc !== '';
-
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" transparent backgroundColor="transparent" />
+            <StatusBar barStyle="dark-content" />
+            
+            <LinearGradient
+                colors={GRADIENTS.soft}
+                style={styles.backgroundGradient}
+            />
 
-            {/* Organic Asymmetrical Background */}
-            <View style={styles.blob1} />
-            <View style={styles.blob2} />
-
-            {/* Editorial Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <MaterialIcons name="arrow-back" size={24} color={theme.colors.onSurface} />
-                </TouchableOpacity>
+                <View style={styles.backContainer} />
                 <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
                     <Text style={styles.skipText}>Skip</Text>
                 </TouchableOpacity>
@@ -94,106 +87,78 @@ const StepOneScreen = ({ navigation }) => {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Progress Stepper */}
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressLabel}>MILESTONE 01: CHECK IN</Text>
-                    <View style={styles.progressBar}>
-                        <View style={styles.progressFill} />
+                <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+                    <View style={styles.progressContainer}>
+                        <Text style={styles.progressLabel}>01 / 04</Text>
+                        <View style={styles.progressBar}>
+                            <View style={[styles.progressFill, { width: '25%' }]} />
+                        </View>
+                        <Text style={styles.milestoneTag}>SEEDING PHASE</Text>
                     </View>
-                </View>
 
-                {/* Hero Section */}
-                <View style={styles.heroSection}>
-                    <Text style={styles.displayTitle}>
-                        Start your day {"\n"}
-                        by <Text style={styles.italicTitle}>listening</Text> to yourself
-                    </Text>
-                    <Text style={styles.subtitle}>Choose the goals you want to focus on the most (Max 2).</Text>
-                </View>
+                    <View style={styles.heroSection}>
+                        <Text style={styles.displayTitle}>
+                            Planting your{"\n"}
+                            <Text style={styles.elegantTitle}>intentions</Text>
+                        </Text>
+                        <Text style={styles.subtitle}>Welcome to your Healing Garden. What would you like to cultivate first?</Text>
+                    </View>
 
-                {/* Goals Grid */}
-                <View style={styles.goalsGrid}>
-                    {improveGoalsOptions.map((item) => {
-                        const isSelected = selectedImproveGoals.includes(item.id);
-                        return (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={[styles.goalCard, isSelected && styles.goalCardSelected]}
-                                onPress={() => toggleImproveGoal(item.id)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.iconCircle, isSelected && styles.iconCircleSelected]}>
-                                    <MaterialIcons
-                                        name={item.icon}
-                                        size={24}
-                                        color={isSelected ? theme.colors.white : theme.colors.primary}
-                                    />
-                                </View>
-                                <Text style={[styles.goalLabel, isSelected && styles.goalLabelSelected]}>
-                                    {item.label}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-
-                {/* Section: Feelings */}
-                <View style={styles.feelingSection}>
-                    <Text style={styles.sectionTitle}>How do you want to feel more often?</Text>
-                    <View style={styles.chipContainer}>
-                        {frequentFeelingOptions.map((item) => {
-                            const isSelected = selectedFeeling === item;
+                    <View style={styles.goalGrid}>
+                        {goalOptions.map((goal) => {
+                            const isSelected = selectedGoals.includes(goal.id);
                             return (
                                 <TouchableOpacity
-                                    key={item}
-                                    onPress={() => setSelectedFeeling(item)}
-                                    style={[styles.chip, isSelected && styles.chipSelected]}
+                                    key={goal.id}
+                                    onPress={() => toggleGoal(goal.id)}
+                                    activeOpacity={0.8}
+                                    style={[
+                                        styles.goalCard,
+                                        isSelected && styles.goalCardSelected
+                                    ]}
                                 >
-                                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                                        {item}
-                                    </Text>
-                                    {isSelected && <MaterialIcons name="check" size={18} color={theme.colors.secondary} />}
+                                    <View style={[styles.iconContainer, isSelected && styles.iconContainerSelected]}>
+                                        <MaterialIcons
+                                            name={goal.icon}
+                                            size={28}
+                                            color={isSelected ? theme.colors.white : theme.colors.primary}
+                                        />
+                                    </View>
+                                    <View style={styles.goalContent}>
+                                        <Text style={[styles.goalLabel, isSelected && styles.goalLabelSelected]}>
+                                            {goal.label}
+                                        </Text>
+                                    </View>
+                                    {isSelected && (
+                                        <View style={styles.checkBadge}>
+                                            <MaterialIcons name="check" size={14} color={theme.colors.white} />
+                                        </View>
+                                    )}
                                 </TouchableOpacity>
                             );
                         })}
                     </View>
-                </View>
 
-                {/* Section: Personal Goal Context */}
-                <View style={styles.feelingSection}>
-                    <Text style={styles.sectionTitle}>What is your goal in this garden?</Text>
-                    <View style={styles.chipContainer}>
-                        {personalGoalOptions.map((item) => {
-                            const isSelected = selectedGoalDesc === item;
-                            return (
-                                <TouchableOpacity
-                                    key={item}
-                                    onPress={() => setSelectedGoalDesc(item)}
-                                    style={[styles.chip, isSelected && styles.chipSelected]}
-                                >
-                                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                                        {item}
-                                    </Text>
-                                    {isSelected && <MaterialIcons name="check" size={18} color={theme.colors.secondary} />}
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                </View>
-
-                <View style={{ height: 160 }} />
+                    <View style={{ height: 160 }} />
+                </Animated.View>
             </ScrollView>
 
-            {/* Bottom Floating Action */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={[styles.primaryButton, !isFormValid && { opacity: 0.5 }]}
+                    disabled={selectedGoals.length === 0}
                     onPress={handleContinue}
-                    disabled={!isFormValid}
                     activeOpacity={0.9}
+                    style={{ width: '100%' }}
                 >
-                    <Text style={styles.primaryButtonText}>Continue</Text>
-                    <MaterialIcons name="arrow-forward" size={20} color={theme.colors.white} />
+                    <LinearGradient
+                        colors={selectedGoals.length > 0 ? GRADIENTS.primary : [theme.colors.surfaceDim, theme.colors.outlineVariant]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.primaryButton}
+                    >
+                        <Text style={styles.primaryButtonText}>Plant My Intentions</Text>
+                        <MaterialIcons name="eco" size={24} color={theme.colors.white} />
+                    </LinearGradient>
                 </TouchableOpacity>
             </View>
         </View>
@@ -203,58 +168,40 @@ const StepOneScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.surface,
+        backgroundColor: theme.colors.background,
     },
-    blob1: {
+    backgroundGradient: {
         position: 'absolute',
-        top: -height * 0.1,
-        left: -width * 0.2,
-        width: width * 0.8,
-        height: width * 0.8,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: width * 0.4,
-        opacity: 0.7,
-    },
-    blob2: {
-        position: 'absolute',
-        bottom: height * 0.1,
-        right: -width * 0.3,
-        width: width * 0.9,
-        height: width * 0.9,
-        backgroundColor: 'rgba(154, 225, 255, 0.1)',
-        borderRadius: width * 0.45,
+        top: 0,
+        left: 0,
+        right: 0,
+        height: height,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: theme.spacing.lg,
-        paddingTop: 48,
+        paddingTop: 60,
+        paddingBottom: 10,
         zIndex: 10,
     },
-    backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: theme.colors.surfaceBright,
-        justifyContent: 'center',
-        alignItems: 'center',
-        ...theme.shadows.soft,
-    },
-    backIcon: {
-        fontSize: 24,
-        color: theme.colors.onSurface,
+    backContainer: {
+        width: 48,
     },
     skipText: {
         ...theme.typography.label,
         color: theme.colors.onSurfaceVariant,
         opacity: 0.6,
+        letterSpacing: 1,
     },
     scrollContent: {
         paddingHorizontal: theme.spacing.lg,
-        paddingTop: 32,
+        paddingTop: 20,
     },
     progressContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginBottom: 32,
         gap: 12,
     },
@@ -262,141 +209,135 @@ const styles = StyleSheet.create({
         ...theme.typography.label,
         fontSize: 12,
         color: theme.colors.primary,
-        opacity: 0.6,
-        letterSpacing: 1.5,
+        width: 45,
     },
     progressBar: {
+        flex: 1,
         height: 6,
-        backgroundColor: theme.colors.surfaceContainerHighest,
+        backgroundColor: theme.colors.outlineVariant,
         borderRadius: 3,
         overflow: 'hidden',
     },
     progressFill: {
-        width: '25%',
         height: '100%',
         backgroundColor: theme.colors.primary,
         borderRadius: 3,
     },
+    milestoneTag: {
+        ...theme.typography.label,
+        fontSize: 10,
+        color: theme.colors.onSurfaceVariant,
+        backgroundColor: theme.colors.surfaceVariant,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 10,
+        overflow: 'hidden',
+    },
     heroSection: {
         marginBottom: 40,
-        gap: 12,
     },
     displayTitle: {
         ...theme.typography.headline,
-        fontSize: 34,
-        lineHeight: 40,
         color: theme.colors.onSurface,
+        marginBottom: 16,
     },
-    italicTitle: {
+    elegantTitle: {
         fontFamily: theme.fonts.elegant,
         color: theme.colors.primary,
-        fontWeight: 'normal',
+        fontStyle: 'italic',
+        fontSize: 40,
     },
     subtitle: {
         ...theme.typography.body,
         color: theme.colors.onSurfaceVariant,
-        fontSize: 16,
-        lineHeight: 24,
-        maxWidth: '85%',
+        opacity: 0.8,
     },
-    goalsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
+    goalGrid: {
         gap: 16,
-        marginBottom: 48,
     },
     goalCard: {
-        width: (width - 32 - 16) / 2,
+        flexDirection: 'row',
+        alignItems: 'center',
         padding: 20,
-        backgroundColor: theme.colors.surfaceBright,
-        borderRadius: 24,
-        gap: 16,
+        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderRadius: theme.borderRadius.lg,
         ...theme.shadows.soft,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
     },
     goalCardSelected: {
-        backgroundColor: theme.colors.primary,
-        ...theme.shadows.primary,
+        borderColor: theme.colors.primary,
+        backgroundColor: theme.colors.onPrimaryContainer + '10', // 10% opacity primary container
     },
-    iconCircle: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: theme.colors.surfaceContainerLow,
+    iconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: 16,
+        backgroundColor: theme.colors.surface,
         justifyContent: 'center',
         alignItems: 'center',
+        ...theme.shadows.soft,
     },
-    iconCircleSelected: {
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    iconContainerSelected: {
+        backgroundColor: theme.colors.primary,
     },
-    goalIcon: {
-        fontSize: 24,
-        color: theme.colors.primary,
-    },
-    goalIconSelected: {
-        color: theme.colors.white,
+    goalContent: {
+        flex: 1,
+        marginLeft: 20,
     },
     goalLabel: {
-        ...theme.typography.label,
-        fontSize: 16,
+        ...theme.typography.body,
+        fontWeight: '600',
         color: theme.colors.onSurface,
-        lineHeight: 20,
     },
     goalLabelSelected: {
-        color: theme.colors.white,
+        color: theme.colors.primary,
     },
-    feelingSection: {
-        gap: 24,
-    },
-    sectionTitle: {
-        ...theme.typography.headline,
-        fontSize: 24,
+    checkBadge: {
         color: theme.colors.onSurface,
+        marginBottom: 16,
     },
     chipContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 12,
+        gap: 10,
     },
     chip: {
-        flexDirection: 'row',
-        alignItems: 'center',
         paddingHorizontal: 20,
-        paddingVertical: 14,
-        backgroundColor: theme.colors.surfaceContainerLow,
+        paddingVertical: 12,
+        backgroundColor: theme.colors.surface,
         borderRadius: 30,
-        gap: 8,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
     },
     chipSelected: {
-        backgroundColor: theme.colors.secondaryContainer,
-        ...theme.shadows.soft,
+        backgroundColor: theme.colors.primaryContainer,
+        borderColor: theme.colors.primary,
     },
     chipText: {
         ...theme.typography.body,
-        fontSize: 15,
+        fontSize: 14,
         color: theme.colors.onSurfaceVariant,
+        fontWeight: '500',
     },
     chipTextSelected: {
-        color: theme.colors.onSecondaryContainer,
+        color: theme.colors.primary,
         fontWeight: '700',
-    },
-    checkIcon: {
-        fontSize: 18,
-        color: theme.colors.secondary,
     },
     footer: {
         position: 'absolute',
         bottom: 0,
-        width: '100%',
-        paddingHorizontal: theme.spacing.lg,
+        left: 0,
+        right: 0,
+        padding: theme.spacing.lg,
         paddingBottom: 40,
-        paddingTop: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        backgroundColor: 'rgba(248, 249, 250, 0.95)',
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.outlineVariant,
     },
     primaryButton: {
-        width: '100%',
         height: 64,
-        backgroundColor: theme.colors.primary,
-        borderRadius: theme.borderRadius.xl,
+        borderRadius: 20,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -404,12 +345,8 @@ const styles = StyleSheet.create({
         ...theme.shadows.primary,
     },
     primaryButtonText: {
-        ...theme.typography.label,
-        fontSize: 18,
-        color: theme.colors.white,
-    },
-    buttonArrow: {
-        fontSize: 20,
+        ...theme.typography.body,
+        fontWeight: '700',
         color: theme.colors.white,
     },
 });

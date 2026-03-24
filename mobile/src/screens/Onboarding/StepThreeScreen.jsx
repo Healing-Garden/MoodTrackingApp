@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -7,76 +7,114 @@ import {
     StyleSheet,
     StatusBar,
     Dimensions,
+    Animated,
 } from 'react-native';
 import { theme } from '../../theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
+
+// Local Gradients for Onboarding
+const GRADIENTS = {
+    primary: ['#276b2e', '#60a560'],
+    tertiary: ['#705d00', '#caa910'],
+    soft: ['#ebffe6', '#caebc6'],
+};
 
 const StepThreeScreen = ({ navigation, route }) => {
     const { onboardingData } = route.params || { onboardingData: {} };
 
-    // Q7 Options
-    const reflectionFrequencyOptions = [
-        'Every day',
-        'A few times a week',
-        'Sometimes',
-        'Rarely',
-        'Almost never',
+    // Animation refs
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(30)).current;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 1000,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, []);
+
+    // Q7 Options (Frequency)
+    const frequencyOptions = [
+        'Daily',
+        'Weekly',
+        'Only on hard days',
+        'Never',
     ];
 
-    // Q8 Options
-    const negativeEmotionOptions = [
-        { id: 'Talk to someone', icon: 'forum', label: 'Talk to someone' },
-        { id: 'Write down my thoughts', icon: 'edit-note', label: 'Write in my journal' },
-        { id: 'Keep it inside', icon: 'lock-outline', label: 'Keep it to myself' },
-        { id: 'Do something else to distract myself', icon: 'self-improvement', label: 'Distract myself with other things' },
-        { id: "I'm not sure", icon: 'help-outline', label: "I'm not sure yet" },
+    // Q8 Options (Negative Emotions)
+    const handlingOptions = [
+        { id: 'Write it down', icon: 'edit', label: 'Write it down' },
+        { id: 'Meditate/Breath', icon: 'spa', label: 'Meditate/Breath' },
+        { id: 'Talk to someone', icon: 'groups', label: 'Talk to someone' },
+        { id: 'Distract myself', icon: 'videogame-asset', label: 'Distract myself' },
+        { id: 'Other', icon: 'more-horiz', label: 'Other' },
     ];
 
-    // Q9 Options
-    const experienceLearningOptions = [
-        'Very often',
-        'Quite often',
-        'Sometimes',
-        'Rarely',
-        'Almost never',
+    // Q9 Options (Learning)
+    const learningOptions = [
+        'Often learn',
+        'Sometimes learn',
+        'Rarely learn',
+        'Not ready yet',
     ];
 
     const [selectedFreq, setSelectedFreq] = useState('');
-    const [selectedHandling, setSelectedHandling] = useState('');
+    const [selectedHandling, setSelectedHandling] = useState([]);
     const [selectedLearning, setSelectedLearning] = useState('');
 
+    const toggleHandling = (id) => {
+        if (selectedHandling.includes(id)) {
+            setSelectedHandling(selectedHandling.filter(h => h !== id));
+        } else {
+            setSelectedHandling([...selectedHandling, id]);
+        }
+    };
+
     const handleContinue = () => {
-        if (selectedFreq && selectedHandling && selectedLearning) {
+        if (selectedFreq && selectedHandling.length > 0 && selectedLearning) {
             navigation.navigate('OnboardingStep4', {
                 onboardingData: {
                     ...onboardingData,
                     reflectionFrequency: selectedFreq,
                     negativeEmotionHandling: selectedHandling,
-                    experienceLearning: selectedLearning,
+                    learningFromExperience: selectedLearning,
                 }
             });
         }
     };
 
-    const isFormValid = selectedFreq !== '' && selectedHandling !== '' && selectedLearning !== '';
+    const isFormValid = selectedFreq !== '' && selectedHandling.length > 0 && selectedLearning !== '';
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" transparent backgroundColor="transparent" />
+            <StatusBar barStyle="dark-content" />
+            
+            <LinearGradient
+                colors={GRADIENTS.soft}
+                style={styles.backgroundGradient}
+            />
 
-            {/* Organic Asymmetrical Background */}
-            <View style={styles.blob1} />
-            <View style={styles.blob2} />
-
-            {/* Editorial Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <MaterialIcons name="arrow-back" size={24} color={theme.colors.onSurface} />
+                <TouchableOpacity 
+                    onPress={() => navigation.goBack()} 
+                    style={styles.backButton}
+                    activeOpacity={0.7}
+                >
+                    <MaterialIcons name="chevron-left" size={28} color={theme.colors.onSurface} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
-                    <Text style={styles.skipText}>Skip</Text>
+                    <Text style={styles.skipText}>SKIP</Text>
                 </TouchableOpacity>
             </View>
 
@@ -84,124 +122,135 @@ const StepThreeScreen = ({ navigation, route }) => {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Progress Stepper */}
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressLabel}>MILESTONE 03: REFLECTION</Text>
-                    <View style={styles.progressBar}>
-                        <View style={styles.progressFill} />
-                    </View>
-                </View>
-
-                {/* Section 1: Reflection Frequency */}
-                <View style={styles.section}>
-                    <Text style={styles.displayTitle}>
-                        Understand your {"\n"}
-                        psychological <Text style={styles.italicTitle}>patterns</Text>
-                    </Text>
-
-                    <Text style={styles.sectionTitle}>How often do you reflect on your day?</Text>
-                    <View style={styles.chipContainer}>
-                        {reflectionFrequencyOptions.map((item) => {
-                            const isSelected = selectedFreq === item;
-                            return (
-                                <TouchableOpacity
-                                    key={item}
-                                    onPress={() => setSelectedFreq(item)}
-                                    style={[styles.chip, isSelected && styles.chipSelected]}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                                        {item}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                </View>
-
-                {/* Editorial Insight Card */}
-                <View style={styles.insightCard}>
-                    <View style={styles.insightContent}>
-                        <View style={styles.tagBadge}>
-                            <Text style={styles.tagText}>REFLECTION</Text>
+                <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+                    <View style={styles.progressContainer}>
+                        <Text style={styles.progressLabel}>03 / 04</Text>
+                        <View style={styles.progressBar}>
+                            <View style={[styles.progressFill, { width: '75%' }]} />
                         </View>
-                        <Text style={styles.insightTitle}>Your Journey</Text>
-                        <Text style={styles.insightDescription}>
-                            Spending 5 minutes every night writing down your emotions helps release pressure and understand your patterns better.
+                        <Text style={styles.milestoneTag}>BLOOMING PHASE</Text>
+                    </View>
+
+                    <View style={styles.heroSection}>
+                        <Text style={styles.displayTitle}>
+                            Deepening the{"\n"}
+                            <Text style={styles.elegantTitle}>reflections</Text>
                         </Text>
+                        <Text style={styles.subtitle}>Let's find the light that helps your garden grow through every season.</Text>
                     </View>
-                    <View style={styles.pebbleDecor}>
-                        <MaterialIcons name="auto-awesome" size={32} color={theme.colors.primary} />
-                    </View>
-                </View>
 
-                {/* Section 2: Negative Emotions */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>How do you usually face negative emotions?</Text>
-                    <View style={styles.listContainer}>
-                        {negativeEmotionOptions.map((item) => {
-                            const isSelected = selectedHandling === item.id;
-                            return (
-                                <TouchableOpacity
-                                    key={item.id}
-                                    onPress={() => setSelectedHandling(item.id)}
-                                    style={[styles.listItem, isSelected && styles.listItemSelected]}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={[styles.iconPebble, isSelected && styles.iconPebbleSelected]}>
-                                        <MaterialIcons
-                                            name={item.icon}
-                                            size={22}
-                                            color={isSelected ? theme.colors.white : theme.colors.primary}
-                                        />
-                                    </View>
-                                    <Text style={[styles.listItemText, isSelected && styles.listItemTextSelected]}>
-                                        {item.label}
-                                    </Text>
-                                    {isSelected && (
-                                        <MaterialIcons name="check-circle" size={24} color={theme.colors.primary} />
-                                    )}
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                </View>
+                    {/* Seed of Wisdom (Insight Card) */}
+                    <LinearGradient
+                        colors={GRADIENTS.tertiary}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.insightCard}
+                    >
+                        <View style={styles.insightIconCircle}>
+                            <MaterialIcons name="wb-sunny" size={24} color={theme.colors.tertiary} />
+                        </View>
+                        <View style={styles.insightContent}>
+                            <Text style={styles.insightTitle}>Seed of Wisdom</Text>
+                            <Text style={styles.insightText}>Reflection is the sunlight of the mind. Even 5 minutes a day can transform your inner landscape.</Text>
+                        </View>
+                    </LinearGradient>
 
-                {/* Section 3: Learning */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Do you learn from personal experiences?</Text>
-                    <View style={styles.grid}>
-                        {experienceLearningOptions.map((item) => {
-                            const isSelected = selectedLearning === item;
-                            return (
-                                <TouchableOpacity
-                                    key={item}
-                                    onPress={() => setSelectedLearning(item)}
-                                    style={[styles.learningBox, isSelected && styles.learningBoxSelected]}
-                                    activeOpacity={0.8}
-                                >
-                                    <Text style={[styles.learningText, isSelected && styles.learningTextSelected]}>
-                                        {item}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        })}
+                    {/* Reflection Frequency */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>How often do you reflect?</Text>
+                        <View style={styles.chipContainer}>
+                            {frequencyOptions.map((item) => {
+                                const isSelected = selectedFreq === item;
+                                return (
+                                    <TouchableOpacity
+                                        key={item}
+                                        onPress={() => setSelectedFreq(item)}
+                                        style={[styles.chip, isSelected && styles.chipSelected]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                                            {item}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
                     </View>
-                </View>
 
-                <View style={{ height: 160 }} />
+                    {/* Negative Emotion Handling */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>When "stormy" emotions arrive...</Text>
+                        <View style={styles.listContainer}>
+                            {handlingOptions.map((item) => {
+                                const isSelected = selectedHandling.includes(item.id);
+                                return (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        onPress={() => toggleHandling(item.id)}
+                                        style={[styles.listItem, isSelected && styles.listItemSelected]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <View style={[styles.itemIconBox, isSelected && styles.itemIconBoxSelected]}>
+                                            <MaterialIcons 
+                                                name={item.icon} 
+                                                size={22} 
+                                                color={isSelected ? theme.colors.white : theme.colors.tertiary} 
+                                            />
+                                        </View>
+                                        <Text style={[styles.listItemText, isSelected && styles.listItemTextSelected]}>
+                                            {item.label}
+                                        </Text>
+                                        {isSelected && (
+                                            <MaterialIcons name="check-circle" size={24} color={theme.colors.tertiary} />
+                                        )}
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    {/* Learning Section */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Do those storms leave gifts?</Text>
+                        <View style={styles.horizontalList}>
+                            {learningOptions.map((item) => {
+                                const isSelected = selectedLearning === item;
+                                return (
+                                    <TouchableOpacity
+                                        key={item}
+                                        onPress={() => setSelectedLearning(item)}
+                                        style={[styles.smallChip, isSelected && styles.smallChipSelected]}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text style={[styles.smallChipText, isSelected && styles.smallChipTextSelected]}>
+                                            {item}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    <View style={{ height: 160 }} />
+                </Animated.View>
             </ScrollView>
 
-            {/* Bottom Floating Action */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={[styles.primaryButton, !isFormValid && { opacity: 0.5 }]}
-                    onPress={handleContinue}
                     disabled={!isFormValid}
+                    onPress={handleContinue}
                     activeOpacity={0.9}
+                    style={{ width: '100%' }}
                 >
-                    <Text style={styles.primaryButtonText}>Ready to start</Text>
-                    <MaterialIcons name="arrow-forward" size={20} color={theme.colors.white} />
+                    <LinearGradient
+                        colors={isFormValid ? GRADIENTS.primary : [theme.colors.surfaceDim, theme.colors.outlineVariant]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.primaryButton}
+                    >
+                        <Text style={styles.primaryButtonText}>Continue Blooming</Text>
+                        <MaterialIcons name="local-florist" size={24} color={theme.colors.white} />
+                    </LinearGradient>
                 </TouchableOpacity>
             </View>
         </View>
@@ -211,58 +260,46 @@ const StepThreeScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.surface,
+        backgroundColor: theme.colors.background,
     },
-    blob1: {
+    backgroundGradient: {
         position: 'absolute',
-        top: '20%',
-        left: -width * 0.3,
-        width: width * 0.9,
-        height: width * 0.9,
-        backgroundColor: 'rgba(154, 225, 255, 0.1)',
-        borderRadius: width * 0.45,
-        opacity: 0.7,
-    },
-    blob2: {
-        position: 'absolute',
-        bottom: height * 0.1,
-        right: -width * 0.2,
-        width: width * 0.7,
-        height: width * 0.7,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: width * 0.35,
+        top: 0,
+        left: 0,
+        right: 0,
+        height: height,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: theme.spacing.lg,
-        paddingTop: 48,
+        paddingTop: 60,
+        paddingBottom: 10,
         zIndex: 10,
     },
     backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: theme.colors.surfaceBright,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: theme.colors.surface,
         justifyContent: 'center',
         alignItems: 'center',
         ...theme.shadows.soft,
-    },
-    backIcon: {
-        fontSize: 24,
-        color: theme.colors.onSurface,
     },
     skipText: {
         ...theme.typography.label,
         color: theme.colors.onSurfaceVariant,
         opacity: 0.6,
+        letterSpacing: 1,
     },
     scrollContent: {
         paddingHorizontal: theme.spacing.lg,
-        paddingTop: 32,
+        paddingTop: 20,
     },
     progressContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginBottom: 32,
         gap: 12,
     },
@@ -270,36 +307,90 @@ const styles = StyleSheet.create({
         ...theme.typography.label,
         fontSize: 12,
         color: theme.colors.primary,
-        opacity: 0.6,
-        letterSpacing: 1.5,
+        width: 45,
     },
     progressBar: {
+        flex: 1,
         height: 6,
-        backgroundColor: theme.colors.surfaceContainerHighest,
+        backgroundColor: theme.colors.outlineVariant,
         borderRadius: 3,
         overflow: 'hidden',
     },
     progressFill: {
-        width: '75%',
         height: '100%',
         backgroundColor: theme.colors.primary,
         borderRadius: 3,
     },
-    section: {
-        marginBottom: 48,
-        gap: 24,
+    milestoneTag: {
+        ...theme.typography.label,
+        fontSize: 10,
+        color: theme.colors.onSurfaceVariant,
+        backgroundColor: theme.colors.surfaceVariant,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 10,
+        overflow: 'hidden',
+    },
+    heroSection: {
+        marginBottom: 32,
     },
     displayTitle: {
         ...theme.typography.headline,
-        fontSize: 34,
-        lineHeight: 40,
         color: theme.colors.onSurface,
+        marginBottom: 16,
     },
-    italicTitle: {
+    elegantTitle: {
         fontFamily: theme.fonts.elegant,
-        color: theme.colors.primary,
-        fontWeight: 'normal',
+        color: theme.colors.tertiary,
         fontStyle: 'italic',
+        fontSize: 40,
+    },
+    subtitle: {
+        ...theme.typography.body,
+        color: theme.colors.onSurfaceVariant,
+        opacity: 0.8,
+    },
+    insightCard: {
+        flexDirection: 'row',
+        padding: 24,
+        borderRadius: 32,
+        marginBottom: 40,
+        alignItems: 'center',
+        ...theme.shadows.primary,
+    },
+    insightIconCircle: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    insightContent: {
+        flex: 1,
+        marginLeft: 16,
+    },
+    insightTitle: {
+        ...theme.typography.body,
+        fontWeight: '700',
+        color: theme.colors.white,
+        marginBottom: 4,
+    },
+    insightText: {
+        ...theme.typography.body,
+        fontSize: 14,
+        color: theme.colors.white,
+        opacity: 0.9,
+        lineHeight: 20,
+    },
+    section: {
+        marginBottom: 40,
+    },
+    sectionTitle: {
+        ...theme.typography.body,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+        marginBottom: 20,
     },
     chipContainer: {
         flexDirection: 'row',
@@ -307,81 +398,26 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     chip: {
-        paddingHorizontal: 22,
-        paddingVertical: 14,
-        backgroundColor: theme.colors.surfaceBright,
-        borderRadius: 30,
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
         ...theme.shadows.soft,
     },
     chipSelected: {
         backgroundColor: theme.colors.primary,
-        ...theme.shadows.primary,
+        borderColor: theme.colors.primary,
     },
     chipText: {
         ...theme.typography.body,
-        fontSize: 15,
-        color: theme.colors.onSurfaceVariant,
+        fontSize: 14,
+        color: theme.colors.onSurface,
     },
     chipTextSelected: {
         color: theme.colors.white,
         fontWeight: '700',
-    },
-    insightCard: {
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: 32,
-        padding: 24,
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 48,
-        gap: 16,
-        ...theme.shadows.soft,
-    },
-    insightContent: {
-        flex: 1,
-        gap: 8,
-    },
-    tagBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        backgroundColor: 'rgba(39, 107, 46, 0.1)',
-        borderRadius: 8,
-        alignSelf: 'flex-start',
-    },
-    tagText: {
-        ...theme.typography.label,
-        fontSize: 10,
-        color: theme.colors.primary,
-        letterSpacing: 1,
-    },
-    insightTitle: {
-        ...theme.typography.headline,
-        fontSize: 20,
-        color: theme.colors.onSurface,
-    },
-    insightDescription: {
-        ...theme.typography.body,
-        fontSize: 14,
-        color: theme.colors.onSurfaceVariant,
-        lineHeight: 20,
-    },
-    pebbleDecor: {
-        width: 64,
-        height: 80,
-        backgroundColor: theme.colors.surfaceBright,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        transform: [{ rotate: '-8deg' }],
-        ...theme.shadows.soft,
-    },
-    pebbleIcon: {
-        fontSize: 32,
-        color: theme.colors.primary,
-    },
-    sectionTitle: {
-        ...theme.typography.headline,
-        fontSize: 24,
-        color: theme.colors.onSurface,
     },
     listContainer: {
         gap: 12,
@@ -390,85 +426,78 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
-        backgroundColor: theme.colors.surfaceBright,
+        backgroundColor: theme.colors.surfaceContainerHighest,
         borderRadius: 24,
-        gap: 16,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
         ...theme.shadows.soft,
     },
     listItemSelected: {
-        backgroundColor: theme.colors.surfaceContainerHighest,
+        borderColor: theme.colors.tertiary,
+        backgroundColor: theme.colors.tertiaryContainer + '20',
     },
-    iconPebble: {
+    itemIconBox: {
         width: 44,
         height: 44,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        borderRadius: 18,
+        borderRadius: 14,
+        backgroundColor: theme.colors.surface,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    iconPebbleSelected: {
-        backgroundColor: theme.colors.primaryContainer,
-    },
-    listIcon: {
-        fontSize: 22,
-        color: theme.colors.primary,
-    },
-    listIconSelected: {
-        color: theme.colors.primary,
+    itemIconBoxSelected: {
+        backgroundColor: theme.colors.tertiary,
     },
     listItemText: {
         ...theme.typography.body,
-        fontSize: 16,
+        fontSize: 15,
         color: theme.colors.onSurface,
         flex: 1,
+        marginLeft: 16,
     },
     listItemTextSelected: {
         fontWeight: '700',
-        color: theme.colors.onSurface,
-    },
-    checkIcon: {
-        fontSize: 24,
-        color: theme.colors.primary,
-    },
-    grid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-    },
-    learningBox: {
-        width: (width - 32 - 12) / 2,
-        padding: 18,
-        backgroundColor: 'rgba(202, 169, 16, 0.05)',
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    learningBoxSelected: {
-        backgroundColor: theme.colors.tertiary,
-    },
-    learningText: {
-        ...theme.typography.label,
-        fontSize: 16,
         color: theme.colors.tertiary,
     },
-    learningTextSelected: {
-        color: theme.colors.white,
+    horizontalList: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+    },
+    smallChip: {
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        backgroundColor: theme.colors.surface,
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: theme.colors.outlineVariant,
+    },
+    smallChipSelected: {
+        borderColor: theme.colors.primary,
+        backgroundColor: theme.colors.primaryContainer + '20',
+    },
+    smallChipText: {
+        ...theme.typography.label,
+        fontSize: 11,
+        color: theme.colors.onSurfaceVariant,
+    },
+    smallChipTextSelected: {
+        color: theme.colors.primary,
         fontWeight: '700',
     },
     footer: {
         position: 'absolute',
         bottom: 0,
-        width: '100%',
-        paddingHorizontal: theme.spacing.lg,
+        left: 0,
+        right: 0,
+        padding: theme.spacing.lg,
         paddingBottom: 40,
-        paddingTop: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        backgroundColor: 'rgba(235, 255, 230, 0.9)',
+        borderTopWidth: 1,
+        borderTopColor: theme.colors.outlineVariant,
     },
     primaryButton: {
-        width: '100%',
         height: 64,
-        backgroundColor: theme.colors.primary,
-        borderRadius: theme.borderRadius.xl,
+        borderRadius: theme.borderRadius.lg,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -476,12 +505,8 @@ const styles = StyleSheet.create({
         ...theme.shadows.primary,
     },
     primaryButtonText: {
-        ...theme.typography.label,
-        fontSize: 18,
-        color: theme.colors.white,
-    },
-    buttonArrow: {
-        fontSize: 20,
+        ...theme.typography.body,
+        fontWeight: '700',
         color: theme.colors.white,
     },
 });

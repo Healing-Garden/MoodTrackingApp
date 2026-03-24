@@ -16,6 +16,7 @@ import { theme } from '../../theme';
 import BottomNavBar from '../../components/common/BottomNavBar';
 import logo from '../../../assets/images/logo.png';
 import api from '../../services/api';
+import { userService } from '../../services/userService';
 import { aiApi } from '../../services/aiApi';
 
 const { width } = Dimensions.get('window');
@@ -24,37 +25,86 @@ const InsightsScreen = ({ navigation }) => {
     const [tab, setTab] = useState('Month');
     const [user, setUser] = useState(null);
     const [trendData, setTrendData] = useState(null);
+    const [summary, setSummary] = useState(null);
+    const [moodFlowData, setMoodFlowData] = useState(null);
+    const [heatmapData, setHeatmapData] = useState(null);
+    const [wordCloud, setWordCloud] = useState(null);
     const [loadingAI, setLoadingAI] = useState(false);
+    const [loadingSummary, setLoadingSummary] = useState(false);
+    const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+    const [loadingFlow, setLoadingFlow] = useState(false);
 
     React.useEffect(() => {
         const loadProfile = async () => {
             try {
-                const res = await api.get('/profile');
-                setUser(res.data?.user || null);
-            } catch (err) { }
+                const profile = await userService.getProfile();
+                setUser(profile || null);
+            } catch (err) { 
+                console.log('Failed to load profile:', err);
+            }
         };
         loadProfile();
     }, []);
 
     React.useEffect(() => {
-        if (!user?._id) return;
+        const fetchData = async () => {
+            const timeRange = tab.toLowerCase(); // 'week', 'month', 'year'
+            const days = timeRange === 'week' ? 7 : timeRange === 'month' ? 30 : 365;
 
-        const fetchTrends = async () => {
-            setLoadingAI(true);
-            try {
-                const days = tab === 'Week' ? 7 : tab === 'Month' ? 30 : 365;
-                const res = await aiApi.analyzeTrends(user._id, days);
-                if (res?.data?.success) {
-                    setTrendData(res.data.data);
+            // Fetch AI Trends
+            if (user?._id) {
+                setLoadingAI(true);
+                try {
+                    const res = await aiApi.analyzeTrends(user._id, days);
+                    if (res?.data?.success) {
+                        setTrendData(res.data.data);
+                    }
+                } catch (error) {
+                    console.log('Failed to fetch trend data:', error);
+                } finally {
+                    setLoadingAI(false);
                 }
+            }
+
+            // Fetch Analytics Summary
+            setLoadingSummary(true);
+            try {
+                const data = await userService.getAnalyticsSummary(timeRange);
+                setSummary(data);
             } catch (error) {
-                console.log('Failed to fetch trend data:', error);
+                console.log('Failed to fetch summary data:', error);
             } finally {
-                setLoadingAI(false);
+                setLoadingSummary(false);
+            }
+
+            // Fetch Mood Flow Data (Matches Frontend Logic)
+            setLoadingFlow(true);
+            try {
+                const flow = await userService.getMoodFlow(timeRange);
+                setMoodFlowData(flow);
+            } catch (error) {
+                console.log('Failed to fetch mood flow:', error);
+            } finally {
+                setLoadingFlow(false);
+            }
+
+            // Fetch Heatmap and WordCloud
+            setLoadingAnalytics(true);
+            try {
+                const [hData, wData] = await Promise.all([
+                    userService.getTriggerHeatmap(timeRange),
+                    userService.getWordCloud(timeRange)
+                ]);
+                setHeatmapData(hData);
+                setWordCloud(wData);
+            } catch (error) {
+                console.log('Failed to fetch heatmap/wordcloud:', error);
+            } finally {
+                setLoadingAnalytics(false);
             }
         };
 
-        fetchTrends();
+        fetchData();
     }, [tab, user?._id]);
 
     return (
@@ -101,13 +151,21 @@ const InsightsScreen = ({ navigation }) => {
                     <View style={[styles.statCard, styles.fullWidthStat]}>
                         <View style={styles.moodBloomBg} />
                         <Text style={styles.statLabel}>AVG MOOD SCORE</Text>
-                        <Text style={styles.statValue}>4.8</Text>
-                        <View style={styles.trendRow}>
-                            <MaterialIcons name="trending-up" size={16} color={theme.colors.primary} />
-                            <Text style={styles.trendText}>+12% vs last month</Text>
-                        </View>
+                        <Text style={styles.statValue}>{summary?.current?.avgMood || '0'}</Text>
+                        {summary?.moodTrend !== undefined && summary.moodTrend !== 0 && (
+                            <View style={styles.trendRow}>
+                                <MaterialIcons 
+                                    name={summary.moodTrend > 0 ? "trending-up" : "trending-down"} 
+                                    size={16} 
+                                    color={summary.moodTrend > 0 ? theme.colors.primary : "#ef4444"} 
+                                />
+                                <Text style={[styles.trendText, summary.moodTrend < 0 && { color: "#ef4444" }]}>
+                                    {summary.moodTrend > 0 ? '+' : ''}{summary.moodTrend} compared to last {tab.toLowerCase()}
+                                </Text>
+                            </View>
+                        )}
                     </View>
-
+ 
                     <View style={styles.statRow}>
                         <View style={styles.statCardHalf}>
                             <Text style={styles.statLabel}>CONSISTENCY</Text>
@@ -129,18 +187,18 @@ const InsightsScreen = ({ navigation }) => {
                                         strokeWidth="8"
                                         fill="transparent"
                                         strokeDasharray="219.8"
-                                        strokeDashoffset={219.8 * (1 - 0.85)}
+                                        strokeDashoffset={219.8 * (1 - (summary?.current?.consistency || 0) / 100)}
                                         strokeLinecap="round"
                                     />
                                 </Svg>
-                                <Text style={styles.progressText}>85%</Text>
+                                <Text style={styles.progressText}>{summary?.current?.consistency || 0}%</Text>
                             </View>
                         </View>
-
+ 
                         <View style={styles.statCardHalf}>
                             <Text style={styles.statLabel}>TOTAL ENTRIES</Text>
-                            <Text style={[styles.statValue, { color: theme.colors.tertiary }]}>24</Text>
-                            <Text style={styles.statSubText}>"Deepening your practice"</Text>
+                            <Text style={[styles.statValue, { color: theme.colors.tertiary }]}>{summary?.current?.journalEntries || 0}</Text>
+                            <Text style={styles.statSubText}>{summary?.current?.journalEntries > 20 ? "Deepening your practice" : "Starting your journey"}</Text>
                         </View>
                     </View>
                 </View>
@@ -163,42 +221,117 @@ const InsightsScreen = ({ navigation }) => {
                             </View>
                         </View>
                     </View>
-
+ 
                     <View style={styles.chartContainer}>
-                        {/* Grid Lines */}
                         <View style={styles.chartGrid}>
-                            {[0, 1, 2, 3].map((i) => (
-                                <View key={i} style={styles.gridLine} />
+                            {[0, 1, 2, 3, 4, 5].map((i) => (
+                                <View key={i} style={[styles.gridLine, { bottom: (i / 5) * 200 }]} />
                             ))}
                         </View>
+ 
+                        <Svg width={width - 96} height="200" style={styles.svgChart}>
+                            <Defs>
+                                <SvgGradient id="gradMood" x1="0" y1="0" x2="0" y2="1">
+                                    <Stop offset="0" stopColor={theme.colors.primary} stopOpacity="0.2" />
+                                    <Stop offset="1" stopColor={theme.colors.primary} stopOpacity="0" />
+                                </SvgGradient>
+                            </Defs>
+                            {(() => {
+                                let points = [];
+                                const chartW = width - 96;
+                                const chartH = 160;
 
-                        <Svg width="100%" height="200" style={styles.svgChart}>
-                            {/* Energy Line */}
-                            <Path
-                                d="M0,150 Q50,80 100,120 T200,60 T300,140 T400,100"
-                                stroke={theme.colors.secondary}
-                                strokeWidth="3"
-                                strokeDasharray="4 4"
-                                fill="none"
-                                opacity="0.4"
-                            />
-                            {/* Mood Line */}
-                            <Path
-                                d="M0,180 Q50,140 100,60 T200,90 T300,30 T400,70"
-                                stroke={theme.colors.primary}
-                                strokeWidth="4"
-                                fill="none"
-                            />
-                            {/* Dots */}
-                            <Circle cx="100" cy="60" r="5" fill={theme.colors.primary} />
-                            <Circle cx="300" cy="30" r="5" fill={theme.colors.primary} />
+                                const moodFlowItems = moodFlowData?.items || [];
+                                
+                                if (tab === 'Week') {
+                                    const last7Days = [];
+                                    for (let i = 6; i >= 0; i--) {
+                                        const d = new Date();
+                                        d.setDate(d.getDate() - i);
+                                        const dateStr = d.toISOString().split('T')[0];
+                                        const entry = moodFlowItems.find(item => item.date === dateStr);
+                                        last7Days.push({
+                                            date: dateStr,
+                                            mood: entry?.mood || 0,
+                                            energy: entry?.energy || 0,
+                                            isToday: i === 0
+                                        });
+                                    }
+                                    points = last7Days;
+                                } else {
+                                    points = moodFlowItems.map(p => ({
+                                        mood: p.mood || 0,
+                                        energy: p.energy || 0,
+                                        isToday: false
+                                    }));
+                                }
+
+                                if (points.length === 0) return null;
+                                const pointGap = chartW / (points.length - 1 || 1);
+
+                                // Energy line (Dashed) - Scale 1-10
+                                let energyPath = '';
+                                points.forEach((p, i) => {
+                                    const x = i * pointGap;
+                                    const y = p.energy > 0 ? chartH - (p.energy / 10) * chartH : chartH;
+                                    energyPath += (i === 0 ? 'M' : ' L') + ` ${x} ${y}`;
+                                });
+
+                                // Mood line (Bezier Curve) - Scale 1-5
+                                let moodPath = '';
+                                points.forEach((p, i) => {
+                                    const x = i * pointGap;
+                                    const y = p.mood > 0 ? chartH - (p.mood / 5) * chartH : chartH;
+                                    if (i === 0) {
+                                        moodPath += `M ${x} ${y}`;
+                                    } else {
+                                        const prevX = (i - 1) * pointGap;
+                                        const prevY = points[i-1].mood > 0 ? chartH - (points[i - 1].mood / 5) * chartH : chartH;
+                                        const midX = (prevX + x) / 2;
+                                        moodPath += ` C ${midX} ${prevY}, ${midX} ${y}, ${x} ${y}`;
+                                    }
+                                });
+
+                                const areaPath = `${moodPath} L ${chartW} ${chartH} L 0 ${chartH} Z`;
+
+                                return (
+                                    <>
+                                        <Path d={areaPath} fill="url(#gradMood)" />
+                                        <Path d={energyPath} stroke={theme.colors.secondary} strokeWidth="1.5" strokeDasharray="4 4" fill="none" opacity="0.4" />
+                                        <Path d={moodPath} stroke={theme.colors.primary} strokeWidth="3" fill="none" strokeLinecap="round" />
+                                        {points.map((p, i) => (
+                                            p.mood > 0 && (
+                                                <Circle 
+                                                    key={i} 
+                                                    cx={i * pointGap} 
+                                                    cy={chartH - (p.mood / 5) * chartH} 
+                                                    r={p.isToday ? 6 : 4} 
+                                                    fill={p.isToday ? theme.colors.primary : "#fff"}
+                                                    stroke={theme.colors.primary}
+                                                    strokeWidth="2"
+                                                />
+                                            )
+                                        ))}
+                                    </>
+                                );
+                            })()}
                         </Svg>
-
-                        <View style={styles.xAxis}>
-                            <Text style={styles.xAxisLabel}>Week 1</Text>
-                            <Text style={styles.xAxisLabel}>Week 2</Text>
-                            <Text style={styles.xAxisLabel}>Week 3</Text>
-                            <Text style={styles.xAxisLabel}>Week 4</Text>
+ 
+                        <View style={[styles.xAxis, { width: width - 96 }]}>
+                            {tab === 'Week' ? (() => {
+                                const labels = [];
+                                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                                for (let i = 6; i >= 0; i--) {
+                                    const d = new Date();
+                                    d.setDate(d.getDate() - i);
+                                    labels.push(days[d.getDay()]);
+                                }
+                                return labels.map((l, i) => <Text key={i} style={styles.xAxisLabel}>{l}</Text>);
+                            })() : tab === 'Month' ? (
+                                ['W1', 'W2', 'W3', 'W4'].map(w => <Text key={w} style={styles.xAxisLabel}>{w}</Text>)
+                            ) : (
+                                ['Q1', 'Q2', 'Q3', 'Q4'].map(q => <Text key={q} style={styles.xAxisLabel}>{q}</Text>)
+                            )}
                         </View>
                     </View>
                 </View>
@@ -212,67 +345,105 @@ const InsightsScreen = ({ navigation }) => {
                         <Text style={styles.tableHeadText}>CURR.</Text>
                         <Text style={styles.tableHeadText}>CHG.</Text>
                     </View>
+ 
+                    {[
+                        { label: 'Avg Mood', key: 'avgMood' },
+                        { label: 'Consistency', key: 'consistency', suffix: '%' },
+                        { label: 'Entries', key: 'journalEntries' }
+                    ].map((item) => {
+                        const curr = summary?.current?.[item.key] || 0;
+                        const prev = summary?.previous?.[item.key] || 0;
+                        const diff = curr - prev;
+                        const isPositive = diff > 0;
 
-                    <View style={styles.tableRow}>
-                        <Text style={styles.metricName}>Avg Mood</Text>
-                        <Text style={styles.prevVal}>4.2</Text>
-                        <Text style={styles.currVal}>4.8</Text>
-                        <View style={styles.changeCell}>
-                            <MaterialIcons name="arrow-upward" size={14} color={theme.colors.primary} />
-                            <Text style={styles.changeText}>14%</Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.tableRow}>
-                        <Text style={styles.metricName}>Consistency</Text>
-                        <Text style={styles.prevVal}>78%</Text>
-                        <Text style={styles.currVal}>85%</Text>
-                        <View style={styles.changeCell}>
-                            <MaterialIcons name="arrow-upward" size={14} color={theme.colors.primary} />
-                            <Text style={styles.changeText}>9%</Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.tableRow}>
-                        <Text style={styles.metricName}>Entries</Text>
-                        <Text style={styles.prevVal}>18</Text>
-                        <Text style={styles.currVal}>24</Text>
-                        <View style={styles.changeCell}>
-                            <MaterialIcons name="add" size={14} color={theme.colors.primary} />
-                            <Text style={styles.changeText}>6</Text>
-                        </View>
-                    </View>
+                        return (
+                            <View key={item.key} style={styles.tableRow}>
+                                <Text style={styles.metricName}>{item.label}</Text>
+                                <Text style={styles.prevVal}>{prev}{item.suffix || ''}</Text>
+                                <Text style={styles.currVal}>{curr}{item.suffix || ''}</Text>
+                                <View style={styles.changeCell}>
+                                    {diff !== 0 && (
+                                        <MaterialIcons 
+                                            name={isPositive ? "arrow-upward" : "arrow-downward"} 
+                                            size={14} 
+                                            color={isPositive ? theme.colors.primary : "#ef4444"} 
+                                        />
+                                    )}
+                                    <Text style={[styles.changeText, !isPositive && diff !== 0 && { color: "#ef4444" }]}>
+                                        {diff === 0 ? '—' : Math.abs(Number(diff.toFixed(1))) + (item.suffix || '')}
+                                    </Text>
+                                </View>
+                            </View>
+                        );
+                    })}
                 </View>
 
                 {/* TRIGGER HEATMAP */}
                 <View style={styles.heatmapCard}>
-                    <View style={styles.heatTitleRow}>
-                        <MaterialIcons name="auto-awesome" size={20} color={theme.colors.primary} />
-                        <Text style={styles.cardTitle}>Trigger Heatmap</Text>
+                    <View style={styles.heatHeader}>
+                        <View style={styles.heatTitleRow}>
+                            <MaterialIcons name="auto-awesome" size={20} color={theme.colors.primary} />
+                            <Text style={styles.cardTitle}>Mood Triggers</Text>
+                        </View>
+                        <Text style={styles.heatSubtitle}>How activities influence your emotional state</Text>
                     </View>
 
-                    <View style={styles.heatGrid}>
-                        {[0.1, 0.3, 0.05, 0.6, 0.2, 0.8, 0.1, 0.05, 0.4, 0.1, 0.7, 0.1, 0.05, 0.3].map((op, i) => (
-                            <View key={i} style={[styles.heatCell, { opacity: op }]} />
-                        ))}
+                    {/* Legend */}
+                    <View style={styles.heatLegend}>
+                        <View style={styles.legendDotItem}><View style={[styles.microDot, { backgroundColor: '#22c55e' }]} /><Text style={styles.microText}>Positive</Text></View>
+                        <View style={styles.legendDotItem}><View style={[styles.microDot, { backgroundColor: '#f97316' }]} /><Text style={styles.microText}>Neutral</Text></View>
+                        <View style={styles.legendDotItem}><View style={[styles.microDot, { backgroundColor: '#ef4444' }]} /><Text style={styles.microText}>Negative</Text></View>
                     </View>
+
+                    {heatmapData?.rows?.some(r => r.positive + r.neutral + r.negative > 0) ? (
+                        <View style={styles.triggerList}>
+                            {heatmapData.rows
+                                .filter(row => (row.positive + row.neutral + row.negative) > 0)
+                                .sort((a, b) => (b.positive + b.neutral + b.negative) - (a.positive + a.neutral + a.negative))
+                                .map((row, i) => {
+                                    const total = row.positive + row.neutral + row.negative;
+                                    const pW = (row.positive / total) * 100;
+                                    const nW = (row.neutral / total) * 100;
+                                    const negW = (row.negative / total) * 100;
+
+                                    return (
+                                        <View key={i} style={styles.triggerRow}>
+                                            <View style={styles.triggerInfo}>
+                                                <Text style={styles.triggerName}>{row.trigger}</Text>
+                                                <Text style={styles.triggerTotal}>{total} {total === 1 ? 'entry' : 'entries'}</Text>
+                                            </View>
+                                            <View style={styles.distributionBar}>
+                                                {row.positive > 0 && <View style={[styles.barSegment, { width: `${pW}%`, backgroundColor: '#22c55e' }]} />}
+                                                {row.neutral > 0 && <View style={[styles.barSegment, { width: `${nW}%`, backgroundColor: '#f97316' }]} />}
+                                                {row.negative > 0 && <View style={[styles.barSegment, { width: `${negW}%`, backgroundColor: '#ef4444' }]} />}
+                                            </View>
+                                        </View>
+                                    );
+                                })}
+                        </View>
+                    ) : (
+                        <View style={styles.heatEmpty}>
+                            <MaterialIcons name="insights" size={40} color={theme.colors.surfaceVariant} />
+                            <Text style={styles.emptyStateSubtext}>Log activities in your check-ins to see correlations</Text>
+                        </View>
+                    )}
 
                     <View style={styles.heatInsightBox}>
                         <Text style={styles.insightText}>
-                            "You tend to feel most grounded on Tuesday mornings after <Text style={styles.boldPrimary}>outdoor walks</Text>. However, late-night screen time correlates with 20% lower mood scores the following day."
+                            {trendData?.overallTrend === 'insufficient_data' 
+                                ? "Keep logging check-ins to unlock detailed trigger correlations."
+                                : trendData?.insights?.[0] || "We're analyzing how your activities affect your mood."}
                         </Text>
                     </View>
 
                     <View style={styles.tagRow}>
-                        <View style={[styles.tag, { backgroundColor: theme.colors.secondaryContainer }]}>
-                            <Text style={styles.tagText}>Nature</Text>
-                        </View>
-                        <View style={[styles.tag, { backgroundColor: theme.colors.secondaryContainer }]}>
-                            <Text style={styles.tagText}>Sleep</Text>
-                        </View>
-                        <View style={[styles.tag, { backgroundColor: '#ffe174' }]}>
-                            <Text style={[styles.tagText, { color: '#554500' }]}>Hydration</Text>
-                        </View>
+                        {wordCloud?.words?.slice(0, 5).map((w, i) => (
+                            <View key={i} style={[styles.tag, { backgroundColor: i % 2 === 0 ? theme.colors.secondaryContainer : '#ffe174' }]}>
+                                <Text style={[styles.tagText, i % 2 !== 0 && { color: '#554500' }]}>{w.text}</Text>
+                            </View>
+                        )) || (
+                            <Text style={styles.emptyStateSubtext}>Log notes to see common emotional themes</Text>
+                        )}
                     </View>
                 </View>
 
@@ -648,23 +819,78 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(39, 107, 46, 0.05)',
     },
-    heatTitleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
+    heatHeader: {
         marginBottom: 16,
     },
-    heatGrid: {
+    heatSubtitle: {
+        fontSize: 12,
+        color: theme.colors.onSurfaceVariant,
+        marginTop: 4,
+        marginBottom: 12,
+    },
+    heatLegend: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
+        gap: 16,
+        marginBottom: 20,
+        backgroundColor: 'rgba(0,0,0,0.02)',
+        padding: 8,
+        borderRadius: 8,
+    },
+    legendDotItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
         gap: 6,
+    },
+    microDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+    },
+    microText: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: theme.colors.onSurfaceVariant,
+    },
+    triggerList: {
+        gap: 16,
         marginBottom: 20,
     },
-    heatCell: {
-        width: 24,
-        height: 24,
-        backgroundColor: theme.colors.primary,
-        borderRadius: 4,
+    triggerRow: {
+        gap: 8,
+    },
+    triggerInfo: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    triggerName: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: theme.colors.onSurface,
+    },
+    triggerTotal: {
+        fontSize: 11,
+        color: theme.colors.onSurfaceVariant,
+        fontWeight: '600',
+    },
+    distributionBar: {
+        height: 12,
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        borderRadius: 6,
+        flexDirection: 'row',
+        overflow: 'hidden',
+    },
+    barSegment: {
+        height: '100%',
+    },
+    heatEmpty: {
+        height: 120,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.02)',
+        borderRadius: 12,
+        marginBottom: 20,
+        gap: 8,
     },
     heatInsightBox: {
         backgroundColor: 'rgba(39, 107, 46, 0.05)',

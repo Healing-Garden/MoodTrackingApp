@@ -29,6 +29,21 @@ export const userService = {
     getMoodFlow: async (period = 'week') => {
         const response = await api.get(`/user/checkins/flow?period=${period}`);
         return response.data;
+    },
+
+    getAnalyticsSummary: async (period = 'week') => {
+        const response = await api.get(`/user/analytics/summary?period=${period}`);
+        return response.data;
+    },
+
+    getTriggerHeatmap: async (period = 'week') => {
+        const response = await api.get(`/user/analytics/trigger-heatmap?period=${period}`);
+        return response.data;
+    },
+
+    getWordCloud: async (period = 'week') => {
+        const response = await api.get(`/user/analytics/word-cloud?period=${period}`);
+        return response.data;
     }
 };
 
