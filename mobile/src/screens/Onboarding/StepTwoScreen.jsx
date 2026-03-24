@@ -232,15 +232,15 @@ const StepTwoScreen = ({ navigation, route }) => {
                     activeOpacity={0.9}
                     style={{ width: '100%' }}
                 >
-                    <LinearGradient
-                        colors={isFormValid ? GRADIENTS.primary : [theme.colors.surfaceDim, theme.colors.outlineVariant]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.primaryButton}
+                    <View
+                        style={[
+                            styles.primaryButton,
+                            isFormValid ? styles.primaryButtonActive : styles.primaryButtonInactive
+                        ]}
                     >
                         <Text style={styles.primaryButtonText}>Continue Nurturing</Text>
                         <MaterialIcons name="water-drop" size={24} color={theme.colors.white} />
-                    </LinearGradient>
+                    </View>
                 </TouchableOpacity>
             </View>
         </View>
@@ -400,8 +400,8 @@ const styles = StyleSheet.create({
         borderColor: theme.colors.outlineVariant,
     },
     moodPebbleSelected: {
-        backgroundColor: theme.colors.secondary,
-        borderColor: theme.colors.secondary,
+        backgroundColor: theme.colors.primary,
+        borderColor: theme.colors.primary,
         ...theme.shadows.primary,
     },
     moodEmoji: {
@@ -431,8 +431,8 @@ const styles = StyleSheet.create({
         borderColor: theme.colors.outlineVariant,
     },
     listItemSelected: {
-        borderColor: theme.colors.secondary,
-        backgroundColor: theme.colors.secondaryContainer + '20',
+        borderColor: theme.colors.primary,
+        backgroundColor: theme.colors.primary,
     },
     listItemText: {
         ...theme.typography.body,
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
     },
     listItemTextSelected: {
         fontWeight: '700',
-        color: theme.colors.secondary,
+        color: theme.colors.white,
     },
     footer: {
         position: 'absolute',
@@ -461,6 +461,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 12,
         ...theme.shadows.primary,
+    },
+    primaryButtonActive: {
+        backgroundColor: theme.colors.primary,
+    },
+    primaryButtonInactive: {
+        backgroundColor: theme.colors.surfaceDim,
     },
     primaryButtonText: {
         ...theme.typography.body,

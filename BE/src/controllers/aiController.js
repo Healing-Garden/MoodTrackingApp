@@ -343,7 +343,8 @@ class AIController {
                 data: {
                     sentiment: result.sentiment,
                     score: result.score,
-                    confidence: result.confidence
+                    confidence: result.confidence,
+                    emotions: result.emotions || []
                 },
                 error: result.error
             });
