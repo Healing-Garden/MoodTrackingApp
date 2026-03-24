@@ -9,7 +9,8 @@ import {
     StatusBar,
     Image,
     Dimensions,
-    Alert
+    Alert,
+    Modal
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -59,6 +60,12 @@ const JournalScreen = ({ navigation }) => {
     const [expandingImagePreviews, setExpandingImagePreviews] = useState([]);
     const [expandingImageUrls, setExpandingImageUrls] = useState([]);
     const [expandingAudioUri, setExpandingAudioUri] = useState(null);
+
+    // Security
+    const [isPinModalVisible, setPinModalVisible] = useState(false);
+    const [enteredPin, setEnteredPin] = useState('');
+    const [isUnlocked, setIsUnlocked] = useState(false);
+    const [verifyingPin, setVerifyingPin] = useState(false);
 
     React.useEffect(() => {
         const loadProfile = async () => {
@@ -143,6 +150,25 @@ const JournalScreen = ({ navigation }) => {
             Alert.alert("Error", "Không thể tải thùng rác: " + (error.response?.data?.message || error.message));
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleVerifyPin = async () => {
+        if (!enteredPin || enteredPin.length !== 6) {
+            Alert.alert("Error", "Please enter a valid 6-digit PIN.");
+            return;
+        }
+        setVerifyingPin(true);
+        try {
+            await api.post('/user/app-lock/verify', { pin: enteredPin });
+            setIsUnlocked(true);
+            setPinModalVisible(false);
+            setEnteredPin('');
+            setActiveTab('My Entries');
+        } catch (error) {
+            Alert.alert("Error", error.response?.data?.message || "Invalid PIN");
+        } finally {
+            setVerifyingPin(false);
         }
     };
 
@@ -674,7 +700,13 @@ const JournalScreen = ({ navigation }) => {
                             <TouchableOpacity
                                 key={tab}
                                 style={[styles.tabBtn, activeTab === tab && styles.activeTabBtn]}
-                                onPress={() => setActiveTab(tab)}
+                                onPress={() => {
+                                    if (tab === 'My Entries' && user?.appLockEnabled && !isUnlocked) {
+                                        setPinModalVisible(true);
+                                    } else {
+                                        setActiveTab(tab);
+                                    }
+                                }}
                             >
                                 <Text style={[styles.tabBtnText, activeTab === tab && styles.activeTabBtnText]}>
                                     {tab}
@@ -710,7 +742,44 @@ const JournalScreen = ({ navigation }) => {
                 {activeTab === 'Trash' && renderTrash()}
             </ScrollView>
 
-            {/* No longer needed as we moved actions inside editorCard */}
+            {/* PIN Verification Modal */}
+            <Modal visible={isPinModalVisible} animationType="fade" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <MaterialIcons name="lock" size={48} color={theme.colors.primary} style={{ marginBottom: 16 }} />
+                        <Text style={styles.modalTitle}>Enter App Lock PIN</Text>
+                        <Text style={styles.modalSubtitle}>Please enter your 6-digit PIN to access your entries.</Text>
+                        
+                        <View style={styles.pinBoxesContainer}>
+                            {[0, 1, 2, 3, 4, 5].map(i => (
+                                <View key={i} style={[styles.pinBox, enteredPin.length === i && styles.pinBoxActive]}>
+                                    <Text style={styles.pinBoxText}>{enteredPin[i] ? '•' : ''}</Text>
+                                </View>
+                            ))}
+                            <TextInput
+                                style={styles.hiddenInput}
+                                keyboardType="numeric"
+                                maxLength={6}
+                                value={enteredPin}
+                                onChangeText={(text) => setEnteredPin(text.replace(/[^0-9]/g, ''))}
+                                autoFocus
+                            />
+                        </View>
+                        
+                        <View style={styles.modalActions}>
+                            <TouchableOpacity style={styles.modalButtonCancel} onPress={() => {
+                                setPinModalVisible(false);
+                                setEnteredPin('');
+                            }}>
+                                <Text style={styles.modalButtonCancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.modalButtonSubmit} onPress={handleVerifyPin} disabled={verifyingPin}>
+                                <Text style={styles.modalButtonSubmitText}>{verifyingPin ? 'Verifying...' : 'Unlock'}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             <BottomNavBar navigation={navigation} activeTab="Journal" />
         </View>
@@ -1449,6 +1518,52 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: theme.colors.onSurface,
         fontWeight: '500',
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1, backgroundColor: 'rgba(6, 33, 10, 0.45)', justifyContent: 'center', alignItems: 'center'
+    },
+    modalContent: {
+        width: '85%', backgroundColor: '#fcfdfa', borderRadius: 24, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 8, alignItems: 'center'
+    },
+    modalTitle: {
+        fontSize: 22, fontWeight: '800', fontFamily: theme.fonts.headline, color: theme.colors.primary, marginBottom: 8, textAlign: 'center'
+    },
+    modalSubtitle: {
+        fontSize: 14, fontFamily: theme.fonts.body, color: theme.colors.onSurfaceVariant, marginBottom: 20, textAlign: 'center', lineHeight: 20
+    },
+    modalInput: {
+        width: '100%', backgroundColor: theme.colors.surfaceContainerLow, borderRadius: 12, padding: 16, marginBottom: 20, fontSize: 18, fontFamily: theme.fonts.body, color: theme.colors.onSurface
+    },
+    modalActions: {
+        flexDirection: 'row', width: '100%', gap: 12, marginTop: 12
+    },
+    modalButtonCancel: {
+        flex: 1, padding: 14, alignItems: 'center', backgroundColor: '#e2e3df', borderRadius: 12
+    },
+    modalButtonCancelText: {
+        fontSize: 16, fontWeight: '700', fontFamily: theme.fonts.headline, color: '#40493e'
+    },
+    modalButtonSubmit: {
+        flex: 1, padding: 14, alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 12
+    },
+    modalButtonSubmitText: {
+        fontSize: 16, fontWeight: '700', fontFamily: theme.fonts.headline, color: '#fff'
+    },
+    pinBoxesContainer: {
+        flexDirection: 'row', justifyContent: 'space-between', width: '100%', position: 'relative', marginBottom: 24
+    },
+    pinBox: {
+        width: 44, height: 56, borderWidth: 2, borderColor: '#d1d5db', borderRadius: 12, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff'
+    },
+    pinBoxActive: {
+        borderColor: theme.colors.primary, backgroundColor: '#f5fbf4', shadowColor: theme.colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 3, elevation: 2
+    },
+    pinBoxText: {
+        fontSize: 26, fontWeight: '800', color: theme.colors.primary
+    },
+    hiddenInput: {
+        position: 'absolute', width: '100%', height: '100%', opacity: 0
     }
 });
 
