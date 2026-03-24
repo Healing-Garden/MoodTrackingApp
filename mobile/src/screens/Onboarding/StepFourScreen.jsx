@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
-    TouchableOpacity,
+    Pressable,
     ScrollView,
     StyleSheet,
     StatusBar,
@@ -165,19 +165,19 @@ const StepFourScreen = ({ navigation, route }) => {
 
             <View style={styles.header}>
                 {!isDailyCheckIn && (
-                    <TouchableOpacity 
+                    <Pressable 
                         onPress={() => navigation.goBack()} 
                         style={styles.backButton}
-                        activeOpacity={0.7}
+                        android_ripple={{ color: '#ccc', radius: 24 }}
                     >
                         <MaterialIcons name="chevron-left" size={28} color={theme.colors.onSurface} />
-                    </TouchableOpacity>
+                    </Pressable>
                 )}
                 {isDailyCheckIn && <View style={{ width: 48 }} />}
                 
-                <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+                <Pressable onPress={() => navigation.navigate('Dashboard')} android_ripple={{ color: '#ccc', radius: 24 }}>
                     <Text style={styles.skipText}>SKIP</Text>
-                </TouchableOpacity>
+                </Pressable>
             </View>
 
             <ScrollView
@@ -214,40 +214,47 @@ const StepFourScreen = ({ navigation, route }) => {
                             {MOOD_OPTIONS.map((opt) => {
                                 const isSelected = selectedMood === opt.level;
                                 return (
-                                    <TouchableOpacity
+                                    <Pressable
                                         key={opt.level}
                                         onPress={() => setSelectedMood(opt.level)}
-                                        style={[styles.moodItem, isSelected && { backgroundColor: opt.color + '20', borderColor: opt.color }]}
-                                        activeOpacity={0.8}
+                                        style={({ pressed }) => [
+                                            styles.moodItem,
+                                            isSelected && styles.moodItemSelected,
+                                            isSelected && { borderColor: opt.color },
+                                            pressed && styles.pressHold,
+                                        ]}
                                     >
-                                        <Text style={styles.moodEmoji}>{opt.emoji}</Text>
-                                        <Text style={[styles.moodLabel, isSelected && { color: opt.color, fontWeight: '700' }]}>
+                                        <Text style={[styles.moodEmoji, isSelected && styles.moodEmojiSelected]}>{opt.emoji}</Text>
+                                        <Text style={[styles.moodLabel, isSelected && styles.moodLabelSelected]}>
                                             {opt.label}
                                         </Text>
-                                    </TouchableOpacity>
+                                    </Pressable>
                                 );
                             })}
                         </View>
                     </View>
 
-                    {/* Sleep Duration Selector */}
+                    {/* Sleep Selector */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Quality of your rest last night?</Text>
                         <View style={styles.sleepSelector}>
                             {sleepOptions.map((opt) => {
                                 const isSelected = selectedSleep === opt.value;
                                 return (
-                                    <TouchableOpacity
+                                    <Pressable
                                         key={opt.label}
                                         onPress={() => setSelectedSleep(opt.value)}
-                                        style={[styles.sleepNode, isSelected && styles.sleepNodeSelected]}
-                                        activeOpacity={0.8}
+                                        style={({ pressed }) => [
+                                            styles.sleepNode,
+                                            isSelected && styles.sleepNodeSelected,
+                                            pressed && styles.pressHold,
+                                        ]}
                                     >
                                         <Text style={[styles.sleepValue, isSelected && styles.sleepValueSelected]}>
                                             {opt.label}
                                         </Text>
                                         <View style={[styles.sleepDot, isSelected && styles.sleepDotSelected]} />
-                                    </TouchableOpacity>
+                                    </Pressable>
                                 );
                             })}
                         </View>
@@ -260,25 +267,25 @@ const StepFourScreen = ({ navigation, route }) => {
                             {energyOptions.map((item) => {
                                 const isSelected = selectedEnergy === item.id;
                                 return (
-                                    <TouchableOpacity
+                                    <Pressable
                                         key={item.id}
                                         onPress={() => setSelectedEnergy(item.id)}
-                                        style={[
-                                            styles.energyItem, 
+                                        style={({ pressed }) => [
+                                            styles.energyItem,
                                             isSelected && styles.energyItemSelected,
-                                            { borderColor: isSelected ? item.color : 'transparent' }
+                                            { borderColor: isSelected ? item.color : 'transparent' },
+                                            pressed && styles.pressHold,
                                         ]}
-                                        activeOpacity={0.8}
                                     >
                                         <MaterialIcons 
                                             name={item.icon} 
                                             size={28} 
                                             color={isSelected ? item.color : theme.colors.onSurfaceVariant} 
                                         />
-                                        <Text style={[styles.energyLabel, isSelected && { color: item.color, fontWeight: '700' }]}>
+                                        <Text style={[styles.energyLabel, isSelected && styles.energyLabelSelected]}>
                                             {item.label}
                                         </Text>
-                                    </TouchableOpacity>
+                                    </Pressable>
                                 );
                             })}
                         </View>
@@ -291,22 +298,20 @@ const StepFourScreen = ({ navigation, route }) => {
                             {focusLevelOptions.map((item) => {
                                 const isSelected = selectedFocus === item;
                                 return (
-                                    <TouchableOpacity
+                                    <Pressable
                                         key={item}
                                         onPress={() => setSelectedFocus(item)}
-                                        style={[styles.listItem, isSelected && styles.listItemSelected]}
-                                        activeOpacity={0.8}
+                                        style={({pressed}) => [styles.listItem, isSelected && styles.listItemSelected, pressed && styles.pressHold]}
                                     >
                                         <Text style={[styles.listItemText, isSelected && styles.listItemTextSelected]}>
                                             {item}
                                         </Text>
-                                        {isSelected && (
+                                        {isSelected ? (
                                             <MaterialIcons name="radio-button-checked" size={24} color={theme.colors.secondary} />
-                                        )}
-                                        {!isSelected && (
+                                        ) : (
                                             <MaterialIcons name="radio-button-off" size={24} color={theme.colors.outline} />
                                         )}
-                                    </TouchableOpacity>
+                                    </Pressable>
                                 );
                             })}
                         </View>
@@ -341,17 +346,16 @@ const StepFourScreen = ({ navigation, route }) => {
             </ScrollView>
 
             <View style={styles.footer}>
-                <TouchableOpacity
+                <Pressable
                     disabled={!isFormValid || isSubmitting}
                     onPress={handleFinish}
-                    activeOpacity={0.9}
-                    style={{ width: '100%' }}
+                    style={({pressed}) => [{ width: '100%' }, pressed && styles.pressHold]}
                 >
-                    <LinearGradient
-                        colors={isFormValid ? GRADIENTS.primary : [theme.colors.surfaceDim, theme.colors.outlineVariant]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.primaryButton}
+                    <View
+                        style={[
+                            styles.primaryButton,
+                            isFormValid ? styles.primaryButtonActive : styles.primaryButtonInactive
+                        ]}
                     >
                         {isSubmitting ? (
                             <ActivityIndicator color={theme.colors.white} />
@@ -363,8 +367,8 @@ const StepFourScreen = ({ navigation, route }) => {
                                 <MaterialIcons name={isDailyCheckIn ? "send" : "local-florist"} size={24} color={theme.colors.white} />
                             </>
                         )}
-                    </LinearGradient>
-                </TouchableOpacity>
+                    </View>
+                </Pressable>
             </View>
         </View>
     );
@@ -413,7 +417,7 @@ const styles = StyleSheet.create({
     progressContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 32,
+        marginBottom: 36,
         gap: 12,
     },
     progressLabel: {
@@ -445,7 +449,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     heroSection: {
-        marginBottom: 40,
+        marginBottom: 48,
     },
     displayTitle: {
         ...theme.typography.headline,
@@ -464,28 +468,45 @@ const styles = StyleSheet.create({
         opacity: 0.8,
     },
     section: {
-        marginBottom: 40,
+        marginBottom: 48,
     },
     sectionTitle: {
         ...theme.typography.body,
         fontWeight: '700',
         color: theme.colors.onSurface,
-        marginBottom: 20,
+        marginBottom: 24,
     },
     moodSelector: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 8,
+        gap: 12,
     },
     moodItem: {
         flex: 1,
         alignItems: 'center',
-        paddingVertical: 12,
+        paddingVertical: 16,
         borderRadius: 16,
         borderWidth: 1,
         borderColor: theme.colors.outlineVariant,
         backgroundColor: theme.colors.surface,
         ...theme.shadows.soft,
+        marginHorizontal: 3,
+    },
+    moodItemSelected: {
+        backgroundColor: '#E7F8E0',
+        borderWidth: 1,
+        shadowColor: '#46964b',
+        shadowOpacity: 0.15,
+        shadowRadius: 3,
+        elevation: 2,
+        transform: [{ scale: 1.01 }],
+    },
+    moodEmojiSelected: {
+        transform: [{ scale: 1.1 }],
+    },
+    moodLabelSelected: {
+        color: theme.colors.primary,
+        fontWeight: '700',
     },
     moodEmoji: {
         fontSize: 24,
@@ -501,16 +522,22 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         backgroundColor: theme.colors.surfaceContainerHighest,
-        padding: 24,
+        padding: 28,
         borderRadius: 24,
         ...theme.shadows.soft,
     },
     sleepNode: {
         alignItems: 'center',
         gap: 8,
+        paddingHorizontal: 8,
+        borderRadius: 12,
+        paddingVertical: 10,
     },
     sleepNodeSelected: {
-        transform: [{ scale: 1.2 }],
+        backgroundColor: '#ebffe6',
+        borderColor: '#60a560',
+        borderWidth: 1,
+        transform: [{ scale: 1.01 }],
     },
     sleepValue: {
         ...theme.typography.label,
@@ -518,6 +545,10 @@ const styles = StyleSheet.create({
         color: theme.colors.onSurfaceVariant,
     },
     sleepValueSelected: {
+        color: theme.colors.primary,
+        fontWeight: '700',
+    },
+    energyLabelSelected: {
         color: theme.colors.primary,
         fontWeight: '700',
     },
@@ -536,12 +567,12 @@ const styles = StyleSheet.create({
     energyGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 12,
+        justifyContent: 'space-between',
+        gap: 14,
     },
     energyItem: {
-        flex: 1,
-        minWidth: '30%',
-        aspectRatio: 1,
+        width: '48%',
+        minHeight: 110,
         backgroundColor: theme.colors.surfaceContainerHighest,
         borderRadius: 20,
         justifyContent: 'center',
@@ -561,7 +592,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     listContainer: {
-        gap: 12,
+        gap: 16,
     },
     listItem: {
         flexDirection: 'row',
@@ -571,12 +602,25 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.surfaceContainerHighest,
         borderRadius: theme.borderRadius.lg,
         ...theme.shadows.soft,
-        borderWidth: 1,
-        borderColor: theme.colors.outlineVariant,
+        borderWidth: 0,
+        borderColor: 'transparent',
+        marginVertical: 4,
+        shadowOpacity: 0.09,
     },
     listItemSelected: {
-        borderColor: theme.colors.secondary,
-        backgroundColor: theme.colors.secondaryContainer + '20',
+        backgroundColor: theme.colors.primary,
+        borderRadius: theme.borderRadius.lg,
+        borderWidth: 0,
+        borderColor: 'transparent',
+        ...theme.shadows.soft,
+        shadowColor: theme.colors.primary,
+        shadowOpacity: 0.16,
+        shadowRadius: 2,
+        elevation: 3,
+    },
+    pressHold: {
+        opacity: 0.6,
+        transform: [{ scale: 0.98 }],
     },
     listItemText: {
         ...theme.typography.body,
@@ -584,12 +628,12 @@ const styles = StyleSheet.create({
     },
     listItemTextSelected: {
         fontWeight: '700',
-        color: theme.colors.secondary,
+        color: theme.colors.white,
     },
     noteContainer: {
         backgroundColor: theme.colors.surfaceContainerHighest,
         borderRadius: 24,
-        padding: 16,
+        padding: 20,
         borderWidth: 1,
         borderColor: theme.colors.outlineVariant,
         ...theme.shadows.soft,
@@ -601,7 +645,7 @@ const styles = StyleSheet.create({
         textAlignVertical: 'top',
     },
     affirmationCard: {
-        padding: 32,
+        padding: 36,
         backgroundColor: 'rgba(39, 107, 46, 0.05)',
         borderRadius: 32,
         borderStyle: 'dashed',
@@ -636,6 +680,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 12,
         ...theme.shadows.primary,
+    },
+    primaryButtonActive: {
+        backgroundColor: theme.colors.primary,
+    },
+    primaryButtonInactive: {
+        backgroundColor: theme.colors.surfaceDim,
     },
     primaryButtonText: {
         ...theme.typography.body,
