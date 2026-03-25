@@ -161,6 +161,11 @@ module.exports = {
     );
   },
 
+  resetPassword: async (email, newPassword) => {
+    const hash = await bcrypt.hash(newPassword, 10);
+    await User.updateOne({ email }, { password: hash, authProvider: "both" });
+  },
+
   refreshToken: async (token) => {
     const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 

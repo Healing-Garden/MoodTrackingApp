@@ -23,13 +23,19 @@ const RegisterScreen = ({ navigation }) => {
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [otp, setOtp] = useState("");
     const [showOtp, setShowOtp] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const handleRegister = async () => {
-        if (!fullName || !email || !password) {
+        if (!fullName || !email || !password || !confirmPassword) {
             Alert.alert("Error", "Please fill in all information.");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Alert.alert("Error", "Passwords do not match.");
             return;
         }
 
@@ -80,55 +86,94 @@ const RegisterScreen = ({ navigation }) => {
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" />
 
-            {/* Background blobs */}
-            <View style={styles.blob1} />
-            <View style={styles.blob2} />
+            {/* Background Decorations */}
+            <View style={[styles.blob, styles.blob1]} />
+            <View style={[styles.blob, styles.blob2]} />
 
-            {/* HEADER */}
+            {/* Header Branding */}
             <View style={styles.header}>
-                <View style={styles.brandRow}>
-                    <MaterialIcons name="local-florist" size={28} color="#276b2e" />
-                    <Text style={styles.brandTitle}>Healing Garden</Text>
+                <View style={styles.brandContainer}>
+                    <Image 
+                        source={require("../../../assets/images/logo.png")} 
+                        style={styles.logoImage}
+                        resizeMode="contain"
+                    />
+                    <Text style={styles.brandText}>Healing Garden</Text>
                 </View>
-
                 <TouchableOpacity>
-                    <Text style={styles.lang}>EN</Text>
+                    <Text style={styles.langBtn}>EN</Text>
                 </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.scroll}>
-                {/* HERO */}
-                <View style={styles.hero}>
-                    <Text style={styles.title}>
-                        {showOtp ? "OTP Verification" : "Start your\nhealing journey."}
+            <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+                
+                {/* Hero Header */}
+                <View style={styles.heroSection}>
+                    <Text style={styles.heroTitle}>
+                        {showOtp ? "OTP Verification" : <>Start your{"\n"}<Text style={styles.heroTitleItalic}>healing journey.</Text></>}
                     </Text>
-
-                    <Text style={styles.subtitle}>
+                    <Text style={styles.heroSubtitle}>
                         {showOtp 
                             ? "Please check your email for the verification code."
                             : "Join the Healing Garden community to find peace in your soul."}
                     </Text>
                 </View>
 
-                {/* FORM */}
-                <View style={styles.form}>
+                {/* Form Section */}
+                <View style={[styles.formContainer, styles.card]}>
                     {!showOtp ? (
                         <>
-                            <Input label="Full Name" icon="person-outline" value={fullName} onChangeText={setFullName} />
-                            <Input label="Email" icon="mail-outline" value={email} onChangeText={setEmail} />
-                            <Input label="Password" icon="lock-outline" secure value={password} onChangeText={setPassword} />
+                            <Input 
+                                label="Full Name" 
+                                icon="person" 
+                                placeholder="Your full name" 
+                                value={fullName} 
+                                onChangeText={setFullName} 
+                            />
+                            <Input 
+                                label="Email" 
+                                icon="mail" 
+                                placeholder="your-email@gmail.com" 
+                                value={email} 
+                                onChangeText={setEmail} 
+                                keyboardType="email-address" 
+                                autoCapitalize="none" 
+                            />
+                            <Input 
+                                label="Password" 
+                                icon="lock" 
+                                placeholder="••••••••" 
+                                secure 
+                                value={password} 
+                                onChangeText={setPassword} 
+                            />
+                            <Input 
+                                label="Confirm Password" 
+                                icon="verified-user" 
+                                placeholder="••••••••" 
+                                secure 
+                                value={confirmPassword} 
+                                onChangeText={setConfirmPassword} 
+                            />
 
-                            <TouchableOpacity onPress={handleRegister} disabled={loading}>
+                            <TouchableOpacity 
+                                style={styles.submitBtnContainer} 
+                                onPress={handleRegister} 
+                                disabled={loading}
+                                activeOpacity={0.8}
+                            >
                                 <LinearGradient
-                                    colors={["#276b2e", "#60a560"]}
-                                    style={[styles.button, loading && { opacity: 0.7 }]}
+                                    colors={[theme.colors.primary, theme.colors.primaryContainer]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={styles.submitBtn}
                                 >
                                     {loading ? (
-                                        <ActivityIndicator color="#fff" />
+                                        <ActivityIndicator color={theme.colors.onPrimary} />
                                     ) : (
                                         <>
-                                            <Text style={styles.buttonText}>Register Now</Text>
-                                            <MaterialIcons name="east" size={22} color="#fff" />
+                                            <Text style={styles.submitBtnText}>Register Now</Text>
+                                            <MaterialIcons name="east" size={24} color={theme.colors.onPrimary} />
                                         </>
                                     )}
                                 </LinearGradient>
@@ -136,63 +181,77 @@ const RegisterScreen = ({ navigation }) => {
                         </>
                     ) : (
                         <>
-                            <Input label="OTP Code" icon="vpn-key" value={otp} onChangeText={setOtp} />
+                            <Input 
+                                label="OTP Code" 
+                                icon="vpn-key" 
+                                placeholder="Enter OTP code from email" 
+                                value={otp} 
+                                onChangeText={setOtp} 
+                            />
                             
-                            <TouchableOpacity onPress={handleVerifyOtp} disabled={loading}>
+                            <TouchableOpacity 
+                                style={styles.submitBtnContainer} 
+                                onPress={handleVerifyOtp} 
+                                disabled={loading}
+                                activeOpacity={0.8}
+                            >
                                 <LinearGradient
-                                    colors={["#276b2e", "#60a560"]}
-                                    style={[styles.button, loading && { opacity: 0.7 }]}
+                                    colors={[theme.colors.primary, theme.colors.primaryContainer]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={styles.submitBtn}
                                 >
                                     {loading ? (
-                                        <ActivityIndicator color="#fff" />
+                                        <ActivityIndicator color={theme.colors.onPrimary} />
                                     ) : (
                                         <>
-                                            <Text style={styles.buttonText}>Verify OTP</Text>
-                                            <MaterialIcons name="check" size={22} color="#fff" />
+                                            <Text style={styles.submitBtnText}>Verify OTP</Text>
+                                            <MaterialIcons name="check" size={24} color={theme.colors.onPrimary} />
                                         </>
                                     )}
                                 </LinearGradient>
                             </TouchableOpacity>
 
-                            <TouchableOpacity onPress={() => setShowOtp(false)} style={{ marginTop: 10 }}>
-                                <Text style={{ textAlign: 'center', color: theme.colors.primary }}>Back</Text>
+                            <TouchableOpacity onPress={() => setShowOtp(false)} style={styles.backBtn}>
+                                <Text style={styles.backBtnText}>Back</Text>
                             </TouchableOpacity>
                         </>
                     )}
                 </View>
 
-                {/* DIVIDER */}
-                <View style={styles.dividerRow}>
-                    <View style={styles.line} />
-                    <Text style={styles.dividerText}>or join with</Text>
-                    <View style={styles.line} />
+                {/* Social Divider */}
+                <View style={styles.dividerContainer}>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.dividerText}>OR JOIN WITH</Text>
+                    <View style={styles.dividerLine} />
                 </View>
 
-                {/* SOCIAL */}
-                <View style={styles.socialRow}>
-                    <TouchableOpacity style={styles.socialBtn}>
+                {/* Social Buttons */}
+                <View style={styles.socialContainer}>
+                    <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
                         <Image
-                            source={{
-                                uri: "https://cdn-icons-png.flaticon.com/512/300/300221.png"
-                            }}
+                            source={{ uri: "https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png" }}
                             style={styles.socialIcon}
                         />
-                        <Text style={styles.socialText}>Google</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.socialBtn}>
-                        <MaterialIcons name="facebook" size={22} color="#1877F2" />
-                        <Text style={styles.socialText}>Facebook</Text>
+                        <Text style={styles.socialBtnText}>Google</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* FOOTER */}
+                {/* Footer Link */}
                 <View style={styles.footer}>
-                    <Text>Already have an account?</Text>
-
+                    <Text style={styles.footerText}>Already have an account?</Text>
                     <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-                        <Text style={styles.login}>Login now</Text>
+                        <Text style={styles.loginLink}> Login now</Text>
                     </TouchableOpacity>
+                </View>
+
+                {/* Copyright Section */}
+                <View style={styles.copyrightContainer}>
+                    <Text style={styles.copyrightText}>© 2026 Healing Garden. All rights reserved.</Text>
+                    <View style={styles.legalLinks}>
+                        <TouchableOpacity><Text style={styles.legalLinkText}>Terms</Text></TouchableOpacity>
+                        <TouchableOpacity><Text style={styles.legalLinkText}>Privacy</Text></TouchableOpacity>
+                    </View>
                 </View>
 
             </ScrollView>
@@ -200,208 +259,266 @@ const RegisterScreen = ({ navigation }) => {
     );
 };
 
-export default RegisterScreen;
-
-const Input = ({ label, icon, secure, value, onChangeText }) => (
+const Input = ({ label, icon, placeholder, secure, value, onChangeText, ...props }) => (
     <View style={styles.inputGroup}>
-        <Text style={styles.label}>{label}</Text>
-
+        <Text style={styles.inputLabel}>{label}</Text>
         <View style={styles.inputWrapper}>
             <TextInput
                 secureTextEntry={secure}
                 style={styles.input}
-                placeholder={label}
+                placeholder={placeholder}
+                placeholderTextColor={theme.colors.onSurfaceVariant + "60"}
                 value={value}
                 onChangeText={onChangeText}
-                autoCapitalize={label === "Email" ? "none" : "sentences"}
+                {...props}
             />
-
             <MaterialIcons
                 name={icon}
-                size={20}
-                color="#717a6d"
-                style={styles.icon}
+                size={22}
+                color={theme.colors.onSurfaceVariant + "80"}
+                style={styles.inputIcon}
             />
         </View>
     </View>
 );
 
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
-        backgroundColor: "#ebffe6"
+        backgroundColor: theme.colors.background,
     },
-
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         paddingHorizontal: 24,
-        paddingTop: 50
+        paddingTop: 60,
+        backgroundColor: theme.colors.background,
     },
-
-    brandRow: {
+    brandContainer: {
         flexDirection: "row",
-        alignItems: "center",
-        gap: 6
-    },
-
-    brandTitle: {
-        fontSize: 22,
-        fontWeight: "700"
-    },
-
-    lang: {
-        color: "#276b2e",
-        fontWeight: "600"
-    },
-
-    scroll: {
-        padding: 24
-    },
-
-    hero: {
-        marginTop: 30,
-        marginBottom: 30
-    },
-
-    title: {
-        fontSize: 34,
-        fontWeight: "800",
-        lineHeight: 40
-    },
-
-    italic: {
-        color: "#276b2e",
-        fontStyle: "italic"
-    },
-
-    subtitle: {
-        marginTop: 8,
-        color: "#40493e"
-    },
-
-    form: {
-        gap: 20
-    },
-
-    inputGroup: {
-        gap: 6
-    },
-
-    label: {
-        fontWeight: "700",
-        fontSize: 13
-    },
-
-    inputWrapper: {
-        backgroundColor: "#d0f1cc",
-        borderRadius: 16,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        position: "relative"
-    },
-
-    input: {
-        paddingRight: 32
-    },
-
-    icon: {
-        position: "absolute",
-        right: 14,
-        top: 16
-    },
-
-    button: {
-        flexDirection: "row",
-        justifyContent: "center",
         alignItems: "center",
         gap: 8,
-        paddingVertical: 18,
-        borderRadius: 16,
-        marginTop: 10
     },
-
-    buttonText: {
-        color: "#fff",
+    logoImage: {
+        width: 32,
+        height: 32,
+    },
+    brandText: {
+        fontSize: 24,
+        fontFamily: theme.fonts.headline,
         fontWeight: "700",
-        fontSize: 16
+        color: "#064e3b", // Deep Garden Green
+        letterSpacing: -0.5,
     },
-
-    dividerRow: {
+    langBtn: {
+        fontSize: 16,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "600",
+        color: theme.colors.primary,
+    },
+    scroll: {
+        flexGrow: 1,
+        paddingHorizontal: 24,
+        paddingBottom: 40,
+    },
+    blob: {
+        position: "absolute",
+        width: 380,
+        height: 380,
+        opacity: 0.15,
+    },
+    blob1: {
+        top: -120,
+        right: -120,
+        backgroundColor: theme.colors.surfaceContainerLow,
+        borderRadius: 190,
+        borderBottomLeftRadius: 100,
+    },
+    blob2: {
+        top: height / 2.5,
+        left: -150,
+        backgroundColor: theme.colors.secondaryContainer,
+        borderRadius: 190,
+        borderTopRightRadius: 100,
+    },
+    heroSection: {
+        marginTop: 40,
+        marginBottom: 32,
+        gap: 8,
+    },
+    heroTitle: {
+        fontSize: 36,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "800",
+        color: theme.colors.onSurface,
+        lineHeight: 44,
+        letterSpacing: -1,
+    },
+    heroTitleItalic: {
+        color: theme.colors.primary,
+        fontStyle: "italic",
+    },
+    heroSubtitle: {
+        fontSize: 18,
+        fontFamily: theme.fonts.body,
+        fontWeight: "400",
+        color: theme.colors.onSurfaceVariant,
+        lineHeight: 26,
+        maxWidth: "90%",
+    },
+    formContainer: {
+        gap: 20,
+    },
+    card: {
+        backgroundColor: "#ffffff",
+        borderRadius: 24,
+        padding: 24,
+        borderWidth: 2,
+        borderColor: "white",
+        ...theme.shadows.soft,
+    },
+    inputGroup: {
+        gap: 8,
+    },
+    inputLabel: {
+        fontSize: 14,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "700",
+        color: theme.colors.onSurfaceVariant,
+        marginLeft: 8,
+        textTransform: "uppercase",
+        letterSpacing: 1,
+    },
+    inputWrapper: {
         flexDirection: "row",
         alignItems: "center",
-        marginVertical: 26
+        backgroundColor: theme.colors.surfaceContainerHigh,
+        borderRadius: 16,
+        paddingHorizontal: 20,
+        height: 60,
     },
-
-    line: {
+    input: {
+        flex: 1,
+        fontSize: 16,
+        fontFamily: theme.fonts.body,
+        color: theme.colors.onSurface,
+        paddingRight: 10,
+    },
+    inputIcon: {
+        marginLeft: 10,
+    },
+    submitBtnContainer: {
+        marginTop: 12,
+        borderRadius: 16,
+        overflow: "hidden",
+        shadowColor: theme.colors.primary,
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.15,
+        shadowRadius: 32,
+        elevation: 10,
+    },
+    submitBtn: {
+        flexDirection: "row",
+        height: 64,
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 12,
+    },
+    submitBtnText: {
+        fontSize: 18,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "700",
+        color: theme.colors.onPrimary,
+    },
+    backBtn: {
+        marginTop: 12,
+        paddingVertical: 12,
+        alignItems: "center",
+    },
+    backBtnText: {
+        fontSize: 16,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "600",
+        color: theme.colors.primary,
+    },
+    dividerContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginVertical: 32,
+    },
+    dividerLine: {
         flex: 1,
         height: 1,
-        backgroundColor: "#c0c9bb"
+        backgroundColor: theme.colors.outlineVariant + "50",
     },
-
     dividerText: {
-        marginHorizontal: 10,
-        fontStyle: "italic",
-        color: "#40493e"
+        marginHorizontal: 16,
+        fontSize: 12,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "800",
+        color: theme.colors.outline,
+        letterSpacing: 1.5,
     },
-
-    socialRow: {
-        flexDirection: "row",
-        gap: 12
+    socialContainer: {
+        width: "100%",
     },
-
     socialBtn: {
-        flex: 1,
         flexDirection: "row",
+        height: 56,
+        backgroundColor: theme.colors.surfaceContainer,
+        borderRadius: 16,
         justifyContent: "center",
         alignItems: "center",
-        gap: 8,
-        padding: 14,
-        backgroundColor: "#d6f7d1",
-        borderRadius: 16
+        gap: 12,
     },
-
     socialIcon: {
-        width: 22,
-        height: 22
+        width: 24,
+        height: 24,
+        resizeMode: "contain",
     },
-
-    socialText: {
-        fontWeight: "700"
+    socialBtnText: {
+        fontSize: 14,
+        fontFamily: theme.fonts.headline,
+        fontWeight: "700",
+        color: theme.colors.onSurface,
     },
-
     footer: {
         flexDirection: "row",
         justifyContent: "center",
-        marginTop: 30,
-        gap: 6
+        marginTop: 32,
+        gap: 4,
     },
-
-    login: {
-        color: "#276b2e",
-        fontWeight: "700"
+    footerText: {
+        fontSize: 16,
+        fontFamily: theme.fonts.body,
+        color: theme.colors.onSurfaceVariant,
     },
-
-    blob1: {
-        position: "absolute",
-        top: -100,
-        right: -80,
-        width: 250,
-        height: 250,
-        backgroundColor: "rgba(154,225,255,0.3)",
-        borderRadius: 130
+    loginLink: {
+        fontSize: 16,
+        fontFamily: theme.fonts.body,
+        fontWeight: "700",
+        color: theme.colors.primary,
     },
-
-    blob2: {
-        position: "absolute",
-        top: height / 2,
-        left: -120,
-        width: 300,
-        height: 300,
-        backgroundColor: "rgba(39,107,46,0.2)",
-        borderRadius: 160
-    }
-
+    copyrightContainer: {
+        marginTop: 48,
+        alignItems: "center",
+        gap: 8,
+    },
+    copyrightText: {
+        fontSize: 12,
+        fontFamily: theme.fonts.body,
+        color: theme.colors.onSurfaceVariant + "60",
+    },
+    legalLinks: {
+        flexDirection: "row",
+        gap: 24,
+    },
+    legalLinkText: {
+        fontSize: 12,
+        fontFamily: theme.fonts.body,
+        color: theme.colors.onSurfaceVariant + "60",
+    },
 });
+
+export default RegisterScreen;
