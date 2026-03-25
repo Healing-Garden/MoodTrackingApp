@@ -6,6 +6,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LandingScreen from './src/screens/Auth/LandingScreen';
 import LoginScreen from './src/screens/Auth/LoginScreen';
 import RegisterScreen from './src/screens/Auth/RegisterScreen';
+import ForgotPasswordScreen from './src/screens/Auth/ForgotPasswordScreen';
+import ForgotOtpScreen from './src/screens/Auth/ForgotOtpScreen';
+import ResetPasswordScreen from './src/screens/Auth/ResetPasswordScreen';
 
 // Onboarding Screens
 import StepOneScreen from './src/screens/Onboarding/StepOneScreen';
@@ -48,6 +51,9 @@ export default function App() {
         <Stack.Screen name="Landing" component={LandingScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <Stack.Screen name="ForgotOtp" component={ForgotOtpScreen} />
+        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
 
         {/* Onboarding Flow */}
         <Stack.Screen name="OnboardingStep1" component={StepOneScreen} />

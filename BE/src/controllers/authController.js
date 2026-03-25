@@ -158,35 +158,48 @@ module.exports = {
   },
 
   forgotPassword: async (req, res) => {
-    const { email } = req.body;
-    if (!(await Users.findOne({ email })))
-      return res.status(404).json({ message: "Email not found" });
+    try {
+      const { email } = req.body;
+      const user = await Users.findOne({ email });
+      if (!user) return res.status(404).json({ message: "Email not found" });
 
-    await otpService.createOtp({
-      email,
-      type: "FORGOT_PASSWORD",
-    });
+      await otpService.createOtp({
+        email,
+        type: "FORGOT_PASSWORD",
+      });
 
-    res.json({ message: "OTP sent" });
+      res.json({ message: "OTP sent" });
+    } catch (err) {
+      console.error("Forgot password error:", err);
+      res.status(500).json({ message: err.message || "Internal server error" });
+    }
   },
 
   verifyForgotOtp: async (req, res) => {
-    const { email, otp } = req.body;
+    try {
+      const { email, otp } = req.body;
 
-    await otpService.verifyOtp({
-      email,
-      type: "FORGOT_PASSWORD",
-      otp,
-    });
+      await otpService.verifyOtp({
+        email,
+        type: "FORGOT_PASSWORD",
+        otp,
+      });
 
-    res.json({ message: "OTP verified" });
+      res.json({ message: "OTP verified" });
+    } catch (err) {
+      res.status(400).json({ message: err.message || "OTP invalid" });
+    }
   },
 
   resetForgotPassword: async (req, res) => {
-    const { email, newPassword } = req.body;
+    try {
+      const { email, newPassword } = req.body;
 
-    await authService.resetPassword(email, newPassword);
+      await authService.resetPassword(email, newPassword);
 
-    res.json({ message: "Password reset success" });
+      res.json({ message: "Password reset success" });
+    } catch (err) {
+      res.status(400).json({ message: err.message || "Reset password failed" });
+    }
   },
 };
