@@ -43,7 +43,7 @@ const StepOneScreen = ({ navigation }) => {
 
     const goalOptions = [
         { id: 'Reduce stress', label: 'Reduce Stress', icon: 'self-improvement' },
-        { id: 'Track moods', label: 'Track Moods', icon: 'Timeline' },
+        { id: 'Track moods', label: 'Track Moods', icon: 'timeline' },
         { id: 'Improve sleep', label: 'Improve Sleep', icon: 'nights-stay' },
         { id: 'Self-reflection', label: 'Self-Reflection', icon: 'psychology' },
         { id: 'Better focus', label: 'Better Focus', icon: 'center-focus-strong' },
@@ -150,15 +150,15 @@ const StepOneScreen = ({ navigation }) => {
                     activeOpacity={0.9}
                     style={{ width: '100%' }}
                 >
-                    <LinearGradient
-                        colors={selectedGoals.length > 0 ? GRADIENTS.primary : [theme.colors.surfaceDim, theme.colors.outlineVariant]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.primaryButton}
+                    <View
+                        style={[
+                            styles.primaryButton,
+                            selectedGoals.length > 0 ? styles.primaryButtonActive : styles.primaryButtonInactive
+                        ]}
                     >
                         <Text style={styles.primaryButtonText}>Plant My Intentions</Text>
                         <MaterialIcons name="eco" size={24} color={theme.colors.white} />
-                    </LinearGradient>
+                    </View>
                 </TouchableOpacity>
             </View>
         </View>
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     },
     goalCardSelected: {
         borderColor: theme.colors.primary,
-        backgroundColor: theme.colors.onPrimaryContainer + '10', // 10% opacity primary container
+        backgroundColor: theme.colors.primary,
     },
     iconContainer: {
         width: 56,
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
         color: theme.colors.onSurface,
     },
     goalLabelSelected: {
-        color: theme.colors.primary,
+        color: theme.colors.white,
     },
     checkBadge: {
         color: theme.colors.onSurface,
@@ -343,6 +343,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 12,
         ...theme.shadows.primary,
+    },
+    primaryButtonActive: {
+        backgroundColor: theme.colors.primary,
+    },
+    primaryButtonInactive: {
+        backgroundColor: theme.colors.surfaceDim,
     },
     primaryButtonText: {
         ...theme.typography.body,

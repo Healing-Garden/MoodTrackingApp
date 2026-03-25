@@ -264,8 +264,8 @@ module.exports = {
   },
 
   setAppLockPin: async (userId, pin) => {
-    if (!/^\d{6}$/.test(pin)) {
-      throw new Error("PIN must be exactly 6 digits");
+    if (!/^\d{4,6}$/.test(pin)) {
+      throw new Error("PIN must be 4 to 6 digits");
     }
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(pin, salt);
@@ -275,7 +275,7 @@ module.exports = {
       appLockEnabled: true
     });
 
-    return { message: "PIN set successfully" };
+    return { success: true, message: "PIN set successfully" };
   },
 
   verifyAppLockPin: async (userId, pin) => {
@@ -289,7 +289,7 @@ module.exports = {
       throw new Error("Invalid PIN");
     }
 
-    return { message: "PIN verified" };
+    return { success: true, message: "PIN verified" };
   },
 
   toggleAppLock: async (userId, enabled) => {

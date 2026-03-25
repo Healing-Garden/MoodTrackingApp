@@ -174,7 +174,15 @@ const ManagementFeedback = ({ navigation }) => {
                                 <View key={user._id} style={styles.userItem}>
                                     <View style={styles.userInfo}>
                                         <View style={styles.userAvatarContainer}>
-                                            <Image style={styles.userAvatar} source={{ uri: user.avatarUrl || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" }} />
+                                            {user.avatarUrl ? (
+                                                <Image style={styles.userAvatar} source={{ uri: user.avatarUrl }} />
+                                            ) : (
+                                                <View style={[styles.userAvatar, { backgroundColor: 'rgba(39, 107, 46, 0.2)', justifyContent: 'center', alignItems: 'center' }]}>
+                                                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#276b2e' }}>
+                                                        {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                                                    </Text>
+                                                </View>
+                                            )}
                                             {user.isBanned ? (
                                                 <View style={[styles.onlineDot, { backgroundColor: '#ba1a1a', borderColor: '#ffebee' }]} />
                                             ) : (

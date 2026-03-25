@@ -27,7 +27,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
         if (!email) {
             Alert.alert("Error", "Please enter your email.");
             return;
-        }
+        } 
 
         setLoading(true);
         try {
