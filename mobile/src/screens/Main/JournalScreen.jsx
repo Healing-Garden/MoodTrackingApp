@@ -61,19 +61,11 @@ const JournalScreen = ({ navigation }) => {
     const [expandingImageUrls, setExpandingImageUrls] = useState([]);
     const [expandingAudioUri, setExpandingAudioUri] = useState(null);
 
-<<<<<<< HEAD
     // Security
     const [isPinModalVisible, setPinModalVisible] = useState(false);
     const [enteredPin, setEnteredPin] = useState('');
     const [isUnlocked, setIsUnlocked] = useState(false);
     const [verifyingPin, setVerifyingPin] = useState(false);
-=======
-    // PIN Lock stuff
-    const [pinModalVisible, setPinModalVisible] = useState(false);
-    const [pinValue, setPinValue] = useState('');
-    const [isUnlocked, setIsUnlocked] = useState(false);
-    const [isAnalysingEmotions, setIsAnalysingEmotions] = useState(false);
->>>>>>> 613840b262bd2f9c3b181131beca9160cdfb4ebd
 
     React.useEffect(() => {
         const loadProfile = async () => {
@@ -1665,115 +1657,52 @@ const styles = StyleSheet.create({
         color: theme.colors.onSurface,
         fontWeight: '500',
     },
-    // New Styles
-    aiIdentifyBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(96, 165, 96, 0.1)',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 20,
-        gap: 6,
-        borderWidth: 1,
-        borderColor: 'rgba(96, 165, 96, 0.2)',
+    // Modal Styles
+    modalOverlay: {
+        flex: 1, backgroundColor: 'rgba(6, 33, 10, 0.45)', justifyContent: 'center', alignItems: 'center'
     },
-    aiIdentifyBtnLoading: {
-        backgroundColor: theme.colors.primary,
+    modalContent: {
+        width: '85%', backgroundColor: '#fcfdfa', borderRadius: 24, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 8, alignItems: 'center'
     },
-    aiIdentifyBtnText: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: theme.colors.primary,
-        fontFamily: theme.fonts.headline,
+    modalTitle: {
+        fontSize: 22, fontWeight: '800', fontFamily: theme.fonts.headline, color: theme.colors.primary, marginBottom: 8, textAlign: 'center'
     },
-    pinModalOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.3)',
-        zIndex: 1000,
-        justifyContent: 'center',
-        alignItems: 'center',
+    modalSubtitle: {
+        fontSize: 14, fontFamily: theme.fonts.body, color: theme.colors.onSurfaceVariant, marginBottom: 20, textAlign: 'center', lineHeight: 20
     },
-    pinModalContent: {
-        width: width * 0.9,
-        padding: 32,
-        borderRadius: 40,
-        alignItems: 'center',
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.4)',
+    modalInput: {
+        width: '100%', backgroundColor: theme.colors.surfaceContainerLow, borderRadius: 12, padding: 16, marginBottom: 20, fontSize: 18, fontFamily: theme.fonts.body, color: theme.colors.onSurface
     },
-    lockIconContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: 'rgba(96, 165, 96, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20,
+    modalActions: {
+        flexDirection: 'row', width: '100%', gap: 12, marginTop: 12
     },
-    pinModalTitle: {
-        fontSize: 24,
-        fontWeight: '800',
-        color: theme.colors.onSurface,
-        fontFamily: theme.fonts.headline,
-        marginBottom: 8,
+    modalButtonCancel: {
+        flex: 1, padding: 14, alignItems: 'center', backgroundColor: '#e2e3df', borderRadius: 12
     },
-    pinModalSubtitle: {
-        fontSize: 14,
-        color: theme.colors.onSurfaceVariant,
-        textAlign: 'center',
-        marginBottom: 32,
+    modalButtonCancelText: {
+        fontSize: 16, fontWeight: '700', fontFamily: theme.fonts.headline, color: '#40493e'
     },
-    pinDotsRow: {
-        flexDirection: 'row',
-        gap: 20,
-        marginBottom: 40,
+    modalButtonSubmit: {
+        flex: 1, padding: 14, alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 12
     },
-    pinDot: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        borderWidth: 2,
-        borderColor: theme.colors.outline,
+    modalButtonSubmitText: {
+        fontSize: 16, fontWeight: '700', fontFamily: theme.fonts.headline, color: '#fff'
     },
-    pinDotFilled: {
-        backgroundColor: theme.colors.primary,
-        borderColor: theme.colors.primary,
+    pinBoxesContainer: {
+        flexDirection: 'row', justifyContent: 'space-between', width: '100%', position: 'relative', marginBottom: 24
     },
-    keypadContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        gap: 16,
-        width: '100%',
-        marginBottom: 32,
+    pinBox: {
+        width: 44, height: 56, borderWidth: 2, borderColor: '#d1d5db', borderRadius: 12, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff'
     },
-    keypadBtn: {
-        width: 70,
-        height: 70,
-        borderRadius: 35,
-        backgroundColor: theme.colors.surfaceContainerLow,
-        justifyContent: 'center',
-        alignItems: 'center',
+    pinBoxActive: {
+        borderColor: theme.colors.primary, backgroundColor: '#f5fbf4', shadowColor: theme.colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 3, elevation: 2
     },
-    keypadBtnText: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: theme.colors.onSurface,
+    pinBoxText: {
+        fontSize: 26, fontWeight: '800', color: theme.colors.primary
     },
-    cancelPinBtn: {
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-    },
-    cancelPinBtnText: {
-        color: theme.colors.primary,
-        fontWeight: '700',
-        fontSize: 14,
-    },
+    hiddenInput: {
+        position: 'absolute', width: '100%', height: '100%', opacity: 0
+    }
 });
 
 export default JournalScreen;

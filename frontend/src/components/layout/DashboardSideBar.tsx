@@ -81,7 +81,6 @@ export default function DashboardSidebar({
     },
     { label: "Feedback", icon: <MessageSquare size={20} />, href: "/admin/feedback" },
     { label: "Healing Content", icon: <BookOpen size={20} />, href: "/admin/healing-content" },
-    { label: "Notifications", icon: <Bell size={20} />, href: "/admin/notifications" },
   ];
 
   const menuItems = userType === "user" ? userMenuItems : adminMenuItems;

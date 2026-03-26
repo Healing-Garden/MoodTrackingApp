@@ -125,7 +125,7 @@ const SettingScreen = ({ navigation }) => {
             await api.post('/user/app-lock/verify', { pin: enteredVerifyPin });
             setVerifyPinModalVisible(false);
             setEnteredVerifyPin('');
-            
+
             if (verifyContext === 'change_pin') {
                 setTimeout(() => setPinModalVisible(true), 400);
             } else if (verifyContext.startsWith('toggle_')) {
@@ -358,29 +358,29 @@ const SettingScreen = ({ navigation }) => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Change Password</Text>
-                        
-                        <TextInput 
+
+                        <TextInput
                             style={styles.modalInput}
                             placeholder="Current Password"
                             secureTextEntry
                             value={currentPassword}
                             onChangeText={setCurrentPassword}
                         />
-                        <TextInput 
+                        <TextInput
                             style={styles.modalInput}
                             placeholder="New Password"
                             secureTextEntry
                             value={newPassword}
                             onChangeText={setNewPassword}
                         />
-                        <TextInput 
+                        <TextInput
                             style={styles.modalInput}
                             placeholder="Confirm New Password"
                             secureTextEntry
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
                         />
-                        
+
                         <View style={styles.modalActions}>
                             <TouchableOpacity style={styles.modalButtonCancel} onPress={() => setPasswordModalVisible(false)}>
                                 <Text style={styles.modalButtonCancelText}>Cancel</Text>
@@ -399,9 +399,9 @@ const SettingScreen = ({ navigation }) => {
                     <View style={styles.modalContent}>
                         <MaterialIcons name="lock" size={48} color={theme.colors.primary} style={{ marginBottom: 16 }} />
                         <Text style={styles.modalTitle}>{user?.hasAppLockPin ? 'Change App Lock PIN' : 'Set App Lock PIN'}</Text>
-                        
-                        <Text style={{ alignSelf: 'flex-start', marginLeft: 4, marginBottom: 8, fontSize: 14, color: '#40493e', fontWeight: '700' }}>Enter 6-digit PIN</Text>
-                        <View style={[styles.pinBoxesContainer, { marginBottom: 0 }]}>
+
+                        <Text style={{ alignSelf: 'flex-start', marginLeft: 8, marginBottom: 8, fontSize: 13, color: '#555', fontWeight: 'bold' }}>Enter 6-digit PIN</Text>
+                        <View style={styles.pinBoxesContainer}>
                             {[0, 1, 2, 3, 4, 5].map(i => (
                                 <View key={i} style={[styles.pinBox, pin.length === i && styles.pinBoxActive]}>
                                     <Text style={styles.pinBoxText}>{pin[i] ? '•' : ''}</Text>
@@ -416,8 +416,8 @@ const SettingScreen = ({ navigation }) => {
                             />
                         </View>
 
-                        <Text style={{ alignSelf: 'flex-start', marginLeft: 4, marginTop: 16, marginBottom: 8, fontSize: 14, color: '#40493e', fontWeight: '700' }}>Confirm PIN</Text>
-                        <View style={[styles.pinBoxesContainer, { marginBottom: 0 }]}>
+                        <Text style={{ alignSelf: 'flex-start', marginLeft: 8, marginTop: 16, marginBottom: 8, fontSize: 13, color: '#555', fontWeight: 'bold' }}>Confirm PIN</Text>
+                        <View style={styles.pinBoxesContainer}>
                             {[0, 1, 2, 3, 4, 5].map(i => (
                                 <View key={i} style={[styles.pinBox, confirmPin.length === i && styles.pinBoxActive]}>
                                     <Text style={styles.pinBoxText}>{confirmPin[i] ? '•' : ''}</Text>
@@ -431,7 +431,7 @@ const SettingScreen = ({ navigation }) => {
                                 onChangeText={(text) => setConfirmPin(text.replace(/[^0-9]/g, ''))}
                             />
                         </View>
-                        
+
                         <View style={styles.modalActions}>
                             <TouchableOpacity style={styles.modalButtonCancel} onPress={() => { setPinModalVisible(false); setPin(''); setConfirmPin(''); }}>
                                 <Text style={styles.modalButtonCancelText}>Cancel</Text>
@@ -451,7 +451,7 @@ const SettingScreen = ({ navigation }) => {
                         <MaterialIcons name="lock" size={48} color={theme.colors.primary} style={{ marginBottom: 16 }} />
                         <Text style={styles.modalTitle}>Verify Identity</Text>
                         <Text style={styles.modalSubtitle}>Please enter your current App Lock PIN to proceed.</Text>
-                        
+
                         <View style={styles.pinBoxesContainer}>
                             {[0, 1, 2, 3, 4, 5].map(i => (
                                 <View key={i} style={[styles.pinBox, enteredVerifyPin.length === i && styles.pinBoxActive]}>
@@ -467,7 +467,7 @@ const SettingScreen = ({ navigation }) => {
                                 autoFocus
                             />
                         </View>
-                        
+
                         <View style={styles.modalActions}>
                             <TouchableOpacity style={styles.modalButtonCancel} onPress={() => {
                                 setVerifyPinModalVisible(false);
@@ -522,20 +522,19 @@ const styles = StyleSheet.create({
     menuText: { flex: 1 },
     menuLabel: { fontSize: 16, fontWeight: '700', color: '#06210a' },
     menuSubLabel: { fontSize: 12, color: '#40493e', marginTop: 2, opacity: 0.7 },
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(6, 33, 10, 0.45)', justifyContent: 'center', alignItems: 'center' },
-    modalContent: { width: '85%', backgroundColor: '#fcfdfa', borderRadius: 24, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 8, alignItems: 'center' },
-    modalTitle: { fontSize: 22, fontWeight: '800', color: theme.colors.primary, marginBottom: 16, textAlign: 'center' },
-    modalSubtitle: { fontSize: 14, color: theme.colors.onSurfaceVariant, marginBottom: 20, textAlign: 'center', lineHeight: 20 },
-    modalInput: { backgroundColor: '#f0f0f0', borderRadius: 12, padding: 14, marginBottom: 16, fontSize: 16 },
-    modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, width: '100%' },
-    modalButtonCancel: { flex: 1, padding: 14, alignItems: 'center', backgroundColor: '#e2e3df', borderRadius: 12, marginRight: 8 },
-    modalButtonCancelText: { fontSize: 16, fontWeight: '700', color: '#40493e' },
-    modalButtonSubmit: { flex: 1, padding: 14, alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 12, marginLeft: 8 },
-    modalButtonSubmitText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-    pinBoxesContainer: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', position: 'relative', marginBottom: 24 },
-    pinBox: { width: 44, height: 56, borderWidth: 2, borderColor: '#d1d5db', borderRadius: 12, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' },
-    pinBoxActive: { borderColor: theme.colors.primary, backgroundColor: '#f5fbf4', shadowColor: theme.colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 3, elevation: 2 },
-    pinBoxText: { fontSize: 26, fontWeight: '800', color: theme.colors.primary },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+    modalContent: { width: '85%', backgroundColor: '#fff', borderRadius: 20, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
+    modalTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.primary, marginBottom: 16, textAlign: 'center' },
+    modalInput: { backgroundColor: '#f0f0f0', borderRadius: 10, padding: 12, marginBottom: 12, fontSize: 16 },
+    modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
+    modalButtonCancel: { flex: 1, padding: 12, alignItems: 'center', backgroundColor: '#e0e0e0', borderRadius: 10, marginRight: 8 },
+    modalButtonCancelText: { fontSize: 16, fontWeight: '600', color: '#555' },
+    modalButtonSubmit: { flex: 1, padding: 12, alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 10, marginLeft: 8 },
+    modalButtonSubmitText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+    pinBoxesContainer: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', position: 'relative' },
+    pinBox: { width: 42, height: 50, borderWidth: 2, borderColor: '#ccc', borderRadius: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafafa' },
+    pinBoxActive: { borderColor: theme.colors.primary, backgroundColor: '#fff' },
+    pinBoxText: { fontSize: 24, fontWeight: 'bold', color: theme.colors.primary },
     hiddenInput: { position: 'absolute', width: '100%', height: '100%', opacity: 0 },
     bottomNav: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 24, backgroundColor: '#ffffff', borderTopLeftRadius: 48, borderTopRightRadius: 48, shadowColor: '#000', shadowOpacity: 0.06, shadowOffset: { width: 0, height: -12 }, shadowRadius: 32 },
     navItem: { justifyContent: 'center', alignItems: 'center' },
@@ -543,10 +542,10 @@ const styles = StyleSheet.create({
     navLabel: { fontSize: 11, fontWeight: '500', marginTop: 2, color: theme.colors.stone500 },
     logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 20, backgroundColor: '#ffdad6', borderRadius: 24, gap: 12, marginTop: 12 },
     logoutText: { fontSize: 16, fontWeight: '700', color: '#ba1a1a' },
-    versionText: { 
-        fontSize: 12, 
-        fontWeight: '700', 
-        color: '#40493e', 
+    versionText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#40493e',
         opacity: 0.5,
         fontFamily: theme.fonts.body
     },
