@@ -156,9 +156,9 @@ const JournalScreen = ({ navigation }) => {
     };
 
     const handleVerifyPin = async (providedPin) => {
-        const pinToSubmit = typeof providedPin === 'string' ? providedPin : enteredPin;
-        if (!pinToSubmit || pinToSubmit.length < 4) {
-            Alert.alert("Error", "Please enter a valid PIN.");
+        const pinToSubmit = typeof providedPin === 'string' ? providedPin : pinValue;
+        if (!pinToSubmit || pinToSubmit.length !== 6) {
+            Alert.alert("Error", "Please enter a 6-digit PIN.");
             return;
         }
         setVerifyingPin(true);
@@ -808,56 +808,40 @@ const JournalScreen = ({ navigation }) => {
             </ScrollView>
 
 
-            {/* PIN MODAL */}
-            {isPinModalVisible && (
-                <View style={styles.pinModalOverlay}>
-                    <BlurView intensity={95} style={styles.pinModalContent}>
+            <Modal visible={isPinModalVisible} animationType="fade" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
                         <View style={styles.lockIconContainer}>
                             <MaterialIcons name="lock" size={48} color={theme.colors.primary} />
                         </View>
-                        <Text style={styles.pinModalTitle}>Security Lock</Text>
-                        <Text style={styles.pinModalSubtitle}>Nhập mã PIN để xem nhật ký của bạn</Text>
+                        <Text style={styles.modalTitle}>Security Lock</Text>
+                        <Text style={styles.modalSubtitle}>Nhập mã PIN 6 số để xem nhật ký của bạn</Text>
                         
-                        <View style={styles.pinDotsRow}>
-                            {[...Array(4)].map((_, i) => (
+                        <View style={styles.pinDotsContainer}>
+                            {[0, 1, 2, 3, 4, 5].map(i => (
                                 <View 
                                     key={i} 
                                     style={[
                                         styles.pinDot, 
-                                        pinValue.length > i && styles.pinDotFilled
+                                        pinValue.length > i && styles.pinDotFilled,
+                                        pinValue.length === i && styles.pinDotActive
                                     ]} 
                                 />
                             ))}
-                        </View>
-
-                        <View style={styles.keypadContainer}>
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "back"].map((item, idx) => (
-                                <TouchableOpacity 
-                                    key={idx} 
-                                    style={[styles.keypadBtn, item === "" && { opacity: 0 }]}
-                                    onPress={() => {
-                                        if (item === "") return;
-                                        if (item === "back") {
-                                            setPinValue(prev => prev.slice(0, -1));
-                                        } else {
-                                            const newVal = pinValue + item;
-                                            if (newVal.length <= 4) {
-                                                setPinValue(newVal);
-                                                if (newVal.length === 4) {
-                                                    handleVerifyPin(newVal);
-                                                }
-                                            }
-                                        }
-                                    }}
-                                    disabled={item === ""}
-                                >
-                                    {item === "back" ? (
-                                        <MaterialIcons name="backspace" size={24} color={theme.colors.onSurface} />
-                                    ) : (
-                                        <Text style={styles.keypadBtnText}>{item}</Text>
-                                    )}
-                                </TouchableOpacity>
-                            ))}
+                            <TextInput
+                                style={styles.hiddenInput}
+                                keyboardType="numeric"
+                                maxLength={6}
+                                value={pinValue}
+                                onChangeText={(text) => {
+                                    const cleaned = text.replace(/[^0-9]/g, '');
+                                    setPinValue(cleaned);
+                                    if (cleaned.length === 6) {
+                                        handleVerifyPin(cleaned);
+                                    }
+                                }}
+                                autoFocus
+                            />
                         </View>
 
                         <TouchableOpacity 
@@ -870,9 +854,9 @@ const JournalScreen = ({ navigation }) => {
                         >
                             <Text style={styles.cancelPinBtnText}>Quay lại</Text>
                         </TouchableOpacity>
-                    </BlurView>
+                    </View>
                 </View>
-            )}
+            </Modal>
 
             <BottomNavBar navigation={navigation} activeTab="Journal" />
         </View>
@@ -1702,10 +1686,13 @@ const styles = StyleSheet.create({
         marginBottom: 40,
         fontFamily: theme.fonts.body,
     },
-    pinDotsRow: {
+    pinDotsContainer: {
         flexDirection: 'row',
-        gap: 20,
-        marginBottom: 60,
+        justifyContent: 'center',
+        gap: 16,
+        width: '100%',
+        position: 'relative',
+        marginVertical: 40,
     },
     pinDot: {
         width: 16,
@@ -1717,6 +1704,10 @@ const styles = StyleSheet.create({
     pinDotFilled: {
         backgroundColor: theme.colors.primary,
         borderColor: theme.colors.primary,
+    },
+    pinDotActive: {
+        borderColor: theme.colors.primary,
+        transform: [{ scale: 1.2 }],
     },
     keypadContainer: {
         flexDirection: 'row',
