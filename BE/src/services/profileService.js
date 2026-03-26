@@ -49,7 +49,10 @@ module.exports = {
       "-password -resetPasswordToken -resetPasswordExpires"
     );
     if (!user) throw new Error("User not found");
-    return applyDefaultAvatar(user);
+    const userObj = user.toObject();
+    userObj.hasAppLockPin = !!userObj.appLockPinHash;
+    delete userObj.appLockPinHash;
+    return applyDefaultAvatar(userObj);
   },
 
   updateProfile: async (userId, updateData) => {

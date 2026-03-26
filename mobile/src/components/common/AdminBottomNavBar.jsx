@@ -14,7 +14,7 @@ const AdminBottomNavBar = ({ navigation, activeTab = 'Dashboard' }) => {
         { id: 'Dashboard', icon: 'dashboard', label: 'Dashboard', screen: 'AdminDashboard' },
         { id: 'Feedback', icon: 'forum', label: 'Feedback', screen: 'AdminFeedback' },
         { id: 'Users', icon: 'group', label: 'Users', screen: 'AdminUsers' },
-        { id: 'Content', icon: 'auto_stories', label: 'Content', screen: 'AdminContent' },
+        { id: 'Content', icon: 'menu-book', label: 'Content', screen: 'AdminContent' },
         { id: 'Settings', icon: 'settings', label: 'Settings', screen: 'AdminSettings' }
     ];
 
