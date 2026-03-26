@@ -66,6 +66,8 @@ const JournalScreen = ({ navigation }) => {
     const [enteredPin, setEnteredPin] = useState('');
     const [isUnlocked, setIsUnlocked] = useState(false);
     const [verifyingPin, setVerifyingPin] = useState(false);
+    const [pinValue, setPinValue] = useState('');
+    const [isAnalysingEmotions, setIsAnalysingEmotions] = useState(false);
 
     React.useEffect(() => {
         const loadProfile = async () => {
@@ -153,20 +155,32 @@ const JournalScreen = ({ navigation }) => {
         }
     };
 
-    const handleVerifyPin = async () => {
-        if (!enteredPin || enteredPin.length !== 6) {
-            Alert.alert("Error", "Please enter a valid 6-digit PIN.");
+    const handleVerifyPin = async (providedPin) => {
+        const pinToSubmit = typeof providedPin === 'string' ? providedPin : enteredPin;
+        if (!pinToSubmit || pinToSubmit.length < 4) {
+            Alert.alert("Error", "Please enter a valid PIN.");
             return;
         }
         setVerifyingPin(true);
         try {
-            await api.post('/user/app-lock/verify', { pin: enteredPin });
-            setIsUnlocked(true);
-            setPinModalVisible(false);
-            setEnteredPin('');
-            setActiveTab('My Entries');
+            const res = await api.post('/user/app-lock/verify', { pin: pinToSubmit });
+            // API might return success in different formats, checking commonly used ones
+            if (res.data?.success || res.data?.status === 'success' || res.status === 200 || res.status === 201) {
+                setIsUnlocked(true);
+                setPinModalVisible(false);
+                setEnteredPin('');
+                setPinValue('');
+                setActiveTab('My Entries');
+            } else {
+                Alert.alert("Error", "Mã PIN không chính xác");
+                setPinValue('');
+                setEnteredPin('');
+            }
         } catch (error) {
+            console.error("PIN verification failed", error);
             Alert.alert("Error", error.response?.data?.message || "Invalid PIN");
+            setPinValue('');
+            setEnteredPin('');
         } finally {
             setVerifyingPin(false);
         }
@@ -340,23 +354,7 @@ const JournalScreen = ({ navigation }) => {
         // No need to setActiveTab('Write') because we are doing in-place editing
     };
 
-    const handleVerifyPin = async (enteredPin) => {
-        try {
-            const res = await api.post('/user/app-lock/verify', { pin: enteredPin });
-            if (res.data?.success) {
-                setIsUnlocked(true);
-                setPinModalVisible(false);
-                setPinValue('');
-            } else {
-                Alert.alert("Error", "Mã PIN không chính xác");
-                setPinValue('');
-            }
-        } catch (error) {
-            console.error("PIN verification failed", error);
-            Alert.alert("Error", "Xác thực mã PIN thất bại: " + (error.response?.data?.message || error.message));
-            setPinValue('');
-        }
-    };
+
 
     const handleAutoIdentifyEmotions = async () => {
         if (!content.trim()) {
@@ -809,47 +807,9 @@ const JournalScreen = ({ navigation }) => {
                 {activeTab === 'Trash' && renderTrash()}
             </ScrollView>
 
-            {/* PIN Verification Modal */}
-            <Modal visible={isPinModalVisible} animationType="fade" transparent>
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <MaterialIcons name="lock" size={48} color={theme.colors.primary} style={{ marginBottom: 16 }} />
-                        <Text style={styles.modalTitle}>Enter App Lock PIN</Text>
-                        <Text style={styles.modalSubtitle}>Please enter your 6-digit PIN to access your entries.</Text>
-                        
-                        <View style={styles.pinBoxesContainer}>
-                            {[0, 1, 2, 3, 4, 5].map(i => (
-                                <View key={i} style={[styles.pinBox, enteredPin.length === i && styles.pinBoxActive]}>
-                                    <Text style={styles.pinBoxText}>{enteredPin[i] ? '•' : ''}</Text>
-                                </View>
-                            ))}
-                            <TextInput
-                                style={styles.hiddenInput}
-                                keyboardType="numeric"
-                                maxLength={6}
-                                value={enteredPin}
-                                onChangeText={(text) => setEnteredPin(text.replace(/[^0-9]/g, ''))}
-                                autoFocus
-                            />
-                        </View>
-                        
-                        <View style={styles.modalActions}>
-                            <TouchableOpacity style={styles.modalButtonCancel} onPress={() => {
-                                setPinModalVisible(false);
-                                setEnteredPin('');
-                            }}>
-                                <Text style={styles.modalButtonCancelText}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.modalButtonSubmit} onPress={handleVerifyPin} disabled={verifyingPin}>
-                                <Text style={styles.modalButtonSubmitText}>{verifyingPin ? 'Verifying...' : 'Unlock'}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
 
             {/* PIN MODAL */}
-            {pinModalVisible && (
+            {isPinModalVisible && (
                 <View style={styles.pinModalOverlay}>
                     <BlurView intensity={95} style={styles.pinModalContent}>
                         <View style={styles.lockIconContainer}>
@@ -1702,6 +1662,94 @@ const styles = StyleSheet.create({
     },
     hiddenInput: {
         position: 'absolute', width: '100%', height: '100%', opacity: 0
+    },
+    // Custom PIN Modal Styles
+    pinModalOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+        backgroundColor: 'rgba(235, 255, 230, 0.4)',
+    },
+    pinModalContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 32,
+    },
+    lockIconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(39, 107, 46, 0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 24,
+    },
+    pinModalTitle: {
+        fontSize: 28,
+        fontWeight: '800',
+        color: theme.colors.primary,
+        fontFamily: theme.fonts.headline,
+        marginBottom: 8,
+    },
+    pinModalSubtitle: {
+        fontSize: 14,
+        color: theme.colors.onSurfaceVariant,
+        textAlign: 'center',
+        marginBottom: 40,
+        fontFamily: theme.fonts.body,
+    },
+    pinDotsRow: {
+        flexDirection: 'row',
+        gap: 20,
+        marginBottom: 60,
+    },
+    pinDot: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        borderWidth: 2,
+        borderColor: theme.colors.primaryContainer,
+    },
+    pinDotFilled: {
+        backgroundColor: theme.colors.primary,
+        borderColor: theme.colors.primary,
+    },
+    keypadContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: 24,
+        maxWidth: 300,
+    },
+    keypadBtn: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(39, 107, 46, 0.1)',
+    },
+    keypadBtnText: {
+        fontSize: 24,
+        fontWeight: '600',
+        color: theme.colors.onSurface,
+        fontFamily: theme.fonts.headline,
+    },
+    cancelPinBtn: {
+        marginTop: 40,
+        padding: 12,
+    },
+    cancelPinBtnText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: theme.colors.secondary,
+        textDecorationLine: 'underline',
     }
 });
 

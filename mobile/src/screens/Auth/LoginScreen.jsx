@@ -104,7 +104,7 @@ const LoginScreen = ({ navigation }) => {
                         setShowBanModal(true);
                         return;
                     }
-                } catch (e) {}
+                } catch (e) { }
             }
             const errorMsg = error.response?.data?.message || "Login failed. Please check your information.";
             Alert.alert("Error", errorMsg);
@@ -122,12 +122,12 @@ const LoginScreen = ({ navigation }) => {
             <View style={[styles.bloom, styles.bloom2]} />
 
             <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-                
+
                 {/* Brand Anchor */}
                 <View style={styles.brandSection}>
                     <View style={styles.logoBox}>
-                        <Image 
-                            source={require("../../../assets/images/logo.png")} 
+                        <Image
+                            source={require("../../../assets/images/logo.png")}
                             style={styles.logoImage}
                             resizeMode="contain"
                         />
@@ -160,7 +160,7 @@ const LoginScreen = ({ navigation }) => {
                         <View style={styles.inputGroup}>
                             <View style={styles.labelRow}>
                                 <Text style={styles.label}>Password</Text>
-                                <TouchableOpacity>
+                                <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
                                     <Text style={styles.forgot}>Forgot password?</Text>
                                 </TouchableOpacity>
                             </View>
@@ -178,8 +178,8 @@ const LoginScreen = ({ navigation }) => {
                         </View>
 
                         {/* Submit Button */}
-                        <TouchableOpacity 
-                            style={styles.submitBtnContainer} 
+                        <TouchableOpacity
+                            style={styles.submitBtnContainer}
                             onPress={handleLogin}
                             disabled={loading}
                             activeOpacity={0.8}
@@ -238,7 +238,7 @@ const LoginScreen = ({ navigation }) => {
                         <MaterialIcons name="block" size={48} color={theme.colors.error} style={{ marginBottom: 16 }} />
                         <Text style={styles.banTitle}>Account Banned</Text>
                         <Text style={styles.banSubtitle}>You cannot log in at this time.</Text>
-                        
+
                         <View style={styles.banReasonBox}>
                             <Text style={styles.banReasonLabel}>Reason:</Text>
                             <Text style={styles.banReasonText}>{banData?.banReason || 'Policy Violation'}</Text>
